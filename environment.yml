@@ -1,0 +1,12 @@
+name: mdproj
+
+channels:
+  - memex
+
+dependencies:
+    - supervisor
+    - scipy
+    - numexpr >=2.4
+    - scikit-learn >=0.16.1
+    - cherrypy
+    - joblib

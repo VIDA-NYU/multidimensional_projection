@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<html>
+  <head>
+    <title>Multidimensional Projection</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet", type="text/css", href="css/radviz.css">
+
+  </head>
+
+  <body>
+    <div class="container-fluid">
+      <h2>Multidimensional Projection - Radviz</h2>
+      <div id="myRadvizCanvas" class="radvizCanvas" width="8">
+	<svg/>
+      </div>
+    </div>
+
+
+    <script type="text/javascript", src="scripts/d3.v3/d3.v3.js"></script>
+    <script type="text/javascript", src="scripts/d3.v3/polybrush.js"></script>
+    <script type="text/javascript", src="scripts/d3.v3/d3.layout.cloud.js"></script>
+    <script type="text/javascript", src="scripts/numericJS/numeric-1.2.6.min.js"></script>
+    <script type="text/javascript", src="scripts/jquery-ui/jquery-1.10.0.min.js"></script>
+    <script type="text/javascript", src="scripts/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript", src="scripts/Tooltip.js"></script>
+    <script type="text/javascript", src="scripts/Selector.js"></script>
+    <script type="text/javascript", src="scripts/Sigmoid.js"></script>
+    <script type="text/javascript", src="scripts/RadvizInterface.js"></script>
+    <script type="text/javascript", src="scripts/Radviz.js"></script>
+    <script type="text/javascript", src="scripts/TSP.js"></script>
+    <script type="text/javascript", src="scripts/RadvizViews.js"></script>
+    <script type="text/javascript", src="scripts/WordCloud.js"></script>
+    <script type="text/javascript", src="scripts/RadvizDimensionGroup.js"></script>
+    <script type="text/javascript", src="scripts/scriptRadviz.js"></script>
+    <script type="text/javascript", src="scripts/SortAllDGs.js"></script>
+    <!-- <script> -->
+    <!--   // Initializes main app class after page is loaded. -->
+    <!--   window.onload = function() { -->
+    <!--   CrawlerVis.buildForSeedCrawler(); -->
+    <!--   }; -->
+    <!-- </script> -->
+  </body>
+</html>
+

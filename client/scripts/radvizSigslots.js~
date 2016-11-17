@@ -1,0 +1,3 @@
+var SigSlots = (function() {
+  ////// Signals definition is centralized here.
+  __sig__.available_crawlers_list_loaded = function(crawlers) {};
