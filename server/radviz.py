@@ -13,7 +13,6 @@ class  Radviz:
     
     def loadData_pkl(self, pkl_file):
         self.data = joblib.load(pkl_file)
-        print self.data
         return self.data
 
     def loadFeatures(self, f_file):
@@ -39,7 +38,5 @@ class  Radviz:
                     order = range(0,len(self.features))
                 else:
                     matData = 1-cosine_similarity(np.transpose(self.data))
-                    print matData, np.shape(matData)
                     cities = solve_tsp(matData)
-                    print cities
                     return {"cities": cities, "groupId": 0, "offset": 0}
