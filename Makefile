@@ -10,11 +10,12 @@ CONDA_ENV := $(CONDA_ROOT)/envs/mdproj
 
 CONDA_ENV_TARGET := $(CONDA_ENV)/conda-meta/history
 CHERRY_PY_CONFIG_TARGET := server/config.conf
+TSP_SOLVER_TARGET := ${PWD}/lib/tsp-solver-master/build
 
 # Makefile commands, see below for actual builds
 
 ## all              : set up mdproj development environment
-all: conda_env cherrypy_config 
+all: conda_env cherrypy_config tsp_solver
 
 ## help             : show all commands.
 # Note the double '##' in the line above: this is what's matched to produce
@@ -28,6 +29,8 @@ conda_env: $(CONDA_ENV_TARGET)
 ## cherrypy_config  : Configure CherryPy (set absolute root environment)
 cherrypy_config: $(CHERRY_PY_CONFIG_TARGET)
 
+tsp_solver: $(TSP_SOLVER_TARGET)
+
 # Actual Target work here
 
 $(CONDA_ENV_TARGET): environment.yml
@@ -35,4 +38,11 @@ $(CONDA_ENV_TARGET): environment.yml
 
 $(CHERRY_PY_CONFIG_TARGET): server/config.conf-in
 	sed "s#tools.staticdir.root = .#tools.staticdir.root = ${PWD}/client#g" server/config.conf-in > server/config.conf
+
+$(TSP_SOLVER_TARGET): ${PWD}/lib/tsp-solver-master.zip
+	source activate mdproj; \
+	unzip ${PWD}/lib/tsp-solver-master.zip -d ${PWD}/lib; \
+	pushd ${PWD}/lib/tsp-solver-master; \
+	python setup.py install; \
+	popd	
 
