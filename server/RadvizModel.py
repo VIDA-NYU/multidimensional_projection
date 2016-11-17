@@ -6,12 +6,10 @@ class RadvizModel:
     radviz = None
     
     def getRadvizPoints(self):
-        print "\n\n\n GET RADVIZ POINTS \n\n\n"
         self.radviz = Radviz()
         data = self.radviz.loadData_pkl("data/ht_data_200.pkl").todense()
 
         data = np.transpose(data)
-        print np.shape(data)
         
         features = self.radviz.loadFeatures("data/ht_data_features_200.csv")
         print features
@@ -24,11 +22,7 @@ class RadvizModel:
             return_obj[features[i]] = data[i,:].tolist()[0]
         labels_urls = OrderedDict([("labels",labels), ("urls",urls)])
 
-        print labels_urls
-        
         od = OrderedDict(list(OrderedDict(sorted(return_obj.items())).items()) + list(labels_urls.items()))
-        
-        print od.keys(), len(od.keys())
         
         return od
 
