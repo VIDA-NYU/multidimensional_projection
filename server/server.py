@@ -46,13 +46,11 @@ class Page:
 
   @cherrypy.expose
   def getRadvizPoints(self):
-    print "\n\n\nSERVER GET RADVIZ POINTS\n\n\n"
     result = self.radvizModel.getRadvizPoints()
     return json.dumps(result)
 
   @cherrypy.expose
   def computeTSP(self):
-    print "\n\n\nCompute TSP\n\n\n"
     result = self.radvizModel.computeTSP()
     return json.dumps(result)
 
