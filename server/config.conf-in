@@ -24,6 +24,3 @@ tools.staticdir.dir = img
 tools.staticdir.on = True
 tools.staticdir.dir = libs/bootflat-2.0.4
 
-[/bootstrap-datetimepicker-4.15.35]
-tools.staticdir.on = True
-tools.staticdir.dir = libs/bootstrap-datetimepicker-4.15.35
