@@ -1,5 +1,5 @@
 .form-group {
-    width: 100% !important;
+    width: 30% !important;
 }
 
 g.selected circle {
@@ -43,6 +43,7 @@ body {
     background: white;
     border: 1px solid rgba(220, 220, 220, 1.0);
     margin-bottom: 3px;
+    width: 300px;
 }
 
 .sidebar-dimensions-list .sidebar-dimensions-list-item {
@@ -54,12 +55,14 @@ body {
     border-radius: 3px;
     display: inline-block;
     font-size: 11px;
+    width: 20px;
 }
 
 .sidebar-groups-list .sidebar-groups-list-item {
     margin: 5px;
     border-radius: 3px;
     padding: 1px;
+    width: 300px;
 }
 
 .sidebar-groups-list .sidebar-groups-list-item .sidebar-groups-list-item-element {
@@ -70,6 +73,7 @@ body {
     border-radius: 3px;
     display: inline-block;
     font-size: 11px;
+    width: 20px;
 }
 
 .sidebar-groups-list .sidebar-groups-list-item .sidebar-groups-list-item-element.selected {
