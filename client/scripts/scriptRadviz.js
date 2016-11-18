@@ -33,7 +33,7 @@ scriptRadviz.prototype.renderRadviz = function(res){
         window.radInterface.destroy();
     }
     
-    window.radInterface = new RadvizInterface(radviz,new RadvizViews(el, {diameter: 900, circleOffset: 40}));
+    window.radInterface = new RadvizInterface(radviz,new RadvizViews(el, {diameter: 800, circleOffset: 40}));
     window.radInterface.drawPoints();
 };
 
