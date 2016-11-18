@@ -35,7 +35,6 @@ scriptRadviz.prototype.renderRadviz = function(res){
     
     window.radInterface = new RadvizInterface(radviz,new RadvizViews(el, {diameter: 900, circleOffset: 40}));
     window.radInterface.drawPoints();
-    window.radInterface.callAddGroupButton();
 };
 
 scriptRadviz.start = function(){

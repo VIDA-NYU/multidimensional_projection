@@ -23,6 +23,7 @@ function RadvizInterface(radviz,radViews) {
     this.dynamicColor = false;
     this.currentSelection = [];
     this.currentSelectionMode = "reset";
+    //this.sigmoid = new Sigmoid("#drawSigmoid",this.updateSigmoid);
     this.sizeData = this.radviz.getSizeData();
 
     if (!window.tsp) {
@@ -36,8 +37,14 @@ function RadvizInterface(radviz,radViews) {
         window.sortDGs.setCallbackSolution(this.callbackSortAllDGs);
     }
 
+
+    $("#tooltipDimension").append("<option value='-1'>None</option>");
+    $("#colorDimension").append("<option value='-1'>None</option>");
+    $("#colorDimension").append("<option value='99999'>Density</option>");
+
     var _this = this;
     this.radviz.getDimensionNames().forEach(function (item,idx) {
+        //addDimension( id : number, name_circle: small name, name_attribute: complete name)
         _this.addDimension(idx,idx,item);
     });
     var _this = this;
@@ -45,9 +52,45 @@ function RadvizInterface(radviz,radViews) {
         _this.radviz.updateAnchors(_this.dimensions);
         _this.drawPoints();
     });
+
+    $("#tooltipDimension").val(-1);
+    $("#colorDimension").val(-1);
+
+    $("#tooltipDimension").on("change",function () {
+        var dimensionId = parseInt($(this).val());
+        if (dimensionId >= 0) {
+            _this.showTooltip = true;
+            _this.radviz.tooltip =_this.radviz.myData[_this.dimensions[dimensionId].attribute];
+        } else {
+            _this.showTooltip = false;
+        }
+        _this.drawPoints();
+    });
+    $("#colorDimension").on("change",function () {
+        var dimensionId = parseInt($(this).val());
+        if (dimensionId >= 0) {
+            _this.dynamicColor = true;
+            if (dimensionId < 99999) {
+                _this.radviz.setColorsColumnId(dimensionId);
+            } else {
+                _this.radviz.setColorsColumnId("density");
+            }
+        } else {
+            _this.dynamicColor = false;
+        }
+        _this.drawPoints();
+    });
+    $("#listDimension").on("change",function () {
+        _this.radviz.setSelected(_this.currentSelection);
+    });
 }
 
 RadvizInterface.prototype.destroy = function () {
+    $("#tooltipDimension").html("");
+    $("#colorDimension").html("");
+    $("#listDimension").html("");
+    $("#selectionList").html("");
+    this.tooltip.destroy();
     this.selector.destroyPolybrush();
 };
 
@@ -65,12 +108,16 @@ RadvizInterface.prototype.getSmallestCircleRadius = function () {
 
 RadvizInterface.prototype.addDimension = function (id,name,attribute) {
     var dim = {id: id,name: name,attribute: attribute,available: true,group: false,pos: 0,weight: 1};
+    $("#tooltipDimension").append("<option value='" + id + "'>" + id + " - " + attribute + "</option>");
+    $("#colorDimension").append("<option value='" + id + "'>" + id + " - " + attribute + "</option>");
+    $("#listDimension").append("<option value='" + id + "'>" + id + " - " + attribute + "</option>");
     this.dimensions[id] = dim;
     this.uniqueDimensionsCount++;
     this.draw();
 };
 
 RadvizInterface.prototype.addGroup = function (name,color) {
+
     var id = this.uniqueGroupsCount;
     var gr = {name: name,color: color,dimensions: [],element: new RadvizDimensionGroup(id,name,color,[])};
     this.dimensionsGroups[id] = gr;
@@ -121,6 +168,8 @@ RadvizInterface.prototype.reorderDimensionGroup = function (res) {
 };
 
 RadvizInterface.prototype.callbackSortAllDGs = function(x){
+    console.log(x);
+
     var _this = window.radInterface;
 
     var groupIds = Object.keys(x.anchorAngles);
@@ -161,6 +210,25 @@ RadvizInterface.prototype.callbackSortAllDGs = function(x){
     */
 };
 
+RadvizInterface.prototype.sortAllDGs = function (){
+    /*Fala quais angulos foram usados*/
+    var dgs = {};
+    var idsDAs = {};
+    for (var i in this.dimensions){
+        if (!this.dimensions[i].available){
+            if (!dgs[this.dimensions[i].group]){
+                dgs[this.dimensions[i].group] = [];
+                idsDAs[this.dimensions[i].group] = [];
+            }
+            dgs[this.dimensions[i].group].push((this.dimensions[i].pos * Math.PI * 2) / 360);
+            idsDAs[this.dimensions[i].group].push(i);
+        }
+    }
+
+    window.sortDGs.solveSortAllDGs(dgs,idsDAs, this.sigmoid.scale, this.sigmoid.translate);
+    /**/
+};
+
 RadvizInterface.prototype.addDimensionToGroup = function (dimensionId,groupId) {
     dimensionId = parseInt(dimensionId);
     groupId = parseInt(groupId);
@@ -176,8 +244,13 @@ RadvizInterface.prototype.addDimensionToGroup = function (dimensionId,groupId) {
             anglesUsed.push((this.dimensions[i].pos * Math.PI * 2) / 360); //send the data in radians to R
         }
     }
-    /**/
+
     return anglesUsed;
+    /**/
+
+    // this.radviz.setAnchors(this.dimensions);
+    // this.draw();
+    // this.drawPoints();
 };
 
 RadvizInterface.prototype.removeDimensionFromGroup = function (dimensionId) {
@@ -271,34 +344,24 @@ RadvizInterface.prototype.draw = function () {
     $("#btn-add-group").on("click",function (e) {
         e.preventDefault();
         _this.addGroup("Group " + (_this.uniqueGroupsCount + 1),COLORSCALE[_this.uniqueGroupsCount]);
+	var groupId = 0;
+	var anglesUsed = undefined;
         for(i=0; i<_this.sizeData-2; i++){ //-2 because we do not have to project last two columns (labels and urls) as anchors in the RadViz.
           var a =1;
           var b =0;
           _this.removeDimensionFromGroup(i);
-          _this.addDimensionToGroup(i,b);
+          anglesUsed = _this.addDimensionToGroup(i,b);
           _this.hideDimensionSlider();
           _this.draw();
         }
+	window.tsp.solveTSPCities(_this.dimensionsGroups[groupId].dimensions,groupId, anglesUsed);
+
     });
     $(".sidebar-groups-list-item-remove").off("click");
     $(".sidebar-groups-list-item-remove").on("click",function () {
         _this.removeGroup($(this).attr("data-group-id"));
     });
 
-};
-
-RadvizInterface.prototype.callAddGroupButton = function(){
-    var _this = this;
-    _this.addGroup("Group " + (_this.uniqueGroupsCount + 1),COLORSCALE[_this.uniqueGroupsCount]);
-    var groupId = 0;
-    var anglesUsed = undefined;
-    for(i=0; i<_this.sizeData-2; i++){ //-2 because we do not have to project last two columns (labels and urls) as anchors in the RadViz.
-        var a =1;
-        var b =0;
-        _this.removeDimensionFromGroup(i);
-        anglesUsed = _this.addDimensionToGroup(i,b);
-    }
-    window.tsp.solveTSPCities(this.dimensionsGroups[groupId].dimensions,groupId, anglesUsed);
 };
 
 RadvizInterface.prototype.drawPoints = function () {
@@ -321,9 +384,9 @@ RadvizInterface.prototype.drawPoints = function () {
 
     var _this = this;
     var proj = this.radviz.computeProjection();
-    _this.getSvg().selectAll(".dot").remove();
+    radInterface.getSvg().selectAll(".dot").remove();
     if (proj.length > 0){
-        _this.getSvg().selectAll(".dot")
+        radInterface.getSvg().selectAll(".dot")
             .data(proj)
             .enter().append("circle")
             .attr("class", function (d,idx) {
@@ -464,7 +527,7 @@ RadvizInterface.prototype.selectMultipleItems = function (selection) {
         });
     }
     this.radviz.setSelected(this.currentSelection);
-    // this.radviz.setSelectedWordCloud(this.currentSelection);
+    this.radviz.setSelectedWordCloud(this.currentSelection);
     this.drawPoints();
 };
 
@@ -479,5 +542,11 @@ RadvizInterface.prototype.doSelectionAction = function (actionMode) {
     window.radInterface.currentSelection=[];
     window.radInterface.radviz.setSelected(this.currentSelection);
 
+    window.radInterface.drawPoints();
+};
+
+RadvizInterface.prototype.updateSigmoid = function (translate,scale) {
+    var _this = this;
+    window.radInterface.radviz.updateSigmoid(translate,scale);
     window.radInterface.drawPoints();
 };

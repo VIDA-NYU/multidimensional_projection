@@ -16,6 +16,7 @@ function Radviz(data){
     this.hidden = [];
     this.translate = 1;
     this.scale = 10;
+    this.radvisWC = new RadvizWordCloud();
 }
 
 Radviz.prototype.updateSigmoid = function (translate,scale) {
@@ -69,9 +70,43 @@ Radviz.prototype.setSelected = function (selection) {
     for (var id in selection){
         this.selected[selection[id]] = true;
         $("#selectionList").append("<option value='" + selection[id] + "'>" + this.myData[this.dimNames[parseInt($("#listDimension").val())]][selection[id]]);
+        //sonia$("#selectionList").append("<option value='" + selection[id] + "'>" + selection[id] + ": " + this.myData[this.dimNames[parseInt($("#listDimension").val())]][selection[id]] + "</option>");
     }
 
 };
+
+//Sonia
+Radviz.prototype.setSelectedWordCloud = function(selection){
+  $('#wordCloudR').html('');
+  var frequency_list = [];
+  var hashmapTerms = {};
+  console.log("size selection: " + selection.length);
+  if(selection.length > 0){
+  for(var a in this.dimNames){
+      d3.select(".dimension-" + a + " text").attr("font-weight", "normal").style("text-decoration", "none").style("fill", "#2c3e50"); //dimensionId =a
+      var nameFeature= this.dimNames[a];
+      if(nameFeature != "labels" && nameFeature != "urls"){
+        hashmapTerms[nameFeature]=0;
+        for (var id in selection){
+          var frequencyTerm = this.myData[nameFeature][selection[id]];
+          hashmapTerms[nameFeature]=hashmapTerms[nameFeature] + frequencyTerm;
+        }
+        if(hashmapTerms[nameFeature] > 0)  {
+            d3.select(".dimension-" + a + " text").attr("font-weight", "bold").style("text-decoration", "underline").style("fill", "#0000CD"); //dimensionId =a
+	    frequency_list.push({'text': nameFeature, 'size': hashmapTerms[nameFeature] });
+        }
+      }
+    }
+  }
+  else{
+    for(var a in this.dimNames){
+        d3.select(".dimension-" + a + " text").attr("font-weight", "normal").style("text-decoration", "none").style("fill", "#2c3e50");
+    }
+  }
+
+  RadvizWordCloud.prototype.wordCloud(frequency_list);
+}
+
 
 
 Radviz.prototype.setColorsColumnId = function (columnId) {
@@ -124,12 +159,17 @@ Radviz.prototype.normalizeData = function(){
 };
 
 Radviz.prototype.sigmoid = function(x){
+    //sigmoid = 1/(1+exp(-x)) //image == [0,1]
+    //sigmoid compressed [-1/2,1/2] = 1/(1+exp(-10x))
+    //sigmoid compressed translated [0, 1] = 1/(1+exp(-10*x + 5))
     return (1/(1+Math.exp(-(this.scale*(x + this.translate)))));
+    //return (1/(1+Math.exp(-10*x+5))); //D = [0,1] Im = [0,1]
 };
 
 Radviz.prototype.compute_yi = function(){
     this.yi = []; //used in computeProjection method. Only needs to be updated when data changes
     var _this = this;
+
     for (var i = 0; i < this.matrix.length; i++){
         var aux_yi = 0;
         var x = this.matrix[i];
@@ -142,6 +182,7 @@ Radviz.prototype.compute_yi = function(){
 };
 
 Radviz.prototype.setAnchors = function(anchors) {
+    //compute matrix data again, from data and columns
     var colNames = [];
     this.anchorAngles = [];
     var _this = this;
