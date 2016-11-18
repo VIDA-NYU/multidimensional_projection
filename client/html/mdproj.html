@@ -7,8 +7,10 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    
     <link rel="stylesheet", type="text/css", href="css/radviz.css">
+    <link rel="stylesheet" href="bootflat-2.0.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="bootflat-2.0.4/css/bootflat.min.css">
 
   </head>
 
@@ -16,30 +18,16 @@
     <div class="container-fluid">
       <h2>Multidimensional Projection - Radviz</h2>
       <div class="row">
-	<div class="col-sm-3 well">
-          <div class="form-group shiny-input-container">
-            <label>Choose file to upload</label>
-            <div class="input-group">
-              <label class="input-group-btn">
-                <span class="btn btn-default btn-file">
-                  Browse...
-                  <input id="file1" name="file1" type="file" style="display: none;" accept="text/csv,text/comma-separated-values,text/tab-separated-values,text/plain,.csv,.tsv" class="shiny-bound-input">
-                </span>
-              </label>
-              <input type="text" class="form-control" placeholder="No file selected" readonly="readonly">
-            </div>
-            <div id="file1_progress" class="progress progress-striped active shiny-file-input-progress">
-              <div class="progress-bar"></div>
-            </div>
-          </div>
-          <div class="sidebar-dimensions" checked="">
-            <p>Available Dimensions:</p>
-            <div class="sidebar-dimensions-list"></div>
-          </div>
+	<div class="col-sm-2 well">
+	  <button id="btn-add-group" class="btn btn-block btn-primary">Add Group</button>
           <div class="sidebar-dimensions" checked="">
             <p>Dimensions Groups:</p>
             <div class="sidebar-groups-list"></div>
-            <button id="btn-add-group" class="btn btn-block btn-primary">Add Group</button>
+          </div>
+	  
+          <div class="sidebar-dimensions" checked="">
+            <p>Available Dimensions:</p>
+            <div class="sidebar-dimensions-list"></div>
           </div>
           <div id="dimensionSlider" class="hidden">
             <div class="form-group shiny-input-container">
@@ -60,36 +48,14 @@
             </div>
           </div>
         </div>
-	<div class="col-sm-6">
-	  <div id="myRadvizCanvas" class="radvizCanvas" width="8">
+	<div class="col-sm-8">
+	  <div id="myRadvizCanvas" class="radvizCanvas">
 	    <svg><svg/>
 	  </div>
 	</div>
 
 
-	<div class="col-sm-3 well">
-          <!-- <strong>Selector</strong> -->
-          <!-- <div class="btn-group btn-group-justified" data-toggle="buttons"> -->
-	  <!--   <label class="btn btn-danger active" id="btn-reset-selection"> -->
-          <!--     <input type="radio" autocomplete="off" checked=""> Reset -->
-	  <!--   </label> -->
-	  <!--   <label class="btn btn-danger" id="btn-add-selection"> -->
-          <!--     <input type="radio" autocomplete="off"> Add -->
-	  <!--   </label> -->
-	  <!--   <label class="btn btn-danger" id="btn-sub-selection"> -->
-          <!--     <input type="radio" autocomplete="off"> Sub -->
-	  <!--   </label> -->
-	  <!--   <label class="btn btn-danger" id="btn-anchor-selection"> -->
-          <!--     <input type="radio" autocomplete="off"> Anchor -->
-	  <!--   </label> -->
-	  <!-- </div> -->
-          <!-- <div id="anchorSelectorSlider" class=""> -->
-          <!--   <div class="form-group shiny-input-container"> -->
-          <!--     <label class="control-label" for="anchorSelectorSliderController">Anchor Distance</label> -->
-          <!--     <span class="irs js-irs-1 irs-with-grid"><span class="irs"><span class="irs-line" tabindex="-1"><span class="irs-line-left"></span><span class="irs-line-mid"></span><span class="irs-line-right"></span></span><span class="irs-min" style="visibility: hidden;">0.01</span><span class="irs-max" style="visibility: visible;">1</span><span class="irs-from" style="visibility: hidden;">0</span><span class="irs-to" style="visibility: hidden;">0</span><span class="irs-single" style="left: 8.61168%;">0.1</span></span><span class="irs-grid" style="width: 92.9712%; left: 3.41438%;"><span class="irs-grid-pol" style="left: 0%"></span><span class="irs-grid-text js-grid-text-0" style="left: 0%; margin-left: -3.67412%;">0.01</span><span class="irs-grid-pol small" style="left: 6.734006734%"></span><span class="irs-grid-pol small" style="left: 3.367003367%"></span><span class="irs-grid-pol" style="left: 10.101010101%"></span><span class="irs-grid-text js-grid-text-1" style="left: 10.101%; visibility: visible; margin-left: -3.83387%;">0.11</span><span class="irs-grid-pol small" style="left: 16.835016835%"></span><span class="irs-grid-pol small" style="left: 13.468013468%"></span><span class="irs-grid-pol" style="left: 20.202020202%"></span><span class="irs-grid-text js-grid-text-2" style="left: 20.202%; visibility: visible; margin-left: -3.83387%;">0.21</span><span class="irs-grid-pol small" style="left: 26.936026936%"></span><span class="irs-grid-pol small" style="left: 23.569023569%"></span><span class="irs-grid-pol" style="left: 30.303030303%"></span><span class="irs-grid-text js-grid-text-3" style="left: 30.303%; visibility: visible; margin-left: -3.67412%;">0.31</span><span class="irs-grid-pol small" style="left: 37.037037037%"></span><span class="irs-grid-pol small" style="left: 33.67003367%"></span><span class="irs-grid-pol" style="left: 40.404040404%"></span><span class="irs-grid-text js-grid-text-4" style="left: 40.404%; margin-left: -3.83387%;">0.41</span><span class="irs-grid-pol small" style="left: 47.138047138%"></span><span class="irs-grid-pol small" style="left: 43.771043771%"></span><span class="irs-grid-pol" style="left: 50.505050505%"></span><span class="irs-grid-text js-grid-text-5" style="left: 50.5051%; visibility: visible; margin-left: -3.83387%;">0.51</span><span class="irs-grid-pol small" style="left: 57.239057239%"></span><span class="irs-grid-pol small" style="left: 53.872053872%"></span><span class="irs-grid-pol" style="left: 60.606060606%"></span><span class="irs-grid-text js-grid-text-6" style="left: 60.6061%; visibility: visible; margin-left: -3.67412%;">0.61</span><span class="irs-grid-pol small" style="left: 67.34006734%"></span><span class="irs-grid-pol small" style="left: 63.973063973%"></span><span class="irs-grid-pol" style="left: 70.707070707%"></span><span class="irs-grid-text js-grid-text-7" style="left: 70.7071%; visibility: visible; margin-left: -3.83387%;">0.71</span><span class="irs-grid-pol small" style="left: 77.441077441%"></span><span class="irs-grid-pol small" style="left: 74.074074074%"></span><span class="irs-grid-pol" style="left: 80.808080808%"></span><span class="irs-grid-text js-grid-text-8" style="left: 80.8081%; margin-left: -3.83387%;">0.81</span><span class="irs-grid-pol small" style="left: 87.542087542%"></span><span class="irs-grid-pol small" style="left: 84.175084175%"></span><span class="irs-grid-pol" style="left: 90.909090909%"></span><span class="irs-grid-text js-grid-text-9" style="left: 90.9091%; visibility: visible; margin-left: -3.83387%;">0.91</span><span class="irs-grid-pol" style="left: 100%"></span><span class="irs-grid-text js-grid-text-10" style="left: 100%; visibility: visible; margin-left: -1.75719%;">1</span></span><span class="irs-bar" style="cursor: ew-resize; left: 3.51438%; width: 8.45193%;"></span><span class="irs-bar-edge"></span><span class="irs-shadow shadow-single" style="display: none;"></span><span class="irs-slider single" style="left: 8.45193%;"></span></span><input class="js-range-slider irs-hidden-input shiny-bound-input" id="anchorSelectorSliderController" data-min="0.01" data-max="1" data-from="0.1" data-step="0.01" data-grid="true" data-grid-num="9.9" data-grid-snap="false" data-keyboard="true" data-keyboard-step="1.01010101010101" data-drag-interval="true" data-data-type="number" data-prettify-separator="," readonly=""> -->
-          <!--   </div> -->
-          <!-- </div> -->
-          <!-- <hr> -->
+	<div class="col-sm-2 well">
           <div class="form-group shiny-input-container">
             <label class="control-label" for="listDimension">Label Dimension</label>
             <div>
@@ -100,13 +66,10 @@
             <label class="control-label" for="selectionList">Selected Elements</label>
             <div>
               <select id="selectionList" class="form-control shiny-bound-input" multiple="multiple">
-		<!-- <option value="36">0</option><option value="37">0</option><option value="38">0</option><option value="81">0</option><option value="82">0</option><option value="85">0</option><option value="99">0</option><option value="103">0</option><option value="104">0</option><option value="105">0</option><option value="114">0</option><option value="124">0</option><option value="125">0</option><option value="126">0</option><option value="127">0</option><option value="128">0</option><option value="132">0</option><option value="145">0</option><option value="179">0</option><option value="197">0</option><option value="198">0</option><option value="268">0</option><option value="271">0</option><option value="277">0</option><option value="279">0</option><option value="286">0</option><option value="287">0</option><option value="288">0</option><option value="289">0</option><option value="290">0</option><option value="291">0</option><option value="292">0</option><option value="363">0</option><option value="368">0</option><option value="387">0</option><option value="388">0</option><option value="389">0</option><option value="390">0</option><option value="391">0</option><option value="392">0</option><option value="393">0</option><option value="394">0</option><option value="436">0</option>-->
 	      </select> 
             </div>
           </div>
-          <div id="wordCloudR" class="shiny-plot-output shiny-bound-output" style="width: 100% ; height: 250px">
-	    <svg width="400" height="250">
-	    </svg>
+          <div id="wordCloudR" class="shiny-plot-output shiny-bound-output" style="width: 100% ; height: 400px">
 	  </div>
           <div class="row">
 	    <div class="col-md-12">
@@ -119,18 +82,13 @@
 	  </div>
       </div>
     </div>
-
-    <!-- <script type="application/html-dependencies">json2[2014.02.04];jquery[1.12.4];babel-polyfill[6.7.2];shiny[0.14.1];ionrangeslider[2.1.2];strftime[0.9.2];bootstrap[3.3.7]</script> -->
-    <!-- <script src="scripts/shared/jquery.min.js"></script> -->
-    <!-- <link href="scripts/shared/ionrangeslider/css/ion.rangeSlider.css" rel="stylesheet"> -->
-    <!-- <link href="scripts/shared/ionrangeslider/css/ion.rangeSlider.skinShiny.css" rel="stylesheet"> -->
-    <!-- <script src="scripts/shared/ionrangeslider/js/ion.rangeSlider.min.js"></script> -->
     <script type="text/javascript", src="scripts/d3.v3/d3.v3.js"></script>
     <script type="text/javascript", src="scripts/d3.v3/polybrush.js"></script>
     <script type="text/javascript", src="scripts/d3.v3/d3.layout.cloud.js"></script>
     <script type="text/javascript", src="scripts/numericJS/numeric-1.2.6.min.js"></script>
     <script type="text/javascript", src="scripts/jquery-ui/jquery-1.10.0.min.js"></script>
     <script type="text/javascript", src="scripts/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript", src="scripts/bootstrap/bootstrap.min.js"></script>
     <script type="text/javascript", src="scripts/Tooltip.js"></script>
     <script type="text/javascript", src="scripts/Selector.js"></script>
     <script type="text/javascript", src="scripts/Sigmoid.js"></script>
