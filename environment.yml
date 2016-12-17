@@ -1,7 +1,10 @@
 name: mdproj
 
 channels:
+  - nodefaults
   - memex
+  - anaconda
+
 
 dependencies:
     - supervisor
@@ -10,3 +13,4 @@ dependencies:
     - scikit-learn >=0.16.1
     - cherrypy
     - joblib
+    - nodejs
