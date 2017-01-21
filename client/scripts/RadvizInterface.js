@@ -211,6 +211,7 @@ RadvizInterface.prototype.callbackSortAllDGs = function(x){
 };
 
 RadvizInterface.prototype.sortAllDGs = function (){
+  console.log("sortAllDGs");
     /*Fala quais angulos foram usados*/
     var dgs = {};
     var idsDAs = {};
@@ -344,18 +345,17 @@ RadvizInterface.prototype.draw = function () {
     $("#btn-add-group").on("click",function (e) {
         e.preventDefault();
         _this.addGroup("Group " + (_this.uniqueGroupsCount + 1),COLORSCALE[_this.uniqueGroupsCount]);
-	var groupId = 0;
-	var anglesUsed = undefined;
-        for(i=0; i<_this.sizeData-2; i++){ //-2 because we do not have to project last two columns (labels and urls) as anchors in the RadViz.
-          var a =1;
-          var b =0;
-          _this.removeDimensionFromGroup(i);
-          anglesUsed = _this.addDimensionToGroup(i,b);
-          _this.hideDimensionSlider();
-          _this.draw();
-        }
-	window.tsp.solveTSPCities(_this.dimensionsGroups[groupId].dimensions,groupId, anglesUsed);
-
+      	var groupId = 0;
+      	var anglesUsed = undefined;
+              for(i=0; i<_this.sizeData-2; i++){ //-2 because we do not have to project last two columns (labels and urls) as anchors in the RadViz.
+                var a =1;
+                var b =0;
+                _this.removeDimensionFromGroup(i);
+                anglesUsed = _this.addDimensionToGroup(i,b);
+                _this.hideDimensionSlider();
+                _this.draw();
+              }
+      	window.tsp.solveTSPCities(_this.dimensionsGroups[groupId].dimensions,groupId, anglesUsed);
     });
     $(".sidebar-groups-list-item-remove").off("click");
     $(".sidebar-groups-list-item-remove").on("click",function () {
