@@ -30,7 +30,7 @@ class Page:
   # Default constructor reading app config file.
   def __init__(self):
     # Folder with html content.
-    self._HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), u"../client/html")
+    self._HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), u"../client/mdproj_react/build")
     self.lock = Lock()
     self.radvizModel = RadvizModel()
 
@@ -38,7 +38,7 @@ class Page:
   @cherrypy.expose
   def mdprojvis(self):
     # TODO Use SeedCrawlerModelAdapter self._crawler = SeedCrawlerModelAdapter()
-    return open(os.path.join(self._HTML_DIR, u"mdproj.html"))
+    return open(os.path.join(self._HTML_DIR, u"index.html"))
 
   @cherrypy.expose
   def index(self):
@@ -76,5 +76,3 @@ else:
   # This branch is for the test suite; you can ignore it.
   config = Page.getConfig()
   app = cherrypy.tree.mount(page, config=config)
-
-  
