@@ -46,14 +46,25 @@ class RadViz extends Component {
             // computing the denominator of radviz (sums of entries). Also initializing selected array (dots that are selected)
             let denominators = [];
             let selected = [];
-            for (let i = 0; i < props.data.length; ++i){ //starting from zero to compute the "sums" for every sample
+            for (let i = 0; i < props.data.length; ++i){
                 let aux = [];
             	selected.push(false);
                 denominators.push(0);
+                // normalizing data by columns => equal weights to all dimensions (words)
+                let max_entry_by_row = -1;
                 for (let j = 0; j < nDims; ++j){
                     let val = (props.data[i][dimNames[j]] - mins[j])/(maxs[j] - mins[j]);
                     aux.push(val);
-                    denominators[i] += val;
+                    if (val > max_entry_by_row){
+                        max_entry_by_row = val;
+                    }
+                }
+                // normalizing data by rows => sigmoid computation (max entry in row must be equal to 1)
+                if (max_entry_by_row > 0){
+                    for (let j = 0; j < nDims; ++j){
+                        aux[j] /= max_entry_by_row;
+                        denominators[i] += aux[j] * this.sigmoid(aux[j]);
+                    }
                 }
                 normalizedData.push(aux);
             }
@@ -88,8 +99,8 @@ class RadViz extends Component {
         for (let i = 0; i < data.length; ++i){
             let p = [0,0];
             for (let j = 0; j < anchors.length;++j){
-                p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i];
-                p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i];
+                p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i] * this.sigmoid(data[i][j]);
+                p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] *  this.sigmoid(data[i][j]);
             }
             this.currentMapping.push(p);
             ret.push(<circle cx={this.scaleX(p[0])} cy={this.scaleY(p[1])} r={5} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i]}}/>)
@@ -100,13 +111,16 @@ class RadViz extends Component {
 
     stopDrag(e){
     	if (this.state.draggingSelection){
-    		let selected = [];
-    		for (let i = 0; i < this.props.data.length; ++i){
-    			selected.push(this.pointInPolygon(this.currentMapping[i], this.selectionPoly));
-    		}
-    		this.selectionPoly= [];
-    		this.setState({'draggingSelection':false, 'selected':selected})
-    		this.props.callbackSelection(selected);
+            if (this.selectionPoly.length > 0){
+        		let selected = [];
+        		for (let i = 0; i < this.props.data.length; ++i){
+        			selected.push(this.pointInPolygon(this.currentMapping[i], this.selectionPoly));
+        		}
+
+        		this.selectionPoly= [];
+        		this.setState({'draggingSelection':false, 'selected':selected})
+        		this.props.callbackSelection(selected);
+            }
     	}
     	if (this.state.draggingAnchorGroup){
     		let anchorAngles = this.state.anchorAngles.slice();
@@ -128,6 +142,7 @@ class RadViz extends Component {
     }
 
     pointInPolygon(point, polygon){
+        polygon.push(polygon[0])
     	let inside = false;
     	for (let n = polygon.length, i = 0, j = n-1, x = point[0], y = point[1]; i < n; j = i++){
     		let xi = this.scaleX.invert(polygon[i][0]), yi = this.scaleY.invert(polygon[i][1]),
@@ -171,6 +186,10 @@ class RadViz extends Component {
 	        let angleDifference = angle - this.state.startAnchorGroupAngle;
 	        this.setState({"offsetAnchors":angleDifference});
         }
+    }
+
+    sigmoid(x){
+        return (1/(1+Math.exp(-(this.props.sigmoid_scale*(x + this.props.sigmoid_translate)))));
     }
 
     svgPoly(points){
@@ -218,7 +237,7 @@ class RadViz extends Component {
 
             for (let i = 0; i < this.state.nDims; ++i){
                 anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5} 
-                        key={i} onMouseDown={this.startDragAnchor(i)}/>);
+                        key={i} onMouseDown={this.startDragAnchor(i)} style={{cursor:'hand'}}/>);
                 anchorText.push(
                         <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
                         <text x={0} y={0} transform={`rotate(${(this.state.anchorAngles[i] + this.state.offsetAnchors)*180/Math.PI})`}>{this.state.dimNames[i]}</text>
@@ -228,9 +247,9 @@ class RadViz extends Component {
             sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
         }
         return (
-                <svg id={"svg_radviz"} style={{width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none',msUserSelect:'none'}} 
+                <svg id={"svg_radviz"} style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none',msUserSelect:'none'}} 
                 onMouseMove={this.dragSVG}  onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect}>
-	                <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2} style={{stroke:'aquamarine',fill:'none', strokeWidth:5}} onMouseDown={this.startDragAnchorGroup}/>
+	                <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2} style={{stroke:'aquamarine',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
 	                {sampleDots}
 	                {this.svgPoly(this.selectionPoly)}
 	                {anchorText}
@@ -245,6 +264,8 @@ RadViz.defaultProps = {
 	height:500,
 	marginX:200,
 	marginY:200,
+    sigmoid_translate:0,
+    sigmoid_scale:1,
 	colors:["red","green","blue"],
 	callbackSelection:function(selected){}
 }
