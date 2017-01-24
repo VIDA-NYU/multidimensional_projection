@@ -20,9 +20,10 @@ import ActionFavoriteBorder from 'material-ui/svg-icons/action/favorite-border';
 import DropDownMenu from 'material-ui/DropDownMenu';
 import MenuItem from 'material-ui/MenuItem';
 import $ from 'jquery';
-import Numeric from 'numeric';
+import {scaleOrdinal, schemeCategory10} from 'd3-scale';
 
-import {Radviz} from './RadViz';
+import RadViz from './RadViz'
+import SigmoidGraph from './SigmoidGraph'
 const styles = {
   block: {
     maxWidth: 250,
@@ -41,22 +42,71 @@ class Body extends Component {
    this.state={
      flat:0,
      dimensionsElement:[],
-     radvizpoints:undefined,
      value: 0,
+     data:undefined,
+     colors:undefined,
+     originalData:undefined,
+     hideSelected:true,
+     selectedPoints:undefined,
+     'sigmoidScale':1,
+     'sigmoidTranslate':0,
+
    };
+   //this.processResults = this.processResults.bind(this)
+   this.updateLabelColors = this.updateLabelColors.bind(this);
+   this.updateSigmoidScale = this.updateSigmoidScale.bind(this);
+   this.updateSigmoidTranslate = this.updateSigmoidTranslate.bind(this);
+   this.hideSelectedPoints = this.hideSelectedPoints.bind(this);
  };
 
-handleChange = (event, index, value) => this.setState({value});
+ hideSelectedPoints(){
+  this.setState({hideSelected:false,});
+ }
+ saveSelectedPoints(selected)
+ {
+   this.setState({selectedPoints:selected,});
+ }
+
+ updateLabelColors(event, index, value, ){
+   let dimNames = Object.keys(this.state.originalData);
+   let scaleColor = scaleOrdinal(schemeCategory10);
+   let colors = [];
+   for (let i = 0; i < this.state.originalData[dimNames[0]].length; ++i){
+       colors.push(scaleColor(this.state.originalData[dimNames[value-1]][i]));
+   }
+   this.setState({value:value, colors:colors})
+ }
+
+updateSigmoidScale(s){
+    this.setState({'sigmoidScale':s})
+}
+
+updateSigmoidTranslate(s){
+    this.setState({'sigmoidTranslate':s})
+}
+
 
 componentWillMount(){
-  console.log('componentWillMount Body');
-
   $.post(
       '/getRadvizPoints',
       { },
       function(es) {
-        var info = JSON.parse(es);
-        this.setState({radvizpoints: info, flat:1});
+        var data = JSON.parse(es);
+        console.log(Object.keys(data));
+        let numericalData = [];
+        let dimNames = Object.keys(data);
+        let scaleColor = scaleOrdinal(schemeCategory10);
+        let colors = [];
+
+        for (let i = 0; i < data['labels'].length; ++i){
+            colors.push(scaleColor(data['labels'][0]));
+            let aux = {};
+            for (let j = 0; j < dimNames.length-2; ++j){//except urls and labels
+                aux[dimNames[j]] = parseFloat(data[dimNames[j]][i]);
+            }
+            numericalData.push(aux);
+        }
+        this.setState({originalData: data, data:numericalData, colors:colors, flat:1, dimNames: dimNames});
       }.bind(this)
     );
 }
@@ -64,12 +114,10 @@ componentWillMount(){
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
     {
-      if (!this.state.radvizpoints){
-          return;
-      }
-      var radviz = new Radviz(this.state.radvizpoints);
+      console.log(this.state.data);
+      //var radviz = new RadvizUtils(this.state.radvizpoints);
       var dimensions=[];
-      radviz.getDimensionNames().forEach(function (attribute,idx) {
+      this.state.dimNames.forEach(function (attribute,idx) {
           var dim = {id: idx,name: attribute,attribute: attribute,available: true,group: false,pos: 0,weight: 1};
           //addDimension( id : number, name_circle: small name, name_attribute: complete name)
           dimensions.push(dim);
@@ -80,21 +128,23 @@ componentWillMount(){
              <List>
                <Subheader>Sigmoid</Subheader>
                <ListItem>
-                 <p>Translate:</p>
-                 <Slider min={0} max={20} defaultValue={3} />
+                 <p>Translation:</p> <Slider min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
                </ListItem>
                <ListItem>
-                 <p>Scale:</p>
-                 <Slider min={0} max={20} defaultValue={3} />
+                 <p>Scale:</p> <Slider min={0} max={100} step={1} defaultValue={1} onChange={this.updateSigmoidScale}/>
+               </ListItem>
+               <ListItem>
+                <SigmoidGraph sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}/>
                </ListItem>
                <Divider />
                <Subheader>Interaction</Subheader>
                <ListItem>
-                 <RadioButtonGroup name="shipSpeed" defaultSelected="not_light">
+                 <RadioButtonGroup name="shipSpeed" defaultSelected="not_light"   onChange={this.hideSelectedPoints}>
                   <RadioButton
                     value="light"
                     label="Show all"
                     style={styles.radioButton}
+
                   />
                   <RadioButton
                     value="not_light"
@@ -113,10 +163,9 @@ componentWillMount(){
                <Divider />
                <Subheader>Tooltip</Subheader>
                <ListItem>
-                 <DropDownMenu value={this.state.value} onChange={this.handleChange}>
+                 <DropDownMenu value={this.state.value} onChange={this.updateLabelColors}>
                  <MenuItem value={0} primaryText="None" />
                  {Object.keys(dimensions).map((k, index)=>{
-                   console.log(k + "," + dimensions[k].attribute);
                       var attibute = dimensions[k].attribute;
                       var id = index+1;
                       return <MenuItem value={id} primaryText={attibute} />
@@ -126,10 +175,9 @@ componentWillMount(){
                <Divider />
                <Subheader>Color</Subheader>
                <ListItem>
-                 <DropDownMenu value={this.state.value} onChange={this.handleChange}>
+                 <DropDownMenu value={this.state.value} onChange={this.updateLabelColors}>
                  <MenuItem value={0} primaryText="None" />
                  {Object.keys(dimensions).map((k, index)=>{
-                   console.log(k + "," + dimensions[k].attribute);
                       var attibute = dimensions[k].attribute;
                       var id = index+1;
                       return <MenuItem value={id} primaryText={attibute} />
@@ -140,7 +188,7 @@ componentWillMount(){
         </Col>
         <Col  md={8} style={{width:'60%', background:"white"}}>
           <Row className="Menus-child">
-
+          <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} hideSelected={this.state.hideSelected} saveSelectedPoints={this.saveSelectedPoints.bind(this)} selectedPoints={this.state.selectedPoints}/>
           </Row>
         </Col>
         <Col  md={2} style={{background:"white"}}>
