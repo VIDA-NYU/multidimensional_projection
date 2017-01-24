@@ -1,371 +1,364 @@
+import React, { Component } from 'react';
 import numeric from 'numeric';
-function Radviz(data){
-    if (!data){
-        throw "Error. Radviz requires a dataset to work with."
+import {scaleLinear} from 'd3-scale';
+import $ from 'jquery';
+
+class RadViz extends Component {
+
+    constructor(props){
+        super(props);
+        this.state={'draggingAnchor':false};
+        this.startDragSelect = this.startDragSelect.bind(this);
+        this.startDragAnchor = this.startDragAnchor.bind(this);
+        this.stopDrag = this.stopDrag.bind(this);
+        this.dragSVG = this.dragSVG.bind(this);
+        this.selectionPoly = [];
+        this.pointInPolygon = this.pointInPolygon.bind(this);
+        this.startDragAnchorGroup = this.startDragAnchorGroup.bind(this);
     }
-    this.colorIsDensity = true;
-    this.GRID_N = 100;
-    this.densityGrid = new Uint32Array(this.GRID_N*this.GRID_N);
-    this.zeroGrid = new Uint32Array(this.GRID_N*this.GRID_N);
-    this.myData = data;
-    this.normalizeData();
-    this.isContinuous = true;
-    this.matrix = [[]];
-    this.dimNames = Object.keys(data);
-    this.colors = numeric.rep([this.myData[this.dimNames[0]].length], 0);
-    this.selected = [];
-    this.hidden = [];
-    this.translate = 1;
-    this.scale = 10;
-    //this.radvisWC = new RadvizWordCloud();
+    componentWillMount(){
+      console.log('componentWillMount');
+        if (this.props.data){
+            let dimNames = Object.keys(this.props.data[0]);
+            let nDims = dimNames.length;
+
+            // Normalizing columns to [0, 1]
+            let normalizedData = [];
+            let mins = [];
+            let maxs = [];
+
+            for (let j = 0; j < nDims; ++j){
+                mins.push(this.props.data[0][dimNames[j]]);
+                maxs.push(this.props.data[0][dimNames[j]]);
+            }
+
+            for (let i = 1; i < this.props.data.length; ++i){
+                for (let j = 0; j < nDims; ++j){
+                    if (this.props.data[i][dimNames[j]] < mins[j]){
+                        mins[j] = this.props.data[i][dimNames[j]];
+                    }
+                    if (this.props.data[i][dimNames[j]] > maxs[j]){
+                        maxs[j] = this.props.data[i][dimNames[j]];
+                    }
+                }
+            }
+
+            // computing the denominator of radviz (sums of entries). Also initializing selected array (dots that are selected)
+            let denominators = [];
+            let selected = [];
+            for (let i = 0; i < this.props.data.length; ++i){
+                let aux = [];
+            	selected.push(false);
+                denominators.push(0);
+                // normalizing data by columns => equal weights to all dimensions (words)
+                let max_entry_by_row = -1;
+                for (let j = 0; j < nDims; ++j){
+                    let val = (this.props.data[i][dimNames[j]] - mins[j])/(maxs[j] - mins[j]);
+                    aux.push(val);
+                    if (val > max_entry_by_row){
+                        max_entry_by_row = val;
+                    }
+                }
+                // normalizing data by rows => sigmoid computation (max entry in row must be equal to 1)
+                if (max_entry_by_row > 0){
+                    for (let j = 0; j < nDims; ++j){
+                        aux[j] /= max_entry_by_row;
+                        denominators[i] += aux[j] * this.sigmoid(aux[j]);
+                    }
+                }
+                normalizedData.push(aux);
+            }
+
+            // Computing the anchors
+            let anchorAngles = [];
+
+            for (let i = 0; i < nDims; ++i){
+                anchorAngles.push(i * 2*Math.PI / nDims)
+            }
+
+            this.scaleX = scaleLinear().domain([-1,1]).range([this.props.marginX/2, this.props.width-this.props.marginX/2]);
+            this.scaleY = scaleLinear().domain([-1,1]).range([this.props.marginY/2, this.props.height - this.props.marginY/2]);
+
+            this.setState({"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
+            	"anchorAngles":anchorAngles, "denominators":denominators,
+            	"selected":selected, "offsetAnchors":0});
+        }
+    }
+
+    componentWillReceiveProps(props){
+        if (props.data && props.hideSelected){
+            let dimNames = Object.keys(props.data[0]);
+            let nDims = dimNames.length;
+
+            // Normalizing columns to [0, 1]
+            let normalizedData = [];
+            let mins = [];
+            let maxs = [];
+
+            for (let j = 0; j < nDims; ++j){
+                mins.push(props.data[0][dimNames[j]]);
+                maxs.push(props.data[0][dimNames[j]]);
+            }
+
+            for (let i = 1; i < props.data.length; ++i){
+                for (let j = 0; j < nDims; ++j){
+                    if (props.data[i][dimNames[j]] < mins[j]){
+                        mins[j] = props.data[i][dimNames[j]];
+                    }
+                    if (props.data[i][dimNames[j]] > maxs[j]){
+                        maxs[j] = props.data[i][dimNames[j]];
+                    }
+                }
+            }
+
+            // computing the denominator of radviz (sums of entries). Also initializing selected array (dots that are selected)
+            let denominators = [];
+            let selected = [];
+            for (let i = 0; i < props.data.length; ++i){
+                let aux = [];
+            	selected.push(false);
+                denominators.push(0);
+                // normalizing data by columns => equal weights to all dimensions (words)
+                let max_entry_by_row = -1;
+                for (let j = 0; j < nDims; ++j){
+                    let val = (props.data[i][dimNames[j]] - mins[j])/(maxs[j] - mins[j]);
+                    aux.push(val);
+                    if (val > max_entry_by_row){
+                        max_entry_by_row = val;
+                    }
+                }
+                // normalizing data by rows => sigmoid computation (max entry in row must be equal to 1)
+                if (max_entry_by_row > 0){
+                    for (let j = 0; j < nDims; ++j){
+                        aux[j] /= max_entry_by_row;
+                        denominators[i] += aux[j] * this.sigmoid(aux[j]);
+                    }
+                }
+                normalizedData.push(aux);
+            }
+
+            // Computing the anchors
+            let anchorAngles = [];
+
+            for (let i = 0; i < nDims; ++i){
+                anchorAngles.push(i * 2*Math.PI / nDims)
+            }
+
+            this.scaleX = scaleLinear().domain([-1,1]).range([this.props.marginX/2, this.props.width-this.props.marginX/2]);
+            this.scaleY = scaleLinear().domain([-1,1]).range([this.props.marginY/2, this.props.height - this.props.marginY/2]);
+
+            this.setState({"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
+            	"anchorAngles":anchorAngles, "denominators":denominators,
+            	"selected":selected, "offsetAnchors":0});
+        }
+    }
+
+    anglesToXY(anchorAngle, radius=1){
+        let initPoint = [radius, 0];
+        let offset = this.state.offsetAnchors;
+        let rotMat = [[Math.cos(anchorAngle+offset), -Math.sin(anchorAngle+offset)], [Math.sin(anchorAngle+offset), Math.cos(anchorAngle+offset)]];
+        return (numeric.dot(rotMat,initPoint));
+    }
+
+    radvizMapping(data, anchors){
+    	this.currentMapping = [];
+        let ret = [];
+        for (let i = 0; i < data.length; ++i){
+            let p = [0,0];
+            for (let j = 0; j < anchors.length;++j){
+                p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i] * this.sigmoid(data[i][j]);
+                p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] *  this.sigmoid(data[i][j]);
+            }
+            this.currentMapping.push(p);
+            ret.push(<circle cx={this.scaleX(p[0])} cy={this.scaleY(p[1])} r={5} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i]}}/>)
+        }
+        return ret;
+    }
+
+    radvizHideSelectedPoints(data, anchors, selected){
+    	this.currentMapping = [];
+        let ret = [];
+        for (let i = 0; i < data.length; ++i){
+            let p = [0,0];
+            for (let j = 0; j < anchors.length;++j){
+                p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i] * this.sigmoid(data[i][j]);
+                p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] *  this.sigmoid(data[i][j]);
+            }
+            this.currentMapping.push(p);
+            ret.push(<circle cx={this.scaleX(p[0])} cy={this.scaleY(p[1])} r={5} key={i} style={{stroke:(selected[i]?'black':'none'),fill:'black'}}/>)
+        }
+        return ret;
+    }
+
+
+
+    stopDrag(e){
+    	if (this.state.draggingSelection){
+            if (this.selectionPoly.length > 0){
+        		let selected = [];
+        		for (let i = 0; i < this.props.data.length; ++i){
+        			selected.push(this.pointInPolygon(this.currentMapping[i], this.selectionPoly));
+        		}
+
+        		this.selectionPoly= [];
+        		this.setState({'draggingSelection':false, 'selected':selected})
+        		this.props.callbackSelection(selected);
+              //this.props.saveSelectedPoints(selected);
+            }
+
+    	}
+    	if (this.state.draggingAnchorGroup){
+    		let anchorAngles = this.state.anchorAngles.slice();
+    		for (let i = 0; i < anchorAngles.length; ++i){
+    			anchorAngles[i] += this.state.offsetAnchors;
+    		}
+    		this.setState({'draggingAnchorGroup':false, 'startAnchorGroupAngle':0, 'anchorAngles':anchorAngles, 'offsetAnchors':0});
+    	}
+    	if (this.state.draggingAnchor){
+    		this.setState({'draggingAnchor':false});
+    	}
+    }
+
+    startDragAnchor(i){
+        return function(e){
+            this.setState({'draggingAnchor':true, 'draggingAnchor_anchor_id':i});
+            e.stopPropagation();
+        }.bind(this);
+    }
+
+    pointInPolygon(point, polygon){
+        polygon.push(polygon[0])
+    	let inside = false;
+    	for (let n = polygon.length, i = 0, j = n-1, x = point[0], y = point[1]; i < n; j = i++){
+    		let xi = this.scaleX.invert(polygon[i][0]), yi = this.scaleY.invert(polygon[i][1]),
+    		    xj = this.scaleX.invert(polygon[j][0]), yj = this.scaleY.invert(polygon[j][1]);
+    		if ((yi > y ^ yj > y) && (x < (xj - yi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+    	}
+    	return inside;
+    }
+
+    dragSVG(e){
+        let container = $("#svg_radviz").get(0).getBoundingClientRect();
+        let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
+        if (this.state.draggingAnchor){
+            let center=[this.props.width/2, this.props.height/2];
+            let vec=[mouse[0] - center[0], mouse[1]-center[1]];
+            let normVec=numeric.norm2(vec);
+            vec[0] /= normVec;
+            vec[1] /= normVec;
+            // Computing the angle by making a dot product with the [1,0] vector
+            let cosAngle = vec[0];
+            let angle = Math.acos(cosAngle);
+            if (mouse[1] < center[1])
+                angle *= -1;
+            let newAnchorAngles = this.state.anchorAngles.slice();
+            newAnchorAngles[this.state.draggingAnchor_anchor_id] = angle;
+            this.setState({'anchorAngles':newAnchorAngles});
+        }else if(this.state.draggingSelection){
+            this.selectionPoly.push(mouse);
+            this.setState(this.state);
+        }else if(this.state.draggingAnchorGroup){
+	        let center=[this.props.width/2, this.props.height/2];
+	        let vec=[mouse[0] - center[0], mouse[1]-center[1]];
+	        let normVec=numeric.norm2(vec);
+	        vec[0] /= normVec;
+	        vec[1] /= normVec;
+	        // Computing the angle by making a dot product with the [1,0] vector
+	        let cosAngle = vec[0];
+	        let angle = Math.acos(cosAngle);
+	        if (mouse[1] < center[1])
+	            angle *= -1;
+	        let angleDifference = angle - this.state.startAnchorGroupAngle;
+	        this.setState({"offsetAnchors":angleDifference});
+        }
+    }
+
+    sigmoid(x){
+        return (1/(1+Math.exp(-(this.props.sigmoid_scale*(x + this.props.sigmoid_translate)))));
+    }
+
+    svgPoly(points){
+        if (points && points.length > 0){
+            let pointsStr = "";
+            for (let i = 0; i < points.length; ++i){
+                pointsStr = pointsStr + points[i][0] + "," + points[i][1] + " "
+            }
+            return (<polygon points={pointsStr} style={{fill:'rgba(0,75,100,0.4)',stroke:'none',strokeWidth:1}}/> )
+        }else{
+            return ;
+        }
+    }
+
+    startDragSelect(e){
+        this.setState({'draggingSelection':true})
+            this.selectionPoly = [];
+    }
+
+    startDragAnchorGroup(e){
+    	let container = $("#svg_radviz").get(0).getBoundingClientRect();
+        let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
+        let center=[this.props.width/2, this.props.height/2];
+        let vec=[mouse[0] - center[0], mouse[1]-center[1]];
+        let normVec=numeric.norm2(vec);
+        vec[0] /= normVec;
+        vec[1] /= normVec;
+        // Computing the angle by making a dot product with the [1,0] vector
+        let cosAngle = vec[0];
+        let angle = Math.acos(cosAngle);
+        if (mouse[1] < center[1])
+            angle *= -1;
+        e.stopPropagation();
+    	this.setState({'draggingAnchorGroup':true, 'startAnchorGroupAngle':angle});
+    }
+
+    render() {
+      console.log("rendering radViz");
+        let sampleDots = [];
+        let anchorDots = [];
+        let anchorText = [];
+        if (this.props.data){
+            let anchorXY = [];
+            for (let i = 0; i < this.state.nDims; ++i)
+                anchorXY.push(this.anglesToXY(this.state.anchorAngles[i], 1));
+
+            for (let i = 0; i < this.state.nDims; ++i){
+                anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
+                        key={i} onMouseDown={this.startDragAnchor(i)} style={{cursor:'hand'}}/>);
+                anchorText.push(
+                        <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
+                        <text x={0} y={0} transform={`rotate(${(this.state.anchorAngles[i] + this.state.offsetAnchors)*180/Math.PI})`}>{this.state.dimNames[i]}</text>
+                        </g>);
+            }
+
+            if(this.props.hideSelected){
+              sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
+            }
+            else{
+              sampleDots = this.radvizHideSelectedPoints(this.state.normalizedData, anchorXY, this.props.selectedPoints);
+            }
+        }
+        return (
+                <svg id={"svg_radviz"} style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none',msUserSelect:'none'}}
+                onMouseMove={this.dragSVG}  onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect}>
+	                <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2} style={{stroke:'aquamarine',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
+	                {sampleDots}
+	                {this.svgPoly(this.selectionPoly)}
+	                {anchorText}
+	                {anchorDots}
+                </svg>
+               );
+    }
 }
 
-Radviz.prototype.updateSigmoid = function (translate,scale) {
-    this.translate = translate;
-    this.scale = scale;
-    this.compute_yi();
-};
+RadViz.defaultProps = {
+	width:1000,
+	height:1000,
+	marginX:200,
+	marginY:200,
+    sigmoid_translate:0,
+    sigmoid_scale:1,
+	colors:["red","green","blue"],
+	callbackSelection:function(selected){}
+}
 
-
-Radviz.prototype.asFactor = function(d)
-{
-    var map = {},unique=[], factor = [], contUnique = 1;
-    for(var i = 0; i < d.length; i++)
-    {
-        if (!map[d[i]])
-        {
-            map[d[i]] = contUnique;
-            factor.push(contUnique);
-            unique.push(d[i]);
-            contUnique++;
-        }else{
-            factor.push(map[d[i]]);
-        }
-    }
-    return {mapElements: map, factor: factor};
-};
-
-Radviz.prototype.setHideElements = function (selection) {
-    for (var id in selection){
-        this.hidden[selection[id]] = true;
-    }
-};
-
-Radviz.prototype.setHideUnselected = function (selection) {
-    for (var id = 0; id < this.matrix.length; id++){
-        if (selection.indexOf(id) < 0) { //didn't find in selection
-            this.hidden[id] = true;
-        }
-    }
-};
-
-Radviz.prototype.unhideAll = function(){
-    this.hidden = [];
-};
-
-
-/*Radviz.prototype.setSelected = function (selection) {
-    this.selected = [];
-    var _this = this;
-    $("#selectionList").html('');
-    for (var id in selection){
-        this.selected[selection[id]] = true;
-        $("#selectionList").append("<option value='" + selection[id] + "'>" + this.myData[this.dimNames[parseInt($("#listDimension").val())]][selection[id]]);
-        //sonia$("#selectionList").append("<option value='" + selection[id] + "'>" + selection[id] + ": " + this.myData[this.dimNames[parseInt($("#listDimension").val())]][selection[id]] + "</option>");
-    }
-
-};*/
-
-//Sonia
-/*Radviz.prototype.setSelectedWordCloud = function(selection){
-  $('#wordCloudR').html('');
-  var frequency_list = [];
-  var hashmapTerms = {};
-  console.log("size selection: " + selection.length);
-  if(selection.length > 0){
-  for(var a in this.dimNames){
-      d3.select(".dimension-" + a + " text").attr("font-weight", "normal").style("text-decoration", "none").style("fill", "#2c3e50"); //dimensionId =a
-      var nameFeature= this.dimNames[a];
-      if(nameFeature != "labels" && nameFeature != "urls"){
-        hashmapTerms[nameFeature]=0;
-        for (var id in selection){
-          var frequencyTerm = this.myData[nameFeature][selection[id]];
-          hashmapTerms[nameFeature]=hashmapTerms[nameFeature] + frequencyTerm;
-        }
-        if(hashmapTerms[nameFeature] > 0)  {
-            d3.select(".dimension-" + a + " text").attr("font-weight", "bold").style("text-decoration", "underline").style("fill", "#0000CD"); //dimensionId =a
-	    frequency_list.push({'text': nameFeature, 'size': hashmapTerms[nameFeature] });
-        }
-      }
-    }
-  }
-  else{
-    for(var a in this.dimNames){
-        d3.select(".dimension-" + a + " text").attr("font-weight", "normal").style("text-decoration", "none").style("fill", "#2c3e50");
-    }
-  }
-
-  RadvizWordCloud.prototype.wordCloud(frequency_list);
-}*/
-
-
-
-Radviz.prototype.setColorsColumnId = function (columnId) {
-    if (columnId == "density"){
-        this.colorIsDensity = true;
-        this.isContinuous = true;
-        this.colors = numeric.rep([this.myData[this.dimNames[0]].length], 0);
-    }else {
-        this.colorIsDensity = false;
-        if (isNaN(this.myData[this.dimNames[columnId]][0])) {
-            this.isContinuous = false;
-            var factor = this.asFactor(this.myData[this.dimNames[columnId]]);
-            this.colors = factor.factor;
-        } else {
-            this.isContinuous = true;
-            this.colors = this.myData[this.dimNames[columnId]];
-        }
-    }
-};
-
-Radviz.prototype.normalizeData = function(){
-    /*for(var i in this.myData){
-      var j;
-      for (j = 0; j < this.myData[i].length; j++) {
-        alert(this.myData[i][j]);
-      }
-    }*/
-    for (var c in this.myData){
-        var i;
-        if (!isNaN(this.myData[c][0])) {
-
-            var min = this.myData[c][0];
-            var max = this.myData[c][0];
-            for (i = 0; i < this.myData[c].length; i++) {
-                //alert(this.myData[c].length);
-                if (this.myData[c][i] < min) {
-                    min = this.myData[c][i];
-                } else if (this.myData[c][i] > max) {
-                    max = this.myData[c][i];
-                }
-            }
-            if (max == 0){
-                max = 1;
-            }
-            for (i = 0; i < this.myData[c].length; i++) {
-                this.myData[c][i] = (this.myData[c][i] - min) / (max - min);
-            }
-        }
-    }
-};
-
-Radviz.prototype.sigmoid = function(x){
-    //sigmoid = 1/(1+exp(-x)) //image == [0,1]
-    //sigmoid compressed [-1/2,1/2] = 1/(1+exp(-10x))
-    //sigmoid compressed translated [0, 1] = 1/(1+exp(-10*x + 5))
-    return (1/(1+Math.exp(-(this.scale*(x + this.translate)))));
-    //return (1/(1+Math.exp(-10*x+5))); //D = [0,1] Im = [0,1]
-};
-
-Radviz.prototype.compute_yi = function(){
-    this.yi = []; //used in computeProjection method. Only needs to be updated when data changes
-    var _this = this;
-
-    for (var i = 0; i < this.matrix.length; i++){
-        var aux_yi = 0;
-        var x = this.matrix[i];
-        for (var j = 0; j < x.length; j++){
-            aux_yi += x[j] * (/*1+*/ _this.weights[j] * _this.sigmoid(x[j]));
-        }
-        if (aux_yi == 0) aux_yi = 1;
-        this.yi.push(aux_yi)
-    }
-};
-
-Radviz.prototype.setAnchors = function(anchors) {
-    //compute matrix data again, from data and columns
-    var colNames = [];
-    this.anchorAngles = [];
-    var _this = this;
-    this.weights = [];
-    var groupColumns = [];
-	var colMatrix = 0;
-    anchors.forEach(function(a){
-        if (!a.available) {
-            colNames.push(a.attribute);
-            _this.anchorAngles.push((a.pos*Math.PI*2)/360); //converts from degree (D3) to radians (js math)
-            _this.weights.push(a.weight /*-1*/);
-            if (!groupColumns[a.group]){
-                groupColumns[a.group] = []
-            }
-            groupColumns[a.group].push(colMatrix); // column in which dimension will be added.
-			colMatrix++;
-        }
-    });
-    this.selectColumns(colNames, groupColumns);
-    this.compute_yi();
-};
-
-
-Radviz.prototype.updateAnchors = function(anchors) {
-    this.anchorAngles = [];
-    this.weights = [];
-    var _this = this;
-    anchors.forEach(function(a){
-        if (!a.available) {
-            _this.anchorAngles.push((a.pos*Math.PI*2)/360); //converts from degree (D3) to radians (js math)
-            if (isNaN(a.weight)){
-                _this.weights.push(0);
-            }else{
-                _this.weights.push(a.weight/*-1*/);
-            }
-        }
-    });
-    this.compute_yi();
-};
-
-Radviz.prototype.anglesToXY = function(){ //transform this.anchorAngles to position matrix[[x,y]] and returns
-    var initPoint = [1,0];
-    var anchorMatrix = [];
-    this.anchorAngles.forEach(function(angle){
-        var rotMat = [[Math.cos(angle), -Math.sin(angle)], [Math.sin(angle), Math.cos(angle)]];
-        anchorMatrix.push(numeric.dot(rotMat,initPoint));
-    });
-    return anchorMatrix;
-};
-
-Radviz.prototype.computeProjection = function() {
-    if (this.matrix[0].length == 0){
-        return ([]);
-    }
-    this.densityGrid.set(this.zeroGrid);
-    this.maxDensity = 0;
-    var anchors = this.anglesToXY();
-    var nrow = this.matrix.length;
-    var ncol = this.matrix[0].length;
-    var proj = [];
-    for (var i = 0; i < nrow; i++) {
-        var _x = 0, _y = 0;
-        var matrix_i = this.matrix[i];
-        for (var j = 0; j < ncol; j++) {
-            _x += anchors[j][0] * matrix_i[j] * (/*1 +*/ this.weights[j] * this.sigmoid(matrix_i[j]));
-            _y += anchors[j][1] * matrix_i[j] * (/*1 +*/this.weights[j] * this.sigmoid(matrix_i[j]));
-        }
-        _x = _x / this.yi[i];
-        _y = _y / this.yi[i];
-        //var colorValue = FLOAT [0,1] SE ATTR COLOR NORMALIZADO / INT [0,N-1] SE NotNumber
-
-        //Density of points
-        //{_x,_y} \in R^2 | |x| <= 1 and |y| < 1
-        var posGridX = Math.floor((_x+1) * this.GRID_N / 2);
-        var posGridY = Math.floor((_y+1) * this.GRID_N / 2);
-        var newD = ++this.densityGrid[posGridY * this.GRID_N + posGridX];
-        if (newD > this.maxDensity){
-            this.maxDensity = newD;
-        }
-
-        if (this.tooltip) {
-            proj.push({
-                x: _x,
-                y: _y,
-                tip: this.tooltip[i],
-                color: this.colors[i],
-                selected: (this.selected[i] ? true : false),
-                hidden:this.hidden[i]
-            });
-        } else {
-            proj.push({
-                x: _x,
-                y: _y,
-                tip: null,
-                color: this.colors[i],
-                selected: (this.selected[i] ? true : false),
-                hidden:this.hidden[i]
-            });
-        }
-
-    }
-
-    if (this.maxDensity == 0){
-        this.maxDensity = 1;
-    }
-
-    if (this.colorIsDensity){
-        for (var i = 0; i < nrow; i++) {
-            var posGridX = Math.floor((proj[i].x+1) * this.GRID_N / 2);
-            var posGridY = Math.floor((proj[i].y+1) * this.GRID_N / 2);
-            proj[i].color = this.densityGrid[posGridY * this.GRID_N + posGridX] / this.maxDensity;
-        }
-    }
-
-    console.log(proj);
-    return (proj)
-};//end - function computeProjection
-
-Radviz.prototype.selectColumns = function(columns, groupColumns) {
-    this.mat_t = [];
-    if (columns.length == 0){
-        this.mat_t = [[]];
-        this.matrix = [[]];
-        return;
-    }
-
-    var _this = this;
-    columns.forEach(function (c) {
-        //add data to matrix
-        _this.mat_t.push(_this.myData[c]);
-    });
-    this.matrix = numeric.transpose(_this.mat_t);
-    this.normalizeGroups(groupColumns);
-};
-
-
-Radviz.prototype.normalizeGroups = function(groupColumns){
-    for (var gId in groupColumns){
-        var group = groupColumns[gId];
-
-        if (group && group.length > 0) {
-            var normRow = numeric.rep([this.mat_t[group[0]].length], 0);
-            for (var dId in group) { //dimension ID
-                var column = group[dId];
-                for (var rId in this.mat_t[dId]) { //row id
-                    //normRow[rId] += this.mat_t[column][rId] * this.mat_t[column][rId];
-                    if (this.mat_t[column][rId] > normRow[rId]) {
-                        normRow[rId] = this.mat_t[column][rId];
-                    }
-                }
-            }
-            for (var i = 0; i < this.matrix.length; i++) {
-                if (normRow[i] > 0) {
-                    for (var j = 0; j < group.length; j++) {
-                        this.matrix[i][group[j]] = this.matrix[i][group[j]] / (normRow[i]);
-                    }
-                }
-            }
-        }
-
-    }
-};
-
-Radviz.prototype.getDimensionNames = function () {
-    return Object.keys(this.myData);
-};
-Radviz.prototype.getSizeData = function () {
-  var size_data = 0;
-  for(var i in this.myData){
-    size_data++;
-  }
-    return size_data;
-};
-
-//help
-Math.radians = function(degrees) {
-    return degrees * Math.PI / 180;
-};
-
-// Converts from radians to degrees.
-Math.degrees = function(radians) {
-    return radians * 180 / Math.PI;
-};
-
-export {Radviz};
+export default RadViz;
