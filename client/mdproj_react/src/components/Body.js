@@ -46,7 +46,7 @@ class Body extends Component {
      data:undefined,
      colors:undefined,
      originalData:undefined,
-     hideSelected:true,
+     showedData:0,
      selectedPoints:undefined,
      'sigmoidScale':1,
      'sigmoidTranslate':0,
@@ -56,15 +56,11 @@ class Body extends Component {
    this.updateLabelColors = this.updateLabelColors.bind(this);
    this.updateSigmoidScale = this.updateSigmoidScale.bind(this);
    this.updateSigmoidTranslate = this.updateSigmoidTranslate.bind(this);
-   this.hideSelectedPoints = this.hideSelectedPoints.bind(this);
+   this.showingData = this.showingData.bind(this);
  };
 
- hideSelectedPoints(){
-  this.setState({hideSelected:false,});
- }
- saveSelectedPoints(selected)
- {
-   this.setState({selectedPoints:selected,});
+ showingData(event, value){
+  this.setState({showedData:value,});
  }
 
  updateLabelColors(event, index, value, ){
@@ -124,7 +120,7 @@ componentWillMount(){
       });
       return(
         <Grid>
-        <Col md={2} style={{marginLeft: '-500px', width:400,  borderRight: '2px solid', borderColor:'lightgray'}}>
+        <Col md={2} style={{marginLeft: '0px', width:320,  borderRight: '2px solid', borderColor:'lightgray'}}>
              <List>
                <Subheader>Sigmoid</Subheader>
                <ListItem>
@@ -133,44 +129,32 @@ componentWillMount(){
                <ListItem>
                  <p>Scale:</p> <Slider min={0} max={100} step={1} defaultValue={1} onChange={this.updateSigmoidScale}/>
                </ListItem>
-               <ListItem>
+               <ListItem >
                 <SigmoidGraph sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}/>
                </ListItem>
                <Divider />
                <Subheader>Interaction</Subheader>
                <ListItem>
-                 <RadioButtonGroup name="shipSpeed" defaultSelected="not_light"   onChange={this.hideSelectedPoints}>
+                 <RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData}>
                   <RadioButton
-                    value="light"
+                    value={0}
                     label="Show all"
                     style={styles.radioButton}
 
                   />
                   <RadioButton
-                    value="not_light"
+                    value={1}
                     label="Hide selected"
                     style={styles.radioButton}
                   />
                   <RadioButton
-                    value="ludicrous"
+                    value={2}
                     label="Hide unselected"
                     checkedIcon={<ActionFavorite />}
                     uncheckedIcon={<ActionFavoriteBorder />}
                     style={styles.radioButton}
                   />
                 </RadioButtonGroup>
-               </ListItem>
-               <Divider />
-               <Subheader>Tooltip</Subheader>
-               <ListItem>
-                 <DropDownMenu value={this.state.value} onChange={this.updateLabelColors}>
-                 <MenuItem value={0} primaryText="None" />
-                 {Object.keys(dimensions).map((k, index)=>{
-                      var attibute = dimensions[k].attribute;
-                      var id = index+1;
-                      return <MenuItem value={id} primaryText={attibute} />
-                    })}
-                </DropDownMenu>
                </ListItem>
                <Divider />
                <Subheader>Color</Subheader>
@@ -184,11 +168,24 @@ componentWillMount(){
                     })}
                 </DropDownMenu>
                </ListItem>
+               <Divider />
+               <Subheader>Tooltip</Subheader>
+               <ListItem>
+                 <DropDownMenu value={this.state.value} onChange={this.updateLabelColors}>
+                 <MenuItem value={0} primaryText="None" />
+                 {Object.keys(dimensions).map((k, index)=>{
+                      var attibute = dimensions[k].attribute;
+                      var id = index+1;
+                      return <MenuItem value={id} primaryText={attibute} />
+                    })}
+                </DropDownMenu>
+               </ListItem>
+
              </List>
         </Col>
         <Col  md={8} style={{width:'60%', background:"white"}}>
           <Row className="Menus-child">
-          <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} hideSelected={this.state.hideSelected} saveSelectedPoints={this.saveSelectedPoints.bind(this)} selectedPoints={this.state.selectedPoints}/>
+          <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} showedData={this.state.showedData}  />
           </Row>
         </Col>
         <Col  md={2} style={{background:"white"}}>

@@ -17,7 +17,7 @@ class SigmoidGraph extends Component {
 		}
 		return (
 			<svg style={{width:this.props.width, height:this.props.height}}>
-			<polyline points={path} style={{fill:'none',stroke:'00aaff',strokeWidth:3}}/> 
+			<polyline points={path} style={{fill:'none',stroke:'00aaff',strokeWidth:3}}/>
 			</svg>
 			)
 	}
@@ -31,10 +31,10 @@ class SigmoidGraph extends Component {
 
 
 SigmoidGraph.defaultProps = {
-	width:300,
-	height:200,
-	marginX:10,
-	marginY:10
+	width:240,
+	height:80,
+	marginX:1,
+	marginY:1
 }
 
 export default SigmoidGraph;
