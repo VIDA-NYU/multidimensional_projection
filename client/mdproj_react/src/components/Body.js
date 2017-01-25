@@ -24,6 +24,7 @@ import {scaleOrdinal, schemeCategory10} from 'd3-scale';
 
 import RadViz from './RadViz'
 import SigmoidGraph from './SigmoidGraph'
+//import { WordCloud, Cloud, Sidebar  } from 'react-wordcloud';
 const styles = {
   block: {
     maxWidth: 250,
@@ -57,11 +58,27 @@ class Body extends Component {
    this.updateSigmoidScale = this.updateSigmoidScale.bind(this);
    this.updateSigmoidTranslate = this.updateSigmoidTranslate.bind(this);
    this.showingData = this.showingData.bind(this);
+   this.showingUrls = this.showingUrls.bind(this);
  };
 
  showingData(event, value){
   this.setState({showedData:value,});
  }
+
+ setSelectedUrls(selected){
+   console.log(selected);
+     this.setState({'selectedUrls':selected})
+ }
+ showingUrls(){
+   let urls = [];
+   for (let i = 0; i < this.state.originalData['urls'].length; ++i){
+       if(this.state.selectedUrls[i]){
+         urls.push(<p>{this.state.originalData['urls'][i] }</p>)
+       }
+     }
+  return urls;
+ }
+
 
  updateLabelColors(event, index, value, ){
    let dimNames = Object.keys(this.state.originalData);
@@ -118,9 +135,12 @@ componentWillMount(){
           //addDimension( id : number, name_circle: small name, name_attribute: complete name)
           dimensions.push(dim);
       });
+      let selectedUrls = [];selectedUrls.push(<p></p>);
+      let nroSelectedUrls = 0;
+      if(!(this.state.selectedUrls === undefined)) {selectedUrls = this.showingUrls(); nroSelectedUrls =selectedUrls.length; }
       return(
         <Grid>
-        <Col md={2} style={{marginLeft: '0px', width:320,  borderRight: '2px solid', borderColor:'lightgray'}}>
+        <Col ls={3} md={3} style={{marginLeft: '-50px', borderRight: '2px solid', borderColor:'lightgray'}}>
              <List>
                <Subheader>Sigmoid</Subheader>
                <ListItem>
@@ -183,14 +203,15 @@ componentWillMount(){
 
              </List>
         </Col>
-        <Col  md={8} style={{width:'60%', background:"white"}}>
+        <Col  ls={8} md={8} style={{ background:"white"}}>
           <Row className="Menus-child">
-          <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} showedData={this.state.showedData}  />
+          <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} showedData={this.state.showedData} setSelectedUrls={this.setSelectedUrls.bind(this)} />
           </Row>
         </Col>
-        <Col  md={2} style={{background:"white"}}>
+        <Col  ls={1} md={1} style={{background:"white"}}>
           <Row className="Menus-child">
-          hello
+          <p style={{color:"silver"}}>Total pages: {nroSelectedUrls}</p>
+          <div>{selectedUrls}</div>
           </Row>
         </Col>
         </Grid>
@@ -204,5 +225,5 @@ componentWillMount(){
   }
 
 }
-
+// width:320,
 export default Body;

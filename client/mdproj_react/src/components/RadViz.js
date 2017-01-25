@@ -88,7 +88,7 @@ class RadViz extends Component {
     }
 
     componentWillReceiveProps(props){
-        if(props.showedData!==this.state.showedData){
+        if(props.showedData!==this.state.showedData || this.state.selected.length>0){
           return;
         }
         if (props.data ){
@@ -163,29 +163,31 @@ class RadViz extends Component {
     }
 
     radvizMapping(data, anchors){
-    	this.currentMapping = [];
-        let ret = [];
-        for (let i = 0; i < data.length; ++i){
-          let p = [0,0];
-          for (let j = 0; j < anchors.length;++j){
-              p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i] * this.sigmoid(data[i][j]);
-              p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] *  this.sigmoid(data[i][j]);
+        console.log('radvizmapping');
+        console.log(this.state.selected);
+      	this.currentMapping = [];
+          let ret = [];
+          for (let i = 0; i < data.length; ++i){
+            let p = [0,0];
+            for (let j = 0; j < anchors.length;++j){
+                p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i] * this.sigmoid(data[i][j]);
+                p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] *  this.sigmoid(data[i][j]);
+            }
+            if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
+            if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
+            this.currentMapping.push(p);
+            if(this.props.showedData===0){
+                ret.push(<circle cx={this.scaleX(p[0])} cy={this.scaleY(p[1])} r={5} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i]}}/>)
+            }
+            if(this.props.showedData===1){
+              if(!this.state.selected[i])
+                ret.push(<circle cx={this.scaleX(p[0])} cy={this.scaleY(p[1])} r={5} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i]}}/>)
+            }
+            if(this.props.showedData===2 && this.state.selected[i]){
+                ret.push(<circle cx={this.scaleX(p[0])} cy={this.scaleY(p[1])} r={5} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i]}}/>)
+            }
           }
-          if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
-          if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
-          this.currentMapping.push(p);
-          if(this.props.showedData===0){
-              ret.push(<circle cx={this.scaleX(p[0])} cy={this.scaleY(p[1])} r={5} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i]}}/>)
-          }
-          if(this.props.showedData===1){
-            if(!this.state.selected[i])
-              ret.push(<circle cx={this.scaleX(p[0])} cy={this.scaleY(p[1])} r={5} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i]}}/>)
-          }
-          if(this.props.showedData===2 && this.state.selected[i]){
-              ret.push(<circle cx={this.scaleX(p[0])} cy={this.scaleY(p[1])} r={5} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i]}}/>)
-          }
-        }
-        return ret;
+          return ret;
     }
 
     stopDrag(e){
@@ -195,11 +197,11 @@ class RadViz extends Component {
         		for (let i = 0; i < this.props.data.length; ++i){
         			selected.push(this.pointInPolygon(this.currentMapping[i], this.selectionPoly));
         		}
-
         		this.selectionPoly= [];
         		this.setState({'draggingSelection':false, 'selected':selected})
         		this.props.callbackSelection(selected);
-              //this.props.saveSelectedPoints(selected);
+            this.props.setSelectedUrls(selected);
+            console.log(this.state.selected);
             }
 
     	}
@@ -213,6 +215,7 @@ class RadViz extends Component {
     	if (this.state.draggingAnchor){
     		this.setState({'draggingAnchor':false});
     	}
+
     }
 
     startDragAnchor(i){
@@ -308,8 +311,7 @@ class RadViz extends Component {
     }
 
     render() {
-      console.log("rendering radViz");
-      console.log(this.state.selected);
+        console.log("rendering radViz");
         let sampleDots = [];
         let anchorDots = [];
         let anchorText = [];
@@ -329,15 +331,16 @@ class RadViz extends Component {
             }
 
               sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
-
         }
         return (
-                <svg id={"svg_radviz"} style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none',msUserSelect:'none'}}
-                onMouseMove={this.dragSVG}  onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect}>
-	                <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2} style={{stroke:'aquamarine',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
-	                {sampleDots}
-	                {this.svgPoly(this.selectionPoly)}
-	                {anchorText}
+                <svg id={"svg_radviz"} style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height,
+                MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
+                onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect}>
+	                <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
+                  style={{stroke:'aquamarine',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
+                  {sampleDots}
+                  {this.svgPoly(this.selectionPoly)}
+                  {anchorText}
 	                {anchorDots}
                 </svg>
                );
@@ -356,3 +359,6 @@ RadViz.defaultProps = {
 }
 
 export default RadViz;
+//{sampleDots}
+//{this.svgPoly(this.selectionPoly)}
+//{anchorText}
