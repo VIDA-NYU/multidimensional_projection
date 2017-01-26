@@ -15,8 +15,6 @@ class RadViz extends Component {
         this.selectionPoly = [];
         this.pointInPolygon = this.pointInPolygon.bind(this);
         this.startDragAnchorGroup = this.startDragAnchorGroup.bind(this);
-        this.scaleX = scaleLinear().domain([-1,1]).range([this.props.marginX/2, this.props.width-this.props.marginX/2]);
-        this.scaleY = scaleLinear().domain([-1,1]).range([this.props.marginY/2, this.props.height - this.props.marginY/2]);
     }
     componentWillMount(){
       console.log('componentWillMount');
@@ -78,8 +76,8 @@ class RadViz extends Component {
                 anchorAngles.push(i * 2*Math.PI / nDims)
             }
 
-            //this.scaleX = scaleLinear().domain([-1,1]).range([this.props.marginX/2, this.props.width-this.props.marginX/2]);
-            //this.scaleY = scaleLinear().domain([-1,1]).range([this.props.marginY/2, this.props.height - this.props.marginY/2]);
+            this.scaleX = scaleLinear().domain([-1,1]).range([this.props.marginX/2, this.props.width-this.props.marginX/2]);
+            this.scaleY = scaleLinear().domain([-1,1]).range([this.props.marginY/2, this.props.height - this.props.marginY/2]);
 
             this.setState({"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
             	"anchorAngles":anchorAngles, "denominators":denominators,
@@ -88,9 +86,9 @@ class RadViz extends Component {
     }
 
     componentWillReceiveProps(props){
-        if(props.showedData!==this.state.showedData || this.state.selected.length>0){
+        /*if(props.showedData!==this.state.showedData || this.state.selected.length>0){
           return;
-        }
+        }*/
         if (props.data ){
             let dimNames = Object.keys(props.data[0]);
             let nDims = dimNames.length;
@@ -149,9 +147,19 @@ class RadViz extends Component {
                 anchorAngles.push(i * 2*Math.PI / nDims)
             }
 
-            this.setState({"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
-            	"anchorAngles":anchorAngles, "denominators":denominators,
-            	"selected":selected, "offsetAnchors":0});
+            this.scaleX = scaleLinear().domain([-1,1]).range([props.marginX/2, props.width-props.marginX/2]);
+            this.scaleY = scaleLinear().domain([-1,1]).range([props.marginY/2, props.height - props.marginY/2]);
+
+            if(props.showedData!==this.state.showedData || this.state.selected.length>0){
+              this.setState({"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
+                "anchorAngles":anchorAngles, "denominators":denominators, "offsetAnchors":0});
+            }
+            else{
+              this.setState({"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
+                "anchorAngles":anchorAngles, "denominators":denominators,
+                "selected":selected, "offsetAnchors":0});
+            }
+
         }
     }
 
@@ -333,8 +341,7 @@ class RadViz extends Component {
               sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
         }
         return (
-                <svg id={"svg_radviz"} style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height,
-                MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
+                <svg id={"svg_radviz"} style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
                 onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect}>
 	                <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
                   style={{stroke:'aquamarine',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
