@@ -200,7 +200,7 @@ class RadViz extends Component {
         		this.selectionPoly= [];
         		this.setState({'draggingSelection':false, 'selected':selected})
         		this.props.callbackSelection(selected);
-            this.props.setSelectedUrls(selected);
+            this.props.setSelectedPoints(selected);
             console.log(this.state.selected);
             }
 

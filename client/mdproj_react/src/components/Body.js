@@ -24,6 +24,8 @@ import {scaleOrdinal, schemeCategory10} from 'd3-scale';
 
 import RadViz from './RadViz'
 import SigmoidGraph from './SigmoidGraph'
+import WordCloud from 'react-d3-cloud';
+import {scaleLinear} from 'd3-scale';
 //import { WordCloud, Cloud, Sidebar  } from 'react-wordcloud';
 const styles = {
   block: {
@@ -42,41 +44,80 @@ class Body extends Component {
    super(props);
    this.state={
      flat:0,
-     dimensionsElement:[],
      value: 0,
      data:undefined,
      colors:undefined,
      originalData:undefined,
      showedData:0,
-     selectedPoints:undefined,
+     selectedPoints:[false],
      'sigmoidScale':1,
      'sigmoidTranslate':0,
 
    };
-   //this.processResults = this.processResults.bind(this)
    this.updateLabelColors = this.updateLabelColors.bind(this);
    this.updateSigmoidScale = this.updateSigmoidScale.bind(this);
    this.updateSigmoidTranslate = this.updateSigmoidTranslate.bind(this);
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
+   this.setSelectedWordCloud = this.setSelectedWordCloud.bind(this);
  };
 
  showingData(event, value){
   this.setState({showedData:value,});
  }
 
- setSelectedUrls(selected){
+ setSelectedPoints(selected){
    console.log(selected);
-     this.setState({'selectedUrls':selected})
+     this.setState({selectedPoints:selected})
  }
  showingUrls(){
    let urls = [];
    for (let i = 0; i < this.state.originalData['urls'].length; ++i){
-       if(this.state.selectedUrls[i]){
+       if(this.state.selectedPoints[i]){
          urls.push(<p>{this.state.originalData['urls'][i] }</p>)
        }
      }
   return urls;
+ }
+ setSelectedWordCloud(){
+  var frequency_list = [];
+  var frequencies = [[[]]];
+  var nameFeatures = []
+  var hashmapTerms = [];
+  var cont =0;
+  for(var a in this.state.dimNames){
+    var nameFeature= this.state.dimNames[a];
+    if(nameFeature != "labels" && nameFeature != "urls"){
+      hashmapTerms[nameFeature]=0;
+      for (let i = 0; i < this.state.originalData[nameFeature].length; ++i){
+        var frequencyTerm = this.state.originalData[nameFeature][i];
+        if(this.state.selectedPoints.includes(true)){
+          if(this.state.selectedPoints[i]){
+            hashmapTerms[nameFeature]=hashmapTerms[nameFeature] + frequencyTerm;
+          }
+        }
+        else{
+          hashmapTerms[nameFeature]=hashmapTerms[nameFeature] + frequencyTerm;
+        }
+      }
+      if(hashmapTerms[nameFeature] > 0)  {
+        frequencies[cont]=hashmapTerms[nameFeature];
+        nameFeatures[cont] = nameFeature;
+        cont++;
+      }
+    }
+  }
+  console.log(frequencies);
+  var maxValue = Math.max.apply(Math, frequencies);
+console.log(maxValue);
+  if(maxValue<9000) maxValue =maxValue; else {maxValue =10000;}
+  for(var i in frequencies){
+      var scaleX = scaleLinear().domain([0,maxValue]).range([1,5]);
+      frequency_list.push({'text': nameFeatures[i], 'value': scaleX(frequencies[i]) });
+  }
+
+   return frequency_list;
+
  }
 
 
@@ -135,9 +176,15 @@ componentWillMount(){
           //addDimension( id : number, name_circle: small name, name_attribute: complete name)
           dimensions.push(dim);
       });
-      let selectedUrls = [];selectedUrls.push(<p></p>);
+      let selectedUrls = []; selectedUrls.push(<p></p>);
       let nroSelectedUrls = 0;
-      if(!(this.state.selectedUrls === undefined)) {selectedUrls = this.showingUrls(); nroSelectedUrls =selectedUrls.length; }
+
+      if(this.state.selectedPoints.includes(true)) {selectedUrls = this.showingUrls(); nroSelectedUrls =selectedUrls.length; }
+
+      const data = this.setSelectedWordCloud();
+      const fontSizeMapper = word => Math.log2(word.value) * 10;
+
+
       return(
         <Grid>
         <Col ls={3} md={3} style={{marginLeft: '-50px', borderRight: '2px solid', borderColor:'lightgray'}}>
@@ -205,11 +252,12 @@ componentWillMount(){
         </Col>
         <Col  ls={8} md={8} style={{ background:"white"}}>
           <Row className="Menus-child">
-          <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} showedData={this.state.showedData} setSelectedUrls={this.setSelectedUrls.bind(this)} />
+          <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} />
           </Row>
         </Col>
         <Col  ls={1} md={1} style={{background:"white"}}>
           <Row className="Menus-child">
+          <WordCloud data={data} fontSizeMapper={fontSizeMapper}  width={400} height={300} padding={2}/>
           <p style={{color:"silver"}}>Total pages: {nroSelectedUrls}</p>
           <div>{selectedUrls}</div>
           </Row>
