@@ -11,7 +11,7 @@ CONDA_ENV := $(CONDA_ROOT)/envs/mdproj
 CONDA_ENV_TARGET := $(CONDA_ENV)/conda-meta/history
 CHERRY_PY_CONFIG_TARGET := server/config.conf
 TSP_SOLVER_TARGET := ${PWD}/lib/tsp-solver-master/build
-GET_REACT_DATA_TARGET := client/mdproj_react/build/index.html
+GET_REACT_DATA_TARGET := client/build/index.html
 
 # Makefile commands, see below for actual builds
 
@@ -41,7 +41,7 @@ $(CONDA_ENV_TARGET): environment.yml
 	conda env update
 
 $(CHERRY_PY_CONFIG_TARGET): server/config.conf-in
-	sed "s#tools.staticdir.root = .#tools.staticdir.root = ${PWD}/client/mdproj_react/build#g" server/config.conf-in > server/config.conf
+	sed "s#tools.staticdir.root = .#tools.staticdir.root = ${PWD}/client/build#g" server/config.conf-in > server/config.conf
 
 $(TSP_SOLVER_TARGET): ${PWD}/lib/tsp-solver-master.zip
 	source activate mdproj; \
@@ -51,8 +51,8 @@ $(TSP_SOLVER_TARGET): ${PWD}/lib/tsp-solver-master.zip
 	popd
 
 $(GET_REACT_DATA_TARGET):
+	source activate mdproj; \
 	pushd client; \
 	npm install; \
 	npm run build; \
-	cp mdproj_react/build/index.html mdproj_react/build/mdproj_react.html; \
 	popd
