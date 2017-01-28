@@ -6,6 +6,7 @@
     "react-scripts": "0.8.5"
   },
   "dependencies": {
+    "axios": "^0.15.0",
     "babel-polyfill": "^6.6.1",
     "d3-request": "^1.0.3",
     "d3-scale": "^1.0.4",
@@ -15,6 +16,8 @@
     "numeric": "^1.2.6",
     "rc-slider": "^5.4.3",
     "react": "^15.4.2",
+    "react-ajax": "^0.1.1",
+    "react-axios": "0.0.9",
     "react-bootstrap": "^0.30.7",
     "react-d3-cloud": "^0.4.1",
     "react-dom": "^15.4.2",
