@@ -22,6 +22,7 @@ import {scaleOrdinal, schemeCategory10} from 'd3-scale';
 import RadViz from './RadViz';
 import SigmoidGraph from './SigmoidGraph';
 import WordCloud from './WordCloud';
+import Snippets from './Snippets';
 
 const styles = {
   block: {
@@ -46,6 +47,7 @@ class Body extends Component {
      originalData:undefined,
      showedData:0,
      selectedPoints:[false],
+     urls:undefined,
      'sigmoidScale':1,
      'sigmoidTranslate':0,
 
@@ -93,6 +95,7 @@ class Body extends Component {
       this.setState({'sigmoidTranslate':s})
   }
 
+
   componentWillMount(){
     $.post(
         '/getRadvizPoints',
@@ -116,6 +119,14 @@ class Body extends Component {
           this.setState({originalData: data, data:numericalData, colors:colors, flat:1, dimNames: dimNames});
         }.bind(this)
       );
+      $.post(
+          '/getURLsMetadata',
+          { },
+          function(es) {
+            console.log('getURLsMetadata');
+            console.log(es);
+          }.bind(this)
+        );
   }
 
   render(){
@@ -191,7 +202,9 @@ class Body extends Component {
             <Row className="Menus-child">
             <WordCloud dimNames={this.state.dimNames} selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
             <p style={{color:"silver"}}>Total pages: {nroSelectedUrls}</p>
-            <div>{selectedUrls}</div>
+            <div>
+              <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
+            </div>
             </Row>
           </Col>
         </Grid>
