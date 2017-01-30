@@ -172,7 +172,6 @@ class RadViz extends Component {
 
     radvizMapping(data, anchors){
         console.log('radvizmapping');
-        console.log(this.state.selected);
       	this.currentMapping = [];
           let ret = [];
           for (let i = 0; i < data.length; ++i){

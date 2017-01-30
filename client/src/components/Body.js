@@ -119,14 +119,6 @@ class Body extends Component {
           this.setState({originalData: data, data:numericalData, colors:colors, flat:1, dimNames: dimNames});
         }.bind(this)
       );
-      $.post(
-          '/getURLsMetadata',
-          { },
-          function(es) {
-            console.log('getURLsMetadata');
-            console.log(es);
-          }.bind(this)
-        );
   }
 
   render(){
