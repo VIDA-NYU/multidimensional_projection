@@ -30,7 +30,7 @@ class Page:
   # Default constructor reading app config file.
   def __init__(self):
     # Folder with html content.
-    self._HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), u"../client/mdproj_react/build")
+    self._HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), u"../client/build")
     self.lock = Lock()
     self.radvizModel = RadvizModel()
 
@@ -48,6 +48,11 @@ class Page:
   def getRadvizPoints(self):
     result = self.radvizModel.getRadvizPoints()
     return json.dumps(result)
+
+  @cherrypy.expose
+  def getURLsMetadata(self):
+    result = self.radvizModel.getURLsMetadata()
+    return result
 
   @cherrypy.expose
   def computeTSP(self):
