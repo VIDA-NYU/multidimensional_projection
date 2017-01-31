@@ -12,10 +12,14 @@ class Snippets extends Component{
       snippets:undefined,
     };
     this.showingSnippets = this.showingSnippets.bind(this);
+    this.requests=[];
   }
   componentWillReceiveProps(props, nextState){
     if (props.selectedPoints === this.state.selectedPoints ) {
       return false;
+    }
+    if(this.requests.length>0){
+      for(var i = 0; i < this.requests.length; i++) this.requests[i].abort();
     }
     this.showingSnippets(props);
   }
@@ -24,8 +28,13 @@ class Snippets extends Component{
        return true;
   }
 
+  setCurrentRequests(currentRequests){
+    this.requests= currentRequests;
+  }
+
   showingSnippets(props){
     let snippets = [];
+    let getRequests = [];
     this.setState({snippets:undefined});
     for (let i = 0; i < props.originalData['urls'].length; ++i){
       if(props.selectedPoints[i]){
@@ -33,7 +42,7 @@ class Snippets extends Component{
         var query = 'select * from html where url="'+props.originalData['urls'][i]+'" and xpath="*"';
         var url = 'https://query.yahooapis.com/v1/public/yql?q=' + query;
         try {
-            $.get(url, function(response, status, xhr) {
+            getRequests.push($.get(url, function(response, status, xhr) {
               var html = $(response).find('html');
               var title= (html.find('meta[property|="og:title"]').attr('content')) ? html.find('meta[property|="og:title"]').attr('content') :
                           ( html.find('meta[name=title]').attr('content') ) ? html.find('meta[name=title]').attr('content') :
@@ -49,10 +58,11 @@ class Snippets extends Component{
                                 (html.find('meta[property|="og:Image"]').attr('content')) ? html.find('meta[property|="og:Image"]').attr('content') :
                                   ( html.find('meta[name=image]').attr('content') ) ? html.find('meta[name=image]').attr('content') :
                                     ( html.find('meta[name=Image]').attr('content') ) ? html.find('meta[name=Image]').attr('content') :
-                                    ( html.find('img').attr('src') ) ?  html.find('img').attr('src') :  "";
+                                     ( html.find('img').attr('src') ) ?  html.find('img').attr('src') :  "";
 
               //console.log(image);
               if(image!==""){
+                if(image.indexOf("//") === -1)  image = props.originalData['urls'][i].substring(0, props.originalData['urls'][i].indexOf("/", (props.originalData['urls'][i].indexOf("//")+2)))+image;
                 snippets.push(<div style={{  width:'440px', minHeight: '60px',  borderColor:"silver", marginLeft: '8px', marginTop: '5px',}}><div><p style={{float:'left'}}><img src={image} alt="HTML5 Icon" style={{width:'60px',height:'60px', marginRight:'3px'}}/></p> <p style={{ color:'blue'}} >{title} <br/><a target="_blank" href={props.originalData['urls'][i]} style={{fontSize:'10px'}}>{props.originalData['urls'][i]}</a></p></div><br/><div style={{marginTop:'-3px'}}><p>{description}</p></div><Divider /></div>);
               }
               else{
@@ -62,13 +72,15 @@ class Snippets extends Component{
             }.bind(this)).fail(function() {
               snippets.push(<div style={{ width:'440px',  borderColor:"silver", marginLeft: '8px',marginTop: '5px',}}><p><a target="_blank" href={props.originalData['urls'][i]}>{props.originalData['urls'][i]}</a></p><Divider /></div>);
               this.setState({snippets:snippets, selectedPoints:this.props.selectedPoints});
-            }.bind(this));
+            }.bind(this))
+          );
         }
         catch(err) {
           console.log(err);
         }
       }
     }
+    this.setCurrentRequests(getRequests);
   }
 
   render(){
