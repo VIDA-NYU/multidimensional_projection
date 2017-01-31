@@ -197,6 +197,22 @@ class RadViz extends Component {
           return ret;
     }
 
+    setSelectedAnchors(data){
+          let selectedAnchors = [];
+          for (let j = 0; j < this.state.dimNames.length;++j){
+             selectedAnchors[this.state.dimNames[j]]=false;
+          }
+          for (let i = 0; i < data.length; ++i){
+            for (let j = 0; j < this.state.dimNames.length;++j){
+                if((data[i][j]>0 && this.state.selected[i]) || selectedAnchors[this.state.dimNames[j]]){
+                  selectedAnchors[this.state.dimNames[j]]=true;
+                }
+                else selectedAnchors[this.state.dimNames[j]]=false;
+            }
+          }
+          return selectedAnchors;
+    }
+
     stopDrag(e){
     	if (this.state.draggingSelection){
             if (this.selectionPoly.length > 0){
@@ -322,19 +338,30 @@ class RadViz extends Component {
         let sampleDots = [];
         let anchorDots = [];
         let anchorText = [];
+        let selectedAnchors = [];
         if (this.props.data){
             let anchorXY = [];
             for (let i = 0; i < this.state.nDims; ++i)
                 anchorXY.push(this.anglesToXY(this.state.anchorAngles[i], 1));
 
+            selectedAnchors = this.setSelectedAnchors(this.state.normalizedData);
+            console.log(selectedAnchors);
             for (let i = 0; i < this.state.nDims; ++i){
                 anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
                         key={i} onMouseDown={this.startDragAnchor(i)} style={{cursor:'hand'}}/>);
+                if(selectedAnchors[this.state.dimNames[i]]){
+                  anchorText.push(
+                          <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
+                          <text x={0} y={0} transform={`rotate(${(this.state.anchorAngles[i] + this.state.offsetAnchors)*180/Math.PI})`} style={{fill:'blue'}}>{this.state.dimNames[i]}</text>
+                          </g>);
+                }
+                else {
+                  anchorText.push(
+                          <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
+                          <text x={0} y={0} transform={`rotate(${(this.state.anchorAngles[i] + this.state.offsetAnchors)*180/Math.PI})`} >{this.state.dimNames[i]}</text>
+                          </g>);
+                }
 
-                anchorText.push(
-                        <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                        <text x={0} y={0} transform={`rotate(${(this.state.anchorAngles[i] + this.state.offsetAnchors)*180/Math.PI})`}>{this.state.dimNames[i]}</text>
-                        </g>);
             }
 
               sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
