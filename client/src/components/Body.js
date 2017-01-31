@@ -184,19 +184,17 @@ class Body extends Component {
                </List>
           </Col>
 
-          <Col  ls={8} md={8} style={{ background:"white"}}>
+          <Col  ls={7} md={7} style={{ background:"white"}}>
             <Row className="Menus-child">
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} />
             </Row>
           </Col>
 
-          <Col  ls={1} md={1} style={{background:"white"}}>
+          <Col  ls={2} md={2} style={{background:"white"}}>
             <Row className="Menus-child">
             <WordCloud dimNames={this.state.dimNames} selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
-            <p style={{color:"silver"}}>Total pages: {nroSelectedUrls}</p>
-            <div>
+            <p style={{color:"silver", marginLeft:'30px'}}>Total pages: {nroSelectedUrls}</p>
               <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
-            </div>
             </Row>
           </Col>
         </Grid>
