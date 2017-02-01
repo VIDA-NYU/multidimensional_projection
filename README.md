@@ -41,7 +41,9 @@ with the tool.
 ## Contact
 
 Sonia Castelo Quispe [s.castelo@nyu.edu]
+
 Jorge Piazentin Ono [jorgehpo@nyu.edu]
+
 Yamuna Krishnamurthy [yamuna@nyu.edu]
 
 
