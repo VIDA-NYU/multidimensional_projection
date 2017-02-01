@@ -1,0 +1,9 @@
+#!/bin/bash
+
+SCRIPT_PATH="${BASH_SOURCE[0]}";
+SCRIPT_DIR=$(dirname $SCRIPT_PATH)
+# ugly, but portable
+export MDPROJ_HOME=$(python -c "import os, sys; sys.stdout.write(os.path.abspath('$SCRIPT_DIR/..')+'\n')")
+echo "MDPROJ_HOME  : $MDPROJ_HOME"
+
+python $MDPROJ_HOME/server/server.py

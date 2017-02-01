@@ -32,7 +32,7 @@ source activate mdproj
 And (from the top-level `multidimensional_projection` directory), run:
 
 ```
-python server/server.py
+./bin/mdproj-dev
 ```
 
 Now you should be able to head to http://localhost:4400/ to interact
