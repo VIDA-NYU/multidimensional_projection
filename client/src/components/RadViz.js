@@ -254,7 +254,9 @@ class RadViz extends Component {
     	for (let n = polygon.length, i = 0, j = n-1, x = point[0], y = point[1]; i < n; j = i++){
     		let xi = this.scaleX.invert(polygon[i][0]), yi = this.scaleY.invert(polygon[i][1]),
     		    xj = this.scaleX.invert(polygon[j][0]), yj = this.scaleY.invert(polygon[j][1]);
-    		if ((yi > y ^ yj > y) && (x < (xj - yi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+        var intersect = ((yi > y) !== (yj > y))
+            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
     	}
     	return inside;
     }
