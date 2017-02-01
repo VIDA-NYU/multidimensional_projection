@@ -95,6 +95,9 @@ class Body extends Component {
       this.setState({'sigmoidTranslate':s})
   }
 
+  /*sortingTSP(data, nam){
+
+  }*/
 
   componentWillMount(){
     $.post(
@@ -116,7 +119,26 @@ class Body extends Component {
               }
               numericalData.push(aux);
           }
+          /*$.post(
+            '/computeTSP',
+            { },
+            function(es) {
+              console.log(es);
+              var orderObj = JSON.parse(es);
+
+              for(var i in orderObj.cities){
+                console.log("i: "+orderObj.cities[i]);
+                console.log(dimNames[orderObj.cities[i]]);
+              }
+              console.log(orderObj);
+              console.log(orderObj.cities);
+              console.log();
+              console.log(orderObj.groupId);
+              console.log(orderObj.offset);
+            }.bind(this)
+          );*/
           this.setState({originalData: data, data:numericalData, colors:colors, flat:1, dimNames: dimNames});
+
         }.bind(this)
       );
   }
