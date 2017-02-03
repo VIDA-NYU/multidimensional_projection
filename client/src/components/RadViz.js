@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import numeric from 'numeric';
 import {scaleLinear} from 'd3-scale';
 import $ from 'jquery';
+import keydown from 'react-keydown';
 
 class RadViz extends Component {
 
@@ -12,11 +13,15 @@ class RadViz extends Component {
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
         this.dragSVG = this.dragSVG.bind(this);
+        this.unselectAllData = this.unselectAllData.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.selectionPoly = [];
         this.pointInPolygon = this.pointInPolygon.bind(this);
         this.startDragAnchorGroup = this.startDragAnchorGroup.bind(this);
     }
     componentWillMount(){
+    window.addEventListener('keydown', this.handleKeyDown);
+
       console.log('componentWillMount');
         if (this.props.data){
             let dimNames = Object.keys(this.props.data[0]);
@@ -83,6 +88,10 @@ class RadViz extends Component {
             	"anchorAngles":anchorAngles, "denominators":denominators,
             	"selected":selected, "offsetAnchors":0});
         }
+    }
+
+    componentWillUnmount(){
+      window.removeEventListener('keydown', this.handleKeyDown);
     }
 
     componentWillReceiveProps(props){
@@ -262,6 +271,7 @@ class RadViz extends Component {
     }
 
     dragSVG(e){
+
         let container = $("#svg_radviz").get(0).getBoundingClientRect();
         let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
         if (this.state.draggingAnchor){
@@ -302,6 +312,10 @@ class RadViz extends Component {
     }
 
     svgPoly(points){
+        /*if ( event ) {
+          alert(event);
+        }*/
+
         if (points && points.length > 0){
             let pointsStr = "";
             for (let i = 0; i < points.length; ++i){
@@ -316,6 +330,20 @@ class RadViz extends Component {
     startDragSelect(e){
         this.setState({'draggingSelection':true})
             this.selectionPoly = [];
+    }
+
+    unselectAllData(e){
+      let selected = [];
+      for (let i = 0; i < this.props.data.length; ++i){
+        selected.push(false);
+      }
+      this.setState({'draggingSelection':false, 'selected':selected});
+      this.props.setSelectedPoints(selected);
+    }
+    handleKeyDown(e){
+      if (e.keyCode === 27){
+        this.unselectAllData(e);
+      }
     }
 
     startDragAnchorGroup(e){
@@ -363,8 +391,8 @@ class RadViz extends Component {
               sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
         }
         return (
-                <svg id={"svg_radviz"} style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
-                onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect}>
+                <svg  id={"svg_radviz"}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
+                onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect} onDoubleClick = {this.unselectAllData} onClick={this.unselectAllData}  onKeyDown={this.handleKeyDown}>
 	                <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
                   style={{stroke:'aquamarine',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
                   {sampleDots}

@@ -105,6 +105,7 @@ class Body extends Component {
         { },
         function(es) {
           var data = JSON.parse(es);
+          console.log(data);
           console.log(Object.keys(data));
           let numericalData = [];
           let dimNames = Object.keys(data);
@@ -119,7 +120,7 @@ class Body extends Component {
               }
               numericalData.push(aux);
           }
-          /*$.post(
+          $.post(
             '/computeTSP',
             { },
             function(es) {
@@ -136,7 +137,7 @@ class Body extends Component {
               console.log(orderObj.groupId);
               console.log(orderObj.offset);
             }.bind(this)
-          );*/
+          );
           this.setState({originalData: data, data:numericalData, colors:colors, flat:1, dimNames: dimNames});
 
         }.bind(this)
