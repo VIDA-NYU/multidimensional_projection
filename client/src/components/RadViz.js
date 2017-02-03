@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import numeric from 'numeric';
 import {scaleLinear} from 'd3-scale';
 import $ from 'jquery';
-import keydown from 'react-keydown';
 
 class RadViz extends Component {
 
@@ -312,9 +311,6 @@ class RadViz extends Component {
     }
 
     svgPoly(points){
-        /*if ( event ) {
-          alert(event);
-        }*/
 
         if (points && points.length > 0){
             let pointsStr = "";
