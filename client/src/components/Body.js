@@ -105,8 +105,8 @@ class Body extends Component {
         { },
         function(es) {
           var data = JSON.parse(es);
-          console.log(data);
-          console.log(Object.keys(data));
+          //console.log(data);
+          //console.log(Object.keys(data));
           let numericalData = [];
           let dimNames = Object.keys(data);
           let scaleColor = scaleOrdinal(schemeCategory10);
@@ -124,22 +124,18 @@ class Body extends Component {
             '/computeTSP',
             { },
             function(es) {
-              console.log(es);
+              let numericalDataTSP = [];
               var orderObj = JSON.parse(es);
-
-              for(var i in orderObj.cities){
-                console.log("i: "+orderObj.cities[i]);
-                console.log(dimNames[orderObj.cities[i]]);
+              for (let i = 0; i < numericalData.length; ++i){
+                  let aux = {};
+                  for(var j in orderObj.cities){
+                      aux[dimNames[orderObj.cities[j]]] = numericalData[i][dimNames[orderObj.cities[j]]];
+                  }
+                  numericalDataTSP.push(aux);
               }
-              console.log(orderObj);
-              console.log(orderObj.cities);
-              console.log();
-              console.log(orderObj.groupId);
-              console.log(orderObj.offset);
+              this.setState({originalData: data, data:numericalDataTSP, colors:colors, flat:1, dimNames: dimNames});
             }.bind(this)
           );
-          this.setState({originalData: data, data:numericalData, colors:colors, flat:1, dimNames: dimNames});
-
         }.bind(this)
       );
   }
