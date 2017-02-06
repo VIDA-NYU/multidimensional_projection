@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import Header from './components/Header';
+import Domain from './components/Domain';
 import Home from './components/Home';
 var ReactRouter = require('react-router');
 var Router = ReactRouter.Router;
@@ -20,7 +20,7 @@ class App extends Component {
       <MuiThemeProvider>
       <Router history={hashHistory}>
       <Route path='/' component={Home} />
-          <Route path="/domain/:domainId" component={Header}>
+          <Route path="/domain/:domainId" component={Domain}>
           </Route>
       </Router>
     </MuiThemeProvider>

@@ -158,7 +158,8 @@ class RadViz extends Component {
             this.scaleX = scaleLinear().domain([-1,1]).range([props.marginX/2, props.width-props.marginX/2]);
             this.scaleY = scaleLinear().domain([-1,1]).range([props.marginY/2, props.height - props.marginY/2]);
 
-            if(props.showedData!==this.state.showedData || this.state.selected.length>0){
+            if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
+            if(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0)){
               this.setState({"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
                 "anchorAngles":anchorAngles, "denominators":denominators, "offsetAnchors":0});
             }
@@ -179,7 +180,6 @@ class RadViz extends Component {
     }
 
     radvizMapping(data, anchors){
-        console.log('radvizmapping');
       	this.currentMapping = [];
           let ret = [];
           for (let i = 0; i < data.length; ++i){
@@ -208,12 +208,9 @@ class RadViz extends Component {
     setSelectedAnchors(data){
           let selectedAnchors = [];
           for (let j = 0; j < this.state.dimNames.length;++j){
-             selectedAnchors[this.state.dimNames[j]]=false;
-          }
-          for (let i = 0; i < data.length; ++i){
-            for (let j = 0; j < this.state.dimNames.length;++j){
-                if((data[i][j]>0 && this.state.selected[i]) || selectedAnchors[this.state.dimNames[j]]){
-                  selectedAnchors[this.state.dimNames[j]]=true;
+            for (let i = 0; i < data.length; ++i){
+                if(data[i][j]>0 && this.state.selected[i] ){
+                  selectedAnchors[this.state.dimNames[j]]=true; break;
                 }
                 else selectedAnchors[this.state.dimNames[j]]=false;
             }
@@ -234,7 +231,6 @@ class RadViz extends Component {
         		this.setState({'draggingSelection':false, 'selected':selected})
         		this.props.callbackSelection(selected);
             this.props.setSelectedPoints(selected);
-            console.log(this.state.selected);
             }
 
     	}
@@ -373,12 +369,11 @@ class RadViz extends Component {
                 anchorXY.push(this.anglesToXY(this.state.anchorAngles[i], 1));
 
             selectedAnchors = this.setSelectedAnchors(this.state.normalizedData);
-            console.log(selectedAnchors);
             for (let i = 0; i < this.state.nDims; ++i){
 
                 anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
                         key={i} onMouseDown={this.startDragAnchor(i)} style={{cursor:'hand', stroke:(this.state.selected[i]?'black':'none'), fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
-                  anchorText.push(
+                anchorText.push(
                           <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
                           <text x={0} y={0} transform={`rotate(${(this.state.anchorAngles[i] + this.state.offsetAnchors)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
                           </g>);

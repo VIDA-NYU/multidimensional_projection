@@ -18,6 +18,7 @@ import DropDownMenu from 'material-ui/DropDownMenu';
 import MenuItem from 'material-ui/MenuItem';
 import $ from 'jquery';
 import {scaleOrdinal, schemeCategory10} from 'd3-scale';
+import AutoComplete from 'material-ui/AutoComplete';
 
 import RadViz from './RadViz';
 import SigmoidGraph from './SigmoidGraph';
@@ -48,6 +49,9 @@ class Body extends Component {
      showedData:0,
      selectedPoints:[false],
      urls:undefined,
+     searchText:'',
+     selectedSearchText:[],
+     dimNames:[],
      'sigmoidScale':1,
      'sigmoidTranslate':0,
 
@@ -64,8 +68,8 @@ class Body extends Component {
  }
 
  setSelectedPoints(selected){
-   console.log(selected);
-     this.setState({selectedPoints:selected})
+    if(this.state.searchText.replace(/\s/g,"") === ""){var selectedSearchText = []; this.setState({selectedPoints:selected, selectedSearchText: selectedSearchText,})}
+    else this.setState({selectedPoints:selected, selectedSearchText: selected,});
  }
  showingUrls(){
    let urls = [];
@@ -95,50 +99,32 @@ class Body extends Component {
       this.setState({'sigmoidTranslate':s})
   }
 
-  /*sortingTSP(data, nam){
+  handleNewRequest = (searchText) => {
+    var selected = [];
 
-  }*/
+    if(searchText.replace(/\s/g,"") !== ""){
+    for (let i = 0; i < this.state.data.length; ++i){
+        for(var j in this.state.dimNames){
+          if( this.state.dimNames[j] === searchText && this.state.data[i][this.state.dimNames[j]]>0)  { selected[i]=true; break;}
+          else selected[i]=false;
+        }
+    }
+  }
+    this.setState({ selectedSearchText: selected, searchText: searchText, selectedPoints:selected,});
+  };
+
 
   componentWillMount(){
-    $.post(
-        '/getRadvizPoints',
-        { },
-        function(es) {
-          var data = JSON.parse(es);
-          //console.log(data);
-          //console.log(Object.keys(data));
-          let numericalData = [];
-          let dimNames = Object.keys(data);
-          let scaleColor = scaleOrdinal(schemeCategory10);
-          let colors = [];
-
-          for (let i = 0; i < data['labels'].length; ++i){
-              colors.push(scaleColor(data['labels'][0]));
-              let aux = {};
-              for (let j = 0; j < dimNames.length-2; ++j){//except urls and labels
-                  aux[dimNames[j]] = parseFloat(data[dimNames[j]][i]);
-              }
-              numericalData.push(aux);
-          }
-          $.post(
-            '/computeTSP',
-            { },
-            function(es) {
-              let numericalDataTSP = [];
-              var orderObj = JSON.parse(es);
-              for (let i = 0; i < numericalData.length; ++i){
-                  let aux = {};
-                  for(var j in orderObj.cities){
-                      aux[dimNames[orderObj.cities[j]]] = numericalData[i][dimNames[orderObj.cities[j]]];
-                  }
-                  numericalDataTSP.push(aux);
-              }
-              this.setState({originalData: data, data:numericalDataTSP, colors:colors, flat:1, dimNames: dimNames});
-            }.bind(this)
-          );
-        }.bind(this)
-      );
+    this.setState({originalData: this.props.originalData, data:this.props.data, colors:this.props.colors, flat:this.props.flat, dimNames: this.props.dimNames});
   }
+  componentWillReceiveProps(props){
+    if(props.originalData !== this.state.originalData){
+      this.setState({originalData: props.originalData, data:props.data, colors:props.colors, flat:props.flat, dimNames: props.dimNames});
+    }
+    if(this.state.dimNames.indexOf(props.searchText) !==-1){
+      this.handleNewRequest(props.searchText);
+    }
+    }
 
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
@@ -205,7 +191,7 @@ class Body extends Component {
 
           <Col  ls={7} md={7} style={{ background:"white"}}>
             <Row className="Menus-child">
-            <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} />
+            <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText} />
             </Row>
           </Col>
 
