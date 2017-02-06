@@ -18,6 +18,7 @@ var ReactRouter = require('react-router');
 var Link = ReactRouter.Link;
 import { FormControl} from 'react-bootstrap';
 import Search from 'material-ui/svg-icons/action/search';
+import AutoComplete from 'material-ui/AutoComplete';
 
 
 import IconLocationOn from 'material-ui/svg-icons/communication/location-on';
@@ -67,70 +68,16 @@ const styles = {
   },
 
 };
-
-class ToolBarHeader extends Component {
-
-  constructor(props){
-    super(props);
-    this.state = {
-      currentDomain:'',
-      term:'',
-    };
-  }
-  componentWillMount(){
-    this.setState({currentDomain: this.props.currentDomain});
-  };
-
-  componentWillReceiveProps  = (nextProps) => {
-    if(nextProps.currentDomain ===this.state.currentDomain){
-      return;
-    }
-    this.setState({currentDomain: nextProps.currentDomain});
-  };
-
-  shouldComponentUpdate(nextProps, nextState) {
-     if (nextProps.currentDomain === this.state.currentDomain) {
-       if(nextState.term !==this.state.term){ return true; }
-       return false;
-     }
-     return true;
-  }
-
-   filterKeyword(terms){
-     this.props.filterKeyword(terms);
-   }
-
-   render() {
-     console.log("ToolBarHeader render");
-     return (
-       <Toolbar style={styles.toolBarHeader}>
-         <ToolbarTitle text={this.state.currentDomain} style={styles.tittleCurrentDomain}/>
-         <ToolbarSeparator  />
-         <IconButton tooltip="Create Model" style={{marginLeft:'-15px', marginRight:'-10px'}} > <Model />
-         </IconButton>
-         <Link to='/'>
-           <IconButton tooltip="Change Domain" style={{marginLeft:'-15px'}} > <Domain />
-           </IconButton>
-         </Link>
-         <ToolbarSeparator  />
-        <TextField
-         style={{width:'35%',marginRight:'-120px', marginTop:5, height: 35, borderColor: 'gray', borderWidth: 1, background:"white", borderRadius:"5px"}}
-         hintText="Search ..."
-         hintStyle={{marginBottom:"-8px", marginLeft:10}}
-         inputStyle={{marginBottom:10, marginLeft:10}}
-          underlineShow={false}
-         value={this.state.term}
-         onChange={e => this.setState({ term: e.target.value })}
-        //  hintText="Hint Text"
-        //  onChange={this.handleChange.bind(this)}
-        />
-         <IconButton style={{marginRight:'-25px'}} onClick={this.filterKeyword.bind(this, this.state.term)}>
-          <Search />
-         </IconButton>
-       </Toolbar>
-     );
-   }
- }
+const colors = [
+  'Red',
+  'Orange',
+  'Yellow',
+  'Green',
+  'Blue',
+  'Purple',
+  'Black',
+  'White',
+];
 
 class Header extends Component {
 
@@ -139,42 +86,42 @@ class Header extends Component {
     this.state = {
       idDomain:'',
       filterKeyword:'',
+      searchText:'',
+      selectedSearchText:[],
   };
 };
 
 componentWillMount(){
     console.log("header componentWillMount");
-    this.setState({idDomain: this.props.location.query.idDomain});
+    this.setState({idDomain: this.props.currentIdDomain, });
 };
 
 componentWillReceiveProps  = (newProps, nextState) => {
   console.log("header componentWillReceiveProps");
-  if(newProps.location.query.idDomain ===this.state.idDomain){
+  if(newProps.currentIdDomain ===this.state.idDomain){
     return;
   }
-  this.setState({idDomain: this.props.location.query.idDomain});
+  this.setState({idDomain: newProps.currentIdDomain});
 
 };
 
-shouldComponentUpdate(nextProps, nextState) {
- console.log("header shouldComponentUpdate");
-  if(nextProps.location.query.idDomain ===this.state.idDomain){
-        return false;
-   }
-    return true;
+
+handleUpdateInput = (searchText) => {
+  this.setState({
+    searchText: searchText,
+  });
 };
 
-filterKeyword(newFilterKeyword){
-  if(this.state.filterKeyword !== newFilterKeyword){
-    this.setState({filterKeyword:newFilterKeyword});
-    this.forceUpdate();
-  }
-}
+handleNewRequest = (searchText) => {
+  this.setState({
+    searchText: searchText,
+  });
+  this.props.filterKeyword(searchText);
+};
 
 render() {
   console.log("header");
   return (
-    <div>
       <AppBar showMenuIconButton={true}
         style={styles.backgound}
         title={  <span style={styles.titleText}> Multidimensional Projection </span>}
@@ -182,12 +129,32 @@ render() {
         iconElementLeft={<img src={logoNYU}  height='45' width='40'  />}
         //onLeftIconButtonTouchTap={this.removeRecord.bind(this)}
       >
-      <ToolBarHeader currentDomain={this.props.location.query.nameDomain} filterKeyword={this.filterKeyword.bind(this)} />
+      <Toolbar style={styles.toolBarHeader}>
+        <ToolbarTitle text={this.props.currentNameDomain} style={styles.tittleCurrentDomain}/>
+        <ToolbarSeparator  />
+        <IconButton tooltip="Create Model" style={{marginLeft:'-15px', marginRight:'-10px'}} > <Model />
+        </IconButton>
+        <Link to='/'>
+          <IconButton tooltip="Change Domain" style={{marginLeft:'-15px'}} > <Domain />
+          </IconButton>
+        </Link>
+        <ToolbarSeparator  />
+
+          <AutoComplete
+             style={{width:'35%',marginRight:'0px', marginTop:5, height: 35, borderColor: 'gray', borderWidth: 1, background:"white", borderRadius:"5px"}}
+             hintText="Search ..."
+             hintStyle={{marginBottom:"0px", marginLeft:10}}
+             inputStyle={{marginBottom:10, marginLeft:10}}
+             underlineShow={false}
+             searchText={this.state.searchText}
+             onUpdateInput={this.handleUpdateInput}
+             onNewRequest={this.handleNewRequest}
+             dataSource={this.props.dimNames}
+             filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
+             openOnFocus={true}
+         />
+      </Toolbar>
       </AppBar>
-
-      <Body currentDomain={this.state.idDomain} filterKeyword={this.state.filterKeyword}/>
-
-    </div>
   );
 }
 }
