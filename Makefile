@@ -3,7 +3,7 @@
 # Type "make help" for a list of commands
 
 # Variables for the Makefile
-.PHONY = conda_environment cherrypy_config
+.PHONY = cherrypy_config clean
 SHELL := /bin/bash
 CONDA_ROOT := $(shell conda info --root)
 CONDA_ENV := $(CONDA_ROOT)/envs/mdproj
@@ -23,6 +23,11 @@ all: conda_env cherrypy_config tsp_solver get_react_data
 # the list of commands.
 help                : Makefile
 	@sed -n 's/^## //p' $<
+
+clean:
+	rm -rf client/build; \
+	rm -rf client/node_modules; \
+	rm server/config.conf
 
 ## conda_env        : Install/update a conda environment with needed packages
 conda_env: $(CONDA_ENV_TARGET)
