@@ -7,7 +7,7 @@ class RadViz extends Component {
 
     constructor(props){
         super(props);
-        this.state={'draggingAnchor':false, 'showedData': this.props.showedData};
+        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[],};
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
@@ -19,74 +19,82 @@ class RadViz extends Component {
         this.startDragAnchorGroup = this.startDragAnchorGroup.bind(this);
     }
     componentWillMount(){
-    window.addEventListener('keydown', this.handleKeyDown);
+      window.addEventListener('keydown', this.handleKeyDown);//esc key to unselect all data.
+      this.preprocessingData(this.props);
+    }
 
-      console.log('componentWillMount');
-        if (this.props.data){
-            let dimNames = Object.keys(this.props.data[0]);
-            let nDims = dimNames.length;
+    preprocessingData(props){
+      if (props.data ){
+          let dimNames = Object.keys(props.data[0]);
+          let nDims = dimNames.length;
 
-            // Normalizing columns to [0, 1]
-            let normalizedData = [];
-            let mins = [];
-            let maxs = [];
+          // Normalizing columns to [0, 1]
+          let normalizedData = [];
+          let mins = [];
+          let maxs = [];
 
-            for (let j = 0; j < nDims; ++j){
-                mins.push(this.props.data[0][dimNames[j]]);
-                maxs.push(this.props.data[0][dimNames[j]]);
-            }
+          for (let j = 0; j < nDims; ++j){
+              mins.push(props.data[0][dimNames[j]]);
+              maxs.push(props.data[0][dimNames[j]]);
+          }
 
-            for (let i = 1; i < this.props.data.length; ++i){
-                for (let j = 0; j < nDims; ++j){
-                    if (this.props.data[i][dimNames[j]] < mins[j]){
-                        mins[j] = this.props.data[i][dimNames[j]];
-                    }
-                    if (this.props.data[i][dimNames[j]] > maxs[j]){
-                        maxs[j] = this.props.data[i][dimNames[j]];
-                    }
-                }
-            }
+          for (let i = 1; i < props.data.length; ++i){
+              for (let j = 0; j < nDims; ++j){
+                  if (props.data[i][dimNames[j]] < mins[j]){
+                      mins[j] = props.data[i][dimNames[j]];
+                  }
+                  if (props.data[i][dimNames[j]] > maxs[j]){
+                      maxs[j] = props.data[i][dimNames[j]];
+                  }
+              }
+          }
 
-            // computing the denominator of radviz (sums of entries). Also initializing selected array (dots that are selected)
-            let denominators = [];
-            let selected = [];
-            for (let i = 0; i < this.props.data.length; ++i){
-                let aux = [];
-            	selected.push(false);
-                denominators.push(0);
-                // normalizing data by columns => equal weights to all dimensions (words)
-                let max_entry_by_row = -1;
-                for (let j = 0; j < nDims; ++j){
-                    let val = (this.props.data[i][dimNames[j]] - mins[j])/(maxs[j] - mins[j]);
-                    aux.push(val);
-                    if (val > max_entry_by_row){
-                        max_entry_by_row = val;
-                    }
-                }
-                // normalizing data by rows => sigmoid computation (max entry in row must be equal to 1)
-                if (max_entry_by_row > 0){
-                    for (let j = 0; j < nDims; ++j){
-                        aux[j] /= max_entry_by_row;
-                        denominators[i] += aux[j] * this.sigmoid(aux[j]);
-                    }
-                }
-                normalizedData.push(aux);
-            }
+          // computing the denominator of radviz (sums of entries). Also initializing selected array (dots that are selected)
+          let denominators = [];
+          let selected = [];
+          for (let i = 0; i < props.data.length; ++i){
+              let aux = [];
+            selected.push(false);
+              denominators.push(0);
+              // normalizing data by columns => equal weights to all dimensions (words)
+              let max_entry_by_row = -1;
+              for (let j = 0; j < nDims; ++j){
+                  let val = (props.data[i][dimNames[j]] - mins[j])/(maxs[j] - mins[j]);
+                  aux.push(val);
+                  if (val > max_entry_by_row){
+                      max_entry_by_row = val;
+                  }
+              }
+              // normalizing data by rows => sigmoid computation (max entry in row must be equal to 1)
+              if (max_entry_by_row > 0){
+                  for (let j = 0; j < nDims; ++j){
+                      aux[j] /= max_entry_by_row;
+                      denominators[i] += aux[j] * this.sigmoid(aux[j], props.sigmoid_scale, props.sigmoid_translate);
+                  }
+              }
+              normalizedData.push(aux);
+          }
 
-            // Computing the anchors
-            let anchorAngles = [];
+          // Computing the anchors
+          let anchorAngles = [];
 
-            for (let i = 0; i < nDims; ++i){
-                anchorAngles.push(i * 2*Math.PI / nDims)
-            }
+          for (let i = 0; i < nDims; ++i){
+              anchorAngles.push(i * 2*Math.PI / nDims)
+          }
 
-            this.scaleX = scaleLinear().domain([-1,1]).range([this.props.marginX/2, this.props.width-this.props.marginX/2]);
-            this.scaleY = scaleLinear().domain([-1,1]).range([this.props.marginY/2, this.props.height - this.props.marginY/2]);
+          this.scaleX = scaleLinear().domain([-1,1]).range([props.marginX/2, props.width-props.marginX/2]);
+          this.scaleY = scaleLinear().domain([-1,1]).range([props.marginY/2, props.height - props.marginY/2]);
 
-            this.setState({"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
-            	"anchorAngles":anchorAngles, "denominators":denominators,
-            	"selected":selected, "offsetAnchors":0});
-        }
+          let newState = {"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
+            "anchorAngles":anchorAngles, "denominators":denominators, "offsetAnchors":0, "sigmoid_scale":props.sigmoid_scale, "sigmoid_translate":props.sigmoid_translate};
+
+          if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
+          if(!(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0))){
+            newState["selected"] = selected;
+          }
+          this.setState(newState);
+
+      }
     }
 
     componentWillUnmount(){
@@ -94,82 +102,7 @@ class RadViz extends Component {
     }
 
     componentWillReceiveProps(props){
-        /*if(props.showedData!==this.state.showedData || this.state.selected.length>0){
-          return;
-        }*/
-        if (props.data ){
-            let dimNames = Object.keys(props.data[0]);
-            let nDims = dimNames.length;
-
-            // Normalizing columns to [0, 1]
-            let normalizedData = [];
-            let mins = [];
-            let maxs = [];
-
-            for (let j = 0; j < nDims; ++j){
-                mins.push(props.data[0][dimNames[j]]);
-                maxs.push(props.data[0][dimNames[j]]);
-            }
-
-            for (let i = 1; i < props.data.length; ++i){
-                for (let j = 0; j < nDims; ++j){
-                    if (props.data[i][dimNames[j]] < mins[j]){
-                        mins[j] = props.data[i][dimNames[j]];
-                    }
-                    if (props.data[i][dimNames[j]] > maxs[j]){
-                        maxs[j] = props.data[i][dimNames[j]];
-                    }
-                }
-            }
-
-            // computing the denominator of radviz (sums of entries). Also initializing selected array (dots that are selected)
-            let denominators = [];
-            let selected = [];
-            for (let i = 0; i < props.data.length; ++i){
-                let aux = [];
-            	selected.push(false);
-                denominators.push(0);
-                // normalizing data by columns => equal weights to all dimensions (words)
-                let max_entry_by_row = -1;
-                for (let j = 0; j < nDims; ++j){
-                    let val = (props.data[i][dimNames[j]] - mins[j])/(maxs[j] - mins[j]);
-                    aux.push(val);
-                    if (val > max_entry_by_row){
-                        max_entry_by_row = val;
-                    }
-                }
-                // normalizing data by rows => sigmoid computation (max entry in row must be equal to 1)
-                if (max_entry_by_row > 0){
-                    for (let j = 0; j < nDims; ++j){
-                        aux[j] /= max_entry_by_row;
-                        denominators[i] += aux[j] * this.sigmoid(aux[j]);
-                    }
-                }
-                normalizedData.push(aux);
-            }
-
-            // Computing the anchors
-            let anchorAngles = [];
-
-            for (let i = 0; i < nDims; ++i){
-                anchorAngles.push(i * 2*Math.PI / nDims)
-            }
-
-            this.scaleX = scaleLinear().domain([-1,1]).range([props.marginX/2, props.width-props.marginX/2]);
-            this.scaleY = scaleLinear().domain([-1,1]).range([props.marginY/2, props.height - props.marginY/2]);
-
-            if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
-            if(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0)){
-              this.setState({"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
-                "anchorAngles":anchorAngles, "denominators":denominators, "offsetAnchors":0});
-            }
-            else{
-              this.setState({"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
-                "anchorAngles":anchorAngles, "denominators":denominators,
-                "selected":selected, "offsetAnchors":0});
-            }
-
-        }
+        this.preprocessingData(props);
     }
 
     anglesToXY(anchorAngle, radius=1){
@@ -185,8 +118,9 @@ class RadViz extends Component {
           for (let i = 0; i < data.length; ++i){
             let p = [0,0];
             for (let j = 0; j < anchors.length;++j){
-                p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i] * this.sigmoid(data[i][j]);
-                p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] *  this.sigmoid(data[i][j]);
+                let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
+                p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i] * s;
+                p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] *  s;
             }
             if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
             if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
@@ -304,8 +238,8 @@ class RadViz extends Component {
         }
     }
 
-    sigmoid(x){
-        return (1/(1+Math.exp(-(this.props.sigmoid_scale*(x + this.props.sigmoid_translate)))));
+    sigmoid(x, scale, translate){
+        return (1/(1+Math.exp(-(scale*(x + translate)))));
     }
 
     svgPoly(points){
