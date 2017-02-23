@@ -40,8 +40,8 @@ class Domain extends Component {
       colors:undefined,
       originalData:undefined,
       dimNames:[],
-
-  };
+    };
+    this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828"];
 };
 
 componentWillMount(){
@@ -55,17 +55,20 @@ componentWillMount(){
           //console.log(Object.keys(data));
           let numericalData = [];
           let dimNames = Object.keys(data);
-          let scaleColor = scaleOrdinal(schemeCategory10);
+          let scaleColor = scaleOrdinal(this.colorTags);
           let colors = [];
-
+          data['tags'] = [];
           for (let i = 0; i < data['labels'].length; ++i){
-              colors.push(scaleColor(data['labels'][0]));
+              data['tags'][i] = "neutral";
+              colors.push(scaleColor(data['tags'][0]));
               let aux = {};
               for (let j = 0; j < dimNames.length-2; ++j){//except urls and labels
                   aux[dimNames[j]] = parseFloat(data[dimNames[j]][i]);
               }
+
               numericalData.push(aux);
           }
+          dimNames.push('tags');
           $.post(
             '/computeTSP',
             { },

@@ -19,6 +19,10 @@ import MenuItem from 'material-ui/MenuItem';
 import $ from 'jquery';
 import {scaleOrdinal, schemeCategory10} from 'd3-scale';
 import AutoComplete from 'material-ui/AutoComplete';
+import FlatButton from 'material-ui/FlatButton';
+import RelevantIcon from 'material-ui/svg-icons/action/thumb-up';
+import IrrelevantIcon from 'material-ui/svg-icons/action/thumb-down';
+import NeutralIcon from 'material-ui/svg-icons/action/thumbs-up-down';
 
 import RadViz from './RadViz';
 import SigmoidGraph from './SigmoidGraph';
@@ -42,7 +46,7 @@ class Body extends Component {
    super(props);
    this.state={
      flat:0,
-     value: 0,
+     value: 202,
      data:undefined,
      colors:undefined,
      originalData:undefined,
@@ -56,11 +60,15 @@ class Body extends Component {
      'sigmoidTranslate':0,
 
    };
+
    this.updateLabelColors = this.updateLabelColors.bind(this);
    this.updateSigmoidScale = this.updateSigmoidScale.bind(this);
    this.updateSigmoidTranslate = this.updateSigmoidTranslate.bind(this);
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
+   this.colorDefault= [ "#0D47A1", "#C62828", "#9E9E9E", "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"];
+   this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828"];
+
  };
 
  showingData(event, value){
@@ -81,14 +89,34 @@ class Body extends Component {
   return urls;
  }
 
- updateLabelColors(event, index, value, ){
+ //Update colors based on tag.
+ updateColorsTags(value){
    let dimNames = Object.keys(this.state.originalData);
-   let scaleColor = scaleOrdinal(schemeCategory10);
    let colors = [];
    for (let i = 0; i < this.state.originalData[dimNames[0]].length; ++i){
-       colors.push(scaleColor(this.state.originalData[dimNames[value-1]][i]));
+      var typeTag = this.state.originalData[dimNames[value]][i];
+      var colorTag=(typeTag=="neutral")? this.colorTags[0]: (typeTag=="relevant")? this.colorTags[1]: (typeTag=="irrelevant")? this.colorTags[2]:"";
+       colors.push(colorTag);
    }
    this.setState({value:value, colors:colors})
+ }
+
+ //Update colors based on the dimension selected.
+ updateColors(value){
+   let dimNames = Object.keys(this.state.originalData);
+   var scaleColorType = this.colorDefault;
+   let scaleColor = scaleOrdinal(scaleColorType);
+   let colors = [];
+   for (let i = 0; i < this.state.originalData[dimNames[0]].length; ++i){
+       colors.push(scaleColor(this.state.originalData[dimNames[value]][i]));
+   }
+   this.setState({value:value, colors:colors})
+ }
+
+ //Handling change of dimensions into DropDown.
+ updateLabelColors(event, index, value){
+  if(this.state.dimNames[value]=="tags") this.updateColorsTags(value);
+  else this.updateColors(value);
  }
 
   updateSigmoidScale(s){
@@ -119,12 +147,65 @@ class Body extends Component {
   }
   componentWillReceiveProps(props){
     if(props.originalData !== this.state.originalData){
-      this.setState({originalData: props.originalData, data:props.data, colors:props.colors, flat:props.flat, dimNames: props.dimNames});
+      this.setState({originalData: props.originalData, data:props.data, colors:props.colors, flat:props.flat, dimNames: props.dimNames, });
     }
     if(this.state.dimNames.indexOf(props.searchText) !==-1){
       this.handleNewRequest(props.searchText);
     }
     }
+
+  //Run model if there is an enought positiveTrainData and negativeTrainData.
+  runModel(positiveTrainData, negativeTrainData){
+    //apply any classifier like SVM
+    console.log(positiveTrainData);
+    console.log(negativeTrainData);
+  }
+
+  //Create/Update model to classify data.
+  updateModel(updateData){
+    let positiveTrainData = [];
+    let negativeTrainData = [];
+    for (let i = 0; i < updateData['tags'].length; ++i){
+        if(updateData['tags'][i] == "relevant"){
+          positiveTrainData.push(this.state.data[i]);
+        }
+        if(updateData['tags'][i] == "irrelevant"){
+          negativeTrainData.push(this.state.data[i]);
+        }
+    }
+
+    if(positiveTrainData.length > 0 && negativeTrainData.length >0){
+      this.runModel(positiveTrainData, negativeTrainData);
+    }
+
+  }
+
+  //Tagging selected data in radviz.
+  tagsSelectedData(tag){
+    let updateData = {};
+    updateData = this.state.originalData;
+    for (let i = 0; i < this.state.originalData['tags'].length; ++i){
+        if(this.state.selectedPoints[i]){
+          updateData['tags'][i]=tag;
+        }
+    }
+    this.updateColorsTags(this.state.value);
+    this.setState({originalData: updateData});
+    this.updateModel(updateData);
+  }
+
+  //Labeling pages as a relevant.
+  tagsRelevant(){
+    this.tagsSelectedData("relevant");
+  };
+  //Labeling pages as a Irrelevant.
+  tagsIrrelevant(){
+    this.tagsSelectedData("irrelevant");
+  };
+  //Labeling pages as a Neutral.
+  tagsNeutral(){
+    this.tagsSelectedData("neutral");
+  }
 
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
@@ -166,32 +247,24 @@ class Body extends Component {
                  <Subheader>Color</Subheader>
                  <ListItem>
                    <DropDownMenu value={this.state.value} onChange={this.updateLabelColors}>
-                   <MenuItem value={0} primaryText="None" />
                    {Object.keys(dimensions).map((k, index)=>{
                         var attibute = dimensions[k].attribute;
-                        var id = index+1;
-                        return <MenuItem value={id} primaryText={attibute} />
+                        return <MenuItem value={index} primaryText={attibute} />
                       })}
                   </DropDownMenu>
                  </ListItem>
                  <Divider />
-                 <Subheader>Tooltip</Subheader>
-                 <ListItem>
-                   <DropDownMenu value={this.state.value} onChange={this.updateLabelColors}>
-                   <MenuItem value={0} primaryText="None" />
-                   {Object.keys(dimensions).map((k, index)=>{
-                        var attibute = dimensions[k].attribute;
-                        var id = index+1;
-                        return <MenuItem value={id} primaryText={attibute} />
-                      })}
-                  </DropDownMenu>
-                 </ListItem>
                </List>
           </Col>
 
           <Col  ls={7} md={7} style={{ background:"white"}}>
             <Row className="Menus-child">
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText} />
+            <div style={{position: "absolute", left: "25%"  }}>
+            <FlatButton label="Relevant" primary={true} backgroundColor="#1976D2" hoverColor="#0D47A1" icon={<RelevantIcon color="#ffffff"/>} onTouchTap={this.tagsRelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff"}}/>
+            <FlatButton label="Irrelevant" primary={true} backgroundColor="#D32F2F" hoverColor="#B71C1C" icon={<IrrelevantIcon color="#ffffff"/>} onTouchTap={this.tagsIrrelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff"}} />
+            <FlatButton label="Neutral" primary={true} backgroundColor="#E0E0E0" hoverColor="#BDBDBD" icon={<NeutralIcon color="#ffffff"/>} onTouchTap={this.tagsNeutral.bind(this)} labelStyle={{color:"#ffffff"}}/>
+            </div>
             </Row>
           </Col>
 
