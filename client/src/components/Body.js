@@ -163,7 +163,18 @@ class Body extends Component {
       {'traindata': JSON.stringify(trainData), 'labelsTrainData': labelsTrainData.join('|'), 'testDataSet': JSON.stringify(testDataSet)}, //'session':  JSON.stringify(sessionTemp)},
       function(modelResult) {
         var data = JSON.parse(modelResult);
-        this.setState({accuracy: data["accuracy"]});
+        let updateData = {};
+        updateData = this.state.originalData;
+        for (let i = 0; i < this.state.originalData["urls"].length; ++i){
+           if(updateData['urls'][i] == url_predictedLabel[i]){
+             updateData['modelResult'][i]=data["predictClass"][i];
+           }
+           else{
+              updateData['modelResult'][i]=this.state.originalData["tags"][i];
+           }
+        }
+        this.updateColorsTags(203);
+        this.setState({accuracy: data["accuracy"] , originalData: updateData});
         console.log(data);
       }.bind(this)
     );
@@ -276,6 +287,7 @@ class Body extends Component {
                   </DropDownMenu>
                  </ListItem>
                  <Divider />
+                 <Subheader>Model</Subheader>
                  <div>
                  OnlineClassifier: {this.state.accuracy}
                  </div>
