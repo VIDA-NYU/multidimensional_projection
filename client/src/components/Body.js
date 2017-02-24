@@ -94,9 +94,12 @@ class Body extends Component {
  updateColorsTags(value){
    let dimNames = Object.keys(this.state.originalData);
    let colors = [];
+   console.log("length: " + this.state.originalData[dimNames[0]].length);
+
    for (let i = 0; i < this.state.originalData[dimNames[0]].length; ++i){
       var typeTag = this.state.originalData[dimNames[value]][i];
-      var colorTag=(typeTag=="neutral")? this.colorTags[0]: (typeTag=="relevant")? this.colorTags[1]: (typeTag=="irrelevant")? this.colorTags[2]:"";
+      console.log(typeTag);
+      var colorTag=(typeTag=="neutral")? this.colorTags[0]: (typeTag=="relevant")? this.colorTags[1]: (typeTag=="irrelevant")? this.colorTags[2]: console.log(typeTag); "";
        colors.push(colorTag);
    }
    this.setState({value: value, colors:colors});
@@ -165,16 +168,17 @@ class Body extends Component {
         var data = JSON.parse(modelResult);
         let updateData = {};
         updateData = this.state.originalData;
-        for (let i = 0; i < this.state.originalData["urls"].length; ++i){
-           if(updateData['urls'][i] == url_predictedLabel[i]){
-             updateData['modelResult'][i]=data["predictClass"][i];
+        for (let i = 0, j=0; i < this.state.originalData["tags"].length; ++i){
+           if(updateData['urls'][i] == url_predictedLabel[j]){
+             updateData['modelResult'][i]=data["predictClass"][j];
+             j++;
            }
            else{
-             updateData['modelResult'][i]=dataTags["tags"][i];
+             updateData['modelResult'][i]=this.state.originalData["tags"][i];
            }
         }
         this.setState({accuracy: data["accuracy"] , originalData: updateData});
-        console.log(data);
+        if(this.state.dimNames[this.state.value]=="modelResult") this.updateColorsTags(this.state.value);
       }.bind(this)
     );
   }
@@ -195,12 +199,14 @@ class Body extends Component {
           positiveTrainData.push(this.state.data[i]);
           labels_pos_trainData.push("relevant");
         }
-        if(updateData['tags'][i] == "irrelevant"){
+        else if(updateData['tags'][i] == "irrelevant"){
           negativeTrainData.push(this.state.data[i]);
           labels_neg_trainData.push("irrelevant");
         }
-        url_predictedLabel.push(updateData['urls'][i]);
-        testDataSet.push(this.state.data[i]);
+        else{
+          url_predictedLabel.push(updateData['urls'][i]);
+          testDataSet.push(this.state.data[i]);
+        }
     }
     trainData = positiveTrainData.concat(negativeTrainData);
     labelsTrainData = labels_pos_trainData.concat(labels_neg_trainData);
@@ -221,8 +227,8 @@ class Body extends Component {
           updateData['tags'][i]=tag;
         }
     }
-    this.updateColorsTags(this.state.value);
     this.setState({originalData: updateData});
+    this.updateColorsTags(this.state.value);
     this.updateModel(updateData);
   }
 
