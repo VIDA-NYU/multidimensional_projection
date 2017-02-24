@@ -94,12 +94,9 @@ class Body extends Component {
  updateColorsTags(value){
    let dimNames = Object.keys(this.state.originalData);
    let colors = [];
-   console.log("length: " + this.state.originalData[dimNames[0]].length);
-
    for (let i = 0; i < this.state.originalData[dimNames[0]].length; ++i){
       var typeTag = this.state.originalData[dimNames[value]][i];
-      console.log(typeTag);
-      var colorTag=(typeTag=="neutral")? this.colorTags[0]: (typeTag=="relevant")? this.colorTags[1]: (typeTag=="irrelevant")? this.colorTags[2]: console.log(typeTag); "";
+      var colorTag=(typeTag=="neutral")? this.colorTags[0]: (typeTag=="relevant")? this.colorTags[1]: (typeTag=="irrelevant")? this.colorTags[2]: "";
        colors.push(colorTag);
    }
    this.setState({value: value, colors:colors});
@@ -210,7 +207,6 @@ class Body extends Component {
     }
     trainData = positiveTrainData.concat(negativeTrainData);
     labelsTrainData = labels_pos_trainData.concat(labels_neg_trainData);
-    console.log(url_predictedLabel);
 
     if(positiveTrainData.length > 0 && negativeTrainData.length >0){
       this.runModel(trainData, labelsTrainData, testDataSet, url_predictedLabel, updateData);
@@ -256,7 +252,6 @@ class Body extends Component {
       let selectedUrls = []; selectedUrls.push(<p></p>);
       let nroSelectedUrls = 0;
       if(this.state.selectedPoints.includes(true)) {selectedUrls = this.showingUrls(); nroSelectedUrls =selectedUrls.length; }
-
       return(
         <Grid>
 
@@ -278,16 +273,16 @@ class Body extends Component {
                    <RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData}>
                     <RadioButton value={0} label="Show all" style={styles.radioButton}/>
                     <RadioButton value={1} label="Hide selected" style={styles.radioButton}/>
-                    <RadioButton value={2} label="Hide unselected" checkedIcon={<ActionFavorite />} uncheckedIcon={<ActionFavoriteBorder />} style={styles.radioButton}/>
+                    <RadioButton value={2} label="Hide unselected" style={styles.radioButton}/>
                   </RadioButtonGroup>
                  </ListItem>
                  <Divider />
-                 <Subheader>Color</Subheader>
-                   <DropDownMenu value={this.state.value} onChange={this.updateLabelColors}>
+                 <Subheader>Projection</Subheader>
+                   <DropDownMenu style={{marginTop:"-20px"}} value={this.state.value} onChange={this.updateLabelColors}>
                    {Object.keys(dimensions).map((k, index)=>{
                         var attibute = dimensions[k].attribute;
                         return <MenuItem value={index} primaryText={attibute} />
-                      })}
+                   })}
                   </DropDownMenu>
                  <Divider />
                  <Subheader>OnlineClassifier</Subheader>
@@ -297,21 +292,25 @@ class Body extends Component {
                </List>
           </Col>
 
-          <Col  ls={7} md={7} style={{ background:"white"}}>
+          <Col  ls={7} md={7} style={{ background:"white", borderRight: '2px solid', borderColor:'lightgray'}}>
             <Row className="Menus-child">
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText} />
-            <div style={{position: "absolute", left: "25%"  }}>
-            <FlatButton label="Relevant" primary={true} backgroundColor="#1976D2" hoverColor="#0D47A1" icon={<RelevantIcon color="#ffffff"/>} onTouchTap={this.tagsRelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff"}}/>
-            <FlatButton label="Irrelevant" primary={true} backgroundColor="#D32F2F" hoverColor="#B71C1C" icon={<IrrelevantIcon color="#ffffff"/>} onTouchTap={this.tagsIrrelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff"}} />
-            <FlatButton label="Neutral" primary={true} backgroundColor="#E0E0E0" hoverColor="#BDBDBD" icon={<NeutralIcon color="#ffffff"/>} onTouchTap={this.tagsNeutral.bind(this)} labelStyle={{color:"#ffffff"}}/>
+            <div style={{position: "absolute", left: "23%"  }}>
+            <FlatButton label="Relevant" primary={true} backgroundColor="#1976D2" hoverColor="#0D47A1" icon={<RelevantIcon color="#ffffff"/>} onTouchTap={this.tagsRelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff", textTransform: "capitalize"}}/>
+            <FlatButton label="Irrelevant" primary={true} backgroundColor="#D32F2F" hoverColor="#B71C1C" icon={<IrrelevantIcon color="#ffffff"/>} onTouchTap={this.tagsIrrelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff", textTransform: "capitalize"}} />
+            <FlatButton label="Neutral" primary={true} backgroundColor="#E0E0E0" hoverColor="#BDBDBD" icon={<NeutralIcon color="#ffffff"/>} onTouchTap={this.tagsNeutral.bind(this)} labelStyle={{color:"#ffffff", textTransform: "capitalize"}}/>
             </div>
             </Row>
           </Col>
 
           <Col  ls={2} md={2} style={{background:"white"}}>
-            <Row className="Menus-child">
+            <Row className="Menus-child" >
             <WordCloud dimNames={this.state.dimNames} selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
-            <p style={{color:"silver", marginLeft:'30px'}}>Total pages: {nroSelectedUrls}</p>
+            </Row>
+            <Row className="Menus-child">
+              <div style={{width:'450px', borderTop:'solid', borderColor:"silver"}}>
+                <p style={{color:"silver", marginLeft:'30px'}}>Total pages: {nroSelectedUrls}</p>
+              </div>
               <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
             </Row>
           </Col>
