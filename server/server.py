@@ -49,6 +49,12 @@ class Page:
     result = self.radvizModel.getRadvizPoints()
     return json.dumps(result)
 
+  # , train, train_labels, test, test_labels, partial
+  @cherrypy.expose
+  def classify(self, traindata, labelsTrainData, testDataSet):
+    result = self.radvizModel.classify(traindata, labelsTrainData, testDataSet)
+    return json.dumps(result)
+
   @cherrypy.expose
   def getURLsMetadata(self):
     result = self.radvizModel.getURLsMetadata()

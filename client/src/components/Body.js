@@ -58,6 +58,7 @@ class Body extends Component {
      dimNames:[],
      'sigmoidScale':1,
      'sigmoidTranslate':0,
+     accuracy: "0%"
 
    };
 
@@ -155,27 +156,48 @@ class Body extends Component {
     }
 
   //Run model if there is an enought positiveTrainData and negativeTrainData.
-  runModel(positiveTrainData, negativeTrainData){
-    //apply any classifier like SVM
-    console.log(positiveTrainData);
-    console.log(negativeTrainData);
+  runModel(trainData, labelsTrainData, testDataSet, url_predictedLabel ){
+    //apply onlineClassifier
+    $.post(
+      '/classify',
+      {'traindata': JSON.stringify(trainData), 'labelsTrainData': labelsTrainData.join('|'), 'testDataSet': JSON.stringify(testDataSet)}, //'session':  JSON.stringify(sessionTemp)},
+      function(modelResult) {
+        var data = JSON.parse(modelResult);
+        this.setState({accuracy: data["accuracy"]});
+        console.log(data);
+      }.bind(this)
+    );
   }
 
   //Create/Update model to classify data.
   updateModel(updateData){
     let positiveTrainData = [];
+    let labels_pos_trainData = [];
     let negativeTrainData = [];
+    let labels_neg_trainData = [];
+
+    let testDataSet = [];
+    let trainData = [];
+    let labelsTrainData = [];
+    let url_predictedLabel = [];
     for (let i = 0; i < updateData['tags'].length; ++i){
         if(updateData['tags'][i] == "relevant"){
           positiveTrainData.push(this.state.data[i]);
+          labels_pos_trainData.push("relevant");
         }
         if(updateData['tags'][i] == "irrelevant"){
           negativeTrainData.push(this.state.data[i]);
+          labels_neg_trainData.push("irrelevant");
         }
+        url_predictedLabel.push(updateData['urls'][i]);
+        testDataSet.push(this.state.data[i]);
     }
+    trainData = positiveTrainData.concat(negativeTrainData);
+    labelsTrainData = labels_pos_trainData.concat(labels_neg_trainData);
+    console.log(url_predictedLabel);
 
     if(positiveTrainData.length > 0 && negativeTrainData.length >0){
-      this.runModel(positiveTrainData, negativeTrainData);
+      this.runModel(trainData, labelsTrainData, testDataSet, url_predictedLabel);
     }
 
   }
@@ -196,15 +218,15 @@ class Body extends Component {
 
   //Labeling pages as a relevant.
   tagsRelevant(){
-    this.tagsSelectedData("relevant");
+    this.tagsSelectedData("relevant");//1
   };
   //Labeling pages as a Irrelevant.
   tagsIrrelevant(){
-    this.tagsSelectedData("irrelevant");
+    this.tagsSelectedData("irrelevant");//2
   };
   //Labeling pages as a Neutral.
   tagsNeutral(){
-    this.tagsSelectedData("neutral");
+    this.tagsSelectedData("neutral");//0
   }
 
   render(){
@@ -254,6 +276,9 @@ class Body extends Component {
                   </DropDownMenu>
                  </ListItem>
                  <Divider />
+                 <div>
+                 OnlineClassifier: {this.state.accuracy}
+                 </div>
                </List>
           </Col>
 
