@@ -58,7 +58,7 @@ class Body extends Component {
      dimNames:[],
      'sigmoidScale':1,
      'sigmoidTranslate':0,
-     accuracy: "0%"
+     accuracy: "0"
 
    };
 
@@ -90,7 +90,7 @@ class Body extends Component {
   return urls;
  }
 
- //Update colors based on tag.
+ //Update colors based on tag or modelResult.
  updateColorsTags(value){
    let dimNames = Object.keys(this.state.originalData);
    let colors = [];
@@ -99,7 +99,7 @@ class Body extends Component {
       var colorTag=(typeTag=="neutral")? this.colorTags[0]: (typeTag=="relevant")? this.colorTags[1]: (typeTag=="irrelevant")? this.colorTags[2]:"";
        colors.push(colorTag);
    }
-   this.setState({value:value, colors:colors})
+   this.setState({value: value, colors:colors});
  }
 
  //Update colors based on the dimension selected.
@@ -116,7 +116,7 @@ class Body extends Component {
 
  //Handling change of dimensions into DropDown.
  updateLabelColors(event, index, value){
-  if(this.state.dimNames[value]=="tags") this.updateColorsTags(value);
+  if(this.state.dimNames[value]=="tags" || this.state.dimNames[value]=="modelResult") this.updateColorsTags(value);
   else this.updateColors(value);
  }
 
@@ -156,7 +156,7 @@ class Body extends Component {
     }
 
   //Run model if there is an enought positiveTrainData and negativeTrainData.
-  runModel(trainData, labelsTrainData, testDataSet, url_predictedLabel ){
+  runModel(trainData, labelsTrainData, testDataSet, url_predictedLabel, dataTags){
     //apply onlineClassifier
     $.post(
       '/classify',
@@ -170,10 +170,9 @@ class Body extends Component {
              updateData['modelResult'][i]=data["predictClass"][i];
            }
            else{
-              updateData['modelResult'][i]=this.state.originalData["tags"][i];
+             updateData['modelResult'][i]=dataTags["tags"][i];
            }
         }
-        this.updateColorsTags(203);
         this.setState({accuracy: data["accuracy"] , originalData: updateData});
         console.log(data);
       }.bind(this)
@@ -208,7 +207,7 @@ class Body extends Component {
     console.log(url_predictedLabel);
 
     if(positiveTrainData.length > 0 && negativeTrainData.length >0){
-      this.runModel(trainData, labelsTrainData, testDataSet, url_predictedLabel);
+      this.runModel(trainData, labelsTrainData, testDataSet, url_predictedLabel, updateData);
     }
 
   }
@@ -278,18 +277,16 @@ class Body extends Component {
                  </ListItem>
                  <Divider />
                  <Subheader>Color</Subheader>
-                 <ListItem>
                    <DropDownMenu value={this.state.value} onChange={this.updateLabelColors}>
                    {Object.keys(dimensions).map((k, index)=>{
                         var attibute = dimensions[k].attribute;
                         return <MenuItem value={index} primaryText={attibute} />
                       })}
                   </DropDownMenu>
-                 </ListItem>
                  <Divider />
-                 <Subheader>Model</Subheader>
-                 <div>
-                 OnlineClassifier: {this.state.accuracy}
+                 <Subheader>OnlineClassifier</Subheader>
+                 <div style={{marginLeft:"25px"}}>
+                 {this.state.accuracy} %
                  </div>
                </List>
           </Col>

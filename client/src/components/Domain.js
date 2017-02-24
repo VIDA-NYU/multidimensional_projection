@@ -51,15 +51,15 @@ componentWillMount(){
         { },
         function(es) {
           var data = JSON.parse(es);
-          //console.log(data);
-          //console.log(Object.keys(data));
           let numericalData = [];
           let dimNames = Object.keys(data);
           let scaleColor = scaleOrdinal(this.colorTags);
           let colors = [];
           data['tags'] = [];
+          data['modelResult'] = [];
           for (let i = 0; i < data['labels'].length; ++i){
               data['tags'][i] = "neutral";
+              data['modelResult'][i] = "neutral";
               colors.push(scaleColor(data['tags'][0]));
               let aux = {};
               for (let j = 0; j < dimNames.length-2; ++j){//except urls and labels
@@ -69,6 +69,7 @@ componentWillMount(){
               numericalData.push(aux);
           }
           dimNames.push('tags');
+          dimNames.push('modelResult');
           $.post(
             '/computeTSP',
             { },
