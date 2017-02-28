@@ -323,7 +323,7 @@ class RadViz extends Component {
                 }else{
                   anchorText.push(
                             <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                            <text textAnchor="end" x={0} y={0} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+                            <text textAnchor="end" x={0} y={7} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
                             </g>);
                 }
 
