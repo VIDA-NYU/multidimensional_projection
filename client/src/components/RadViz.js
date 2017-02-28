@@ -7,7 +7,7 @@ class RadViz extends Component {
 
     constructor(props){
         super(props);
-        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[],};
+        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], "data": undefined, };
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
@@ -86,12 +86,13 @@ class RadViz extends Component {
           this.scaleY = scaleLinear().domain([-1,1]).range([props.marginY/2, props.height - props.marginY/2]);
 
           let newState = {"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
-            "anchorAngles":anchorAngles, "denominators":denominators, "offsetAnchors":0, "sigmoid_scale":props.sigmoid_scale, "sigmoid_translate":props.sigmoid_translate};
+                          "denominators":denominators, "offsetAnchors":0, "sigmoid_scale":props.sigmoid_scale, "sigmoid_translate":props.sigmoid_translate};
 
           if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
           if(!(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0))){
             newState["selected"] = selected;
           }
+          if(this.state.data !== props.data) {newState["data"] = props.data; newState["anchorAngles"] = anchorAngles;}
           this.setState(newState);
 
       }
