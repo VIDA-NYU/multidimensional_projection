@@ -113,6 +113,20 @@ class RadViz extends Component {
         return (numeric.dot(rotMat,initPoint));
     }
 
+    setColorPoints(i, ret, p0, p1){
+      if(this.props.showedData===0){
+          ret.push(<circle cx={this.scaleX(p0)} cy={this.scaleY(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>)
+      }
+      if(this.props.showedData===1){
+        if(!this.state.selected[i])
+          ret.push(<circle cx={this.scaleX(p0)} cy={this.scaleY(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>)
+      }
+      if(this.props.showedData===2 && this.state.selected[i]){
+          ret.push(<circle cx={this.scaleX(p0)} cy={this.scaleY(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>)
+      }
+      return ret;
+    }
+
     radvizMapping(data, anchors){
       	this.currentMapping = [];
           let ret = [];
@@ -126,16 +140,15 @@ class RadViz extends Component {
             if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
             if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
             this.currentMapping.push(p);
-            if(this.props.showedData===0){
-                ret.push(<circle cx={this.scaleX(p[0])} cy={this.scaleY(p[1])} r={5} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>)
+            if(this.props.projection == "modelResult"){
+              if(this.props.modelResult[i]!=="trainData"){
+                ret = this.setColorPoints(i, ret, p[0], p[1]);
+              }
             }
-            if(this.props.showedData===1){
-              if(!this.state.selected[i])
-                ret.push(<circle cx={this.scaleX(p[0])} cy={this.scaleY(p[1])} r={5} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>)
+            else{
+              ret = this.setColorPoints(i, ret, p[0], p[1]);
             }
-            if(this.props.showedData===2 && this.state.selected[i]){
-                ret.push(<circle cx={this.scaleX(p[0])} cy={this.scaleY(p[1])} r={5} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>)
-            }
+
           }
           return ret;
     }
@@ -292,11 +305,6 @@ class RadViz extends Component {
     	this.setState({'draggingAnchorGroup':true, 'startAnchorGroupAngle':angle});
     }
 
-    normalizeAngle(angle) {
-      return Math.atan2(Math.sin(angle), Math.cos(angle));  
-    }   
-
-
     render() {
         console.log("rendering radViz");
         let sampleDots = [];
@@ -313,19 +321,10 @@ class RadViz extends Component {
 
                 anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
                         key={i} onMouseDown={this.startDragAnchor(i)} style={{cursor:'hand', stroke:(this.state.selected[i]?'black':'none'), fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
-                
-                let normalizedAngle = this.normalizeAngle(this.state.anchorAngles[i] + this.state.offsetAnchors);
-                if (Math.abs(normalizedAngle) < Math.PI/2){
-                  anchorText.push(
-                            <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                            <text textAnchor="start" x={0} y={0} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
-                            </g>);
-                }else{
-                  anchorText.push(
-                            <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                            <text textAnchor="end" x={0} y={7} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
-                            </g>);
-                }
+                anchorText.push(
+                          <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
+                          <text x={0} y={0} transform={`rotate(${(this.state.anchorAngles[i] + this.state.offsetAnchors)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+                          </g>);
 
 
             }

@@ -68,7 +68,7 @@ class Body extends Component {
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
    this.colorDefault= [ "#0D47A1", "#C62828", "#9E9E9E", "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"];
-   this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828"];
+   this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828", "#FFFFFF"];
 
  };
 
@@ -171,7 +171,7 @@ class Body extends Component {
              j++;
            }
            else{
-             updateData['modelResult'][i]=this.state.originalData["tags"][i];
+             updateData['modelResult'][i]="trainData";//this.state.originalData["tags"][i];
            }
         }
         this.setState({accuracy: data["accuracy"] , originalData: updateData});
@@ -208,9 +208,9 @@ class Body extends Component {
     trainData = positiveTrainData.concat(negativeTrainData);
     labelsTrainData = labels_pos_trainData.concat(labels_neg_trainData);
 
-    if(positiveTrainData.length > 0 && negativeTrainData.length >0){
+    //if(positiveTrainData.length > 0 && negativeTrainData.length >0){
       this.runModel(trainData, labelsTrainData, testDataSet, url_predictedLabel, updateData);
-    }
+    //}
 
   }
 
@@ -219,9 +219,8 @@ class Body extends Component {
     let updateData = {};
     updateData = this.state.originalData;
     for (let i = 0; i < this.state.originalData['tags'].length; ++i){
-        if(this.state.selectedPoints[i]){
-          updateData['tags'][i]=tag;
-        }
+        if(this.state.selectedPoints[i])
+            updateData['tags'][i]=tag;
     }
     this.setState({originalData: updateData});
     this.updateColorsTags(this.state.value);
@@ -294,11 +293,13 @@ class Body extends Component {
 
           <Col  ls={7} md={7} style={{ background:"white", borderRight: '2px solid', borderColor:'lightgray'}}>
             <Row className="Menus-child">
-            <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale} showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText} />
+            <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
+            showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
+            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}/>
             <div style={{position: "absolute", left: "23%"  }}>
-            <FlatButton label="Relevant" primary={true} backgroundColor="#1976D2" hoverColor="#0D47A1" icon={<RelevantIcon color="#ffffff"/>} onTouchTap={this.tagsRelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff", textTransform: "capitalize"}}/>
-            <FlatButton label="Irrelevant" primary={true} backgroundColor="#D32F2F" hoverColor="#B71C1C" icon={<IrrelevantIcon color="#ffffff"/>} onTouchTap={this.tagsIrrelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff", textTransform: "capitalize"}} />
-            <FlatButton label="Neutral" primary={true} backgroundColor="#E0E0E0" hoverColor="#BDBDBD" icon={<NeutralIcon color="#ffffff"/>} onTouchTap={this.tagsNeutral.bind(this)} labelStyle={{color:"#ffffff", textTransform: "capitalize"}}/>
+            <FlatButton label="Relevant" primary={true} backgroundColor="#0D47A1" hoverColor="#1A237E" icon={<RelevantIcon color="#ffffff"/>} onTouchTap={this.tagsRelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff", textTransform: "capitalize"}}/>
+            <FlatButton label="Irrelevant" primary={true} backgroundColor="#B71C1C" hoverColor="#B71C1C" icon={<IrrelevantIcon color="#ffffff"/>} onTouchTap={this.tagsIrrelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff", textTransform: "capitalize"}} />
+            <FlatButton label="Neutral" primary={true} backgroundColor="#BDBDBD" hoverColor="#BDBDBD" icon={<NeutralIcon color="#ffffff"/>} onTouchTap={this.tagsNeutral.bind(this)} labelStyle={{color:"#ffffff", textTransform: "capitalize"}}/>
             </div>
             </Row>
           </Col>
