@@ -44,7 +44,7 @@ class Home extends Component {
 
 
   componentWillMount() {
-    var domains = [{name: 'Machine', id: '1' }];
+    var domains = [{name: 'Escort', id: '1' }];
     this.setState({domains: domains});
     //Get domains.
   /*  $.post(

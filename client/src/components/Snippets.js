@@ -85,7 +85,7 @@ class Snippets extends Component{
 
   render(){
     return(
-      <div style={{marginLeft:'0px', width:'450px', overflowY: 'scroll', height:'450px',}}>
+      <div style={{marginLeft:'-2px', width:'450px', overflowY: 'scroll', height:'418px', borderLeft: '2px solid',borderRight: '2px solid', borderBottom: '2px solid', borderColor:'lightgray'}}>
         {this.state.snippets}
       </div>
     );

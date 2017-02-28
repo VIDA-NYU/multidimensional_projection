@@ -15,9 +15,11 @@ class SigmoidGraph extends Component {
 		for (let x = -2; x <= 2; x += 0.01){
 			path = path + this.scaleX(x) + "," + this.scaleY(this.sigmoid(x)) + " ";
 		}
+
 		return (
-			<svg style={{width:this.props.width, height:this.props.height}}>
+			<svg style={{width:this.props.width, height:this.props.height, borderColor:"#9E9E9E", borderLeft:'1px solid', borderBottom:'1px solid',}}>
 			<polyline points={path} style={{fill:'none',stroke:'00aaff',strokeWidth:3}}/>
+			<g className="axis" ref="axis" transform={100}></g>
 			</svg>
 			)
 	}
@@ -31,7 +33,7 @@ class SigmoidGraph extends Component {
 
 
 SigmoidGraph.defaultProps = {
-	width:240,
+	width:210,
 	height:80,
 	marginX:1,
 	marginY:1

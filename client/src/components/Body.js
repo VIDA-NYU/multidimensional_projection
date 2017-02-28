@@ -34,8 +34,8 @@ const styles = {
     maxWidth: 250,
   },
   radioButton: {
-    fontSize: 'small',
-    fontFamily: 'Times New Roman',
+    fontSize: '13px',
+    fontWeight:'normal',
     marginBottom: 16,
   },
 };
@@ -69,6 +69,7 @@ class Body extends Component {
    this.showingUrls = this.showingUrls.bind(this);
    this.colorDefault= [ "#0D47A1", "#C62828", "#9E9E9E", "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"];
    this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828", "#FFFFFF"];
+   this.fontSize="13px";
 
  };
 
@@ -240,6 +241,17 @@ class Body extends Component {
     this.tagsSelectedData("neutral");//0
   }
 
+  //Labeling pages as a Neutral.
+  countTotalLabeledPages(){
+    let cont =0;
+    for (let i = 0; i < this.state.originalData['tags'].length; ++i){
+        if(this.state.originalData['tags'][i]=="relevant" || this.state.originalData['tags'][i]=="irrelevant")
+            cont++;
+    }
+    return cont;
+  }
+
+
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
     {
@@ -254,39 +266,41 @@ class Body extends Component {
       return(
         <Grid>
 
-          <Col ls={3} md={3} style={{marginLeft: '-50px', borderRight: '2px solid', borderColor:'lightgray'}}>
+          <Col ls={3} md={3} style={{marginLeft: '-50px', marginTop:'10px', border: '2px solid', borderColor:'lightgray', paddingBottom:"70px"}}>
                <List>
-                 <Subheader>Sigmoid</Subheader>
+                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Sigmoid</Subheader>
                  <ListItem>
-                   <p>Translation:</p> <Slider min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
+                   <p style={{fontSize:this.fontSize,}} >Translation:</p> <Slider min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
                  </ListItem>
                  <ListItem>
-                   <p>Scale:</p> <Slider min={0} max={100} step={1} defaultValue={1} onChange={this.updateSigmoidScale}/>
+                   <p style={{fontSize:this.fontSize,}}>Scale:</p> <Slider min={0} max={100} step={1} defaultValue={1} onChange={this.updateSigmoidScale}/>
                  </ListItem>
                  <ListItem >
                   <SigmoidGraph sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}/>
                  </ListItem>
                  <Divider />
-                 <Subheader>Interaction</Subheader>
+                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Interaction</Subheader>
                  <ListItem>
                    <RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData}>
-                    <RadioButton value={0} label="Show all" style={styles.radioButton}/>
-                    <RadioButton value={1} label="Hide selected" style={styles.radioButton}/>
-                    <RadioButton value={2} label="Hide unselected" style={styles.radioButton}/>
+                    <RadioButton value={0} label="Show all" labelStyle={styles.radioButton}/>
+                    <RadioButton value={1} label="Hide selected" labelStyle={styles.radioButton}/>
+                    <RadioButton value={2} label="Hide unselected" labelStyle={styles.radioButton}/>
                   </RadioButtonGroup>
                  </ListItem>
                  <Divider />
-                 <Subheader>Projection</Subheader>
-                   <DropDownMenu style={{marginTop:"-20px"}} value={this.state.value} onChange={this.updateLabelColors}>
+                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Projection</Subheader>
+                   <DropDownMenu style={{marginTop:"-20px", fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateLabelColors}>
                    {Object.keys(dimensions).map((k, index)=>{
                         var attibute = dimensions[k].attribute;
-                        return <MenuItem value={index} primaryText={attibute} />
+                        return <MenuItem value={index} primaryText={attibute} style={{fontSize:this.fontSize,}} />
                    })}
                   </DropDownMenu>
                  <Divider />
-                 <Subheader>OnlineClassifier</Subheader>
-                 <div style={{marginLeft:"25px"}}>
-                 {this.state.accuracy} %
+                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>OnlineClassifier</Subheader>
+                 <div style={{marginLeft:"25px", fontSize:this.fontSize,}}>
+                   <p>Total pages: {this.state.originalData['urls'].length}.</p>
+                   <p>Labeled pages: {this.countTotalLabeledPages()}.</p>
+                   <p>Accuracy: {this.state.accuracy} %</p>
                  </div>
                </List>
           </Col>
@@ -299,18 +313,20 @@ class Body extends Component {
             <div style={{position: "absolute", left: "23%"  }}>
             <FlatButton label="Relevant" primary={true} backgroundColor="#0D47A1" hoverColor="#1A237E" icon={<RelevantIcon color="#ffffff"/>} onTouchTap={this.tagsRelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff", textTransform: "capitalize"}}/>
             <FlatButton label="Irrelevant" primary={true} backgroundColor="#B71C1C" hoverColor="#B71C1C" icon={<IrrelevantIcon color="#ffffff"/>} onTouchTap={this.tagsIrrelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff", textTransform: "capitalize"}} />
-            <FlatButton label="Neutral" primary={true} backgroundColor="#BDBDBD" hoverColor="#BDBDBD" icon={<NeutralIcon color="#ffffff"/>} onTouchTap={this.tagsNeutral.bind(this)} labelStyle={{color:"#ffffff", textTransform: "capitalize"}}/>
+            <FlatButton label="Neutral" primary={true} backgroundColor="#BDBDBD" hoverColor="#616161" icon={<NeutralIcon color="#ffffff"/>} onTouchTap={this.tagsNeutral.bind(this)} labelStyle={{color:"#ffffff", textTransform: "capitalize"}}/>
             </div>
             </Row>
           </Col>
 
           <Col  ls={2} md={2} style={{background:"white"}}>
             <Row className="Menus-child" >
+            <div style={{width:'448px', borderTop:'solid', borderRight: '2px solid', borderColor:'lightgray'}}>
             <WordCloud dimNames={this.state.dimNames} selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
+            </div>
             </Row>
             <Row className="Menus-child">
-              <div style={{width:'450px', borderTop:'solid', borderColor:"silver"}}>
-                <p style={{color:"silver", marginLeft:'30px'}}>Total pages: {nroSelectedUrls}</p>
+              <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray'}}>
+                <p style={{color:"silver", marginLeft:'30px'}}>Selected pages: {nroSelectedUrls}</p>
               </div>
               <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
             </Row>
