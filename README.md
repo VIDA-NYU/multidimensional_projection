@@ -22,7 +22,7 @@ Use the `make` command to build MDPROJ and download/install its dependencies.
 make
 ```
 
-Set DD_API_HOME
+Make domain_discovery_API available by adding it to the environment:
 
 ```
 export DD_API_HOME="{path-to-cloned-domain_discovery_API-repository}"
