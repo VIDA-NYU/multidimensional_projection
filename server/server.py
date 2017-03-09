@@ -1,4 +1,6 @@
 import cherrypy
+from domain_discovery_API.server import Page
+#import domain_discovery_api.* as dd_api
 from ConfigParser import ConfigParser
 import json
 import os
@@ -6,7 +8,7 @@ from threading import Lock
 import urlparse
 from RadvizModel import RadvizModel
 
-class Page:
+class MDProjServer(Page):
   @staticmethod
   def getConfig():
     # Parses file to prevent cherrypy from restarting when config.conf changes: after each request
@@ -26,13 +28,11 @@ class Page:
 
     return configMap
 
-
   # Default constructor reading app config file.
   def __init__(self):
-    # Folder with html content.
-    self._HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), u"../client/build")
-    self.lock = Lock()
-    self.radvizModel = RadvizModel()
+    self._radvizModel = RadvizModel()
+    path = os.path.dirname(__file__)
+    super(MDProjServer, self).__init__(self._radvizModel, path)
 
   # Access to seed crawler vis.
   @cherrypy.expose
@@ -45,34 +45,28 @@ class Page:
     return self.mdprojvis()
 
   @cherrypy.expose
-  def getRadvizPoints(self):
-    result = self.radvizModel.getRadvizPoints()
-    return json.dumps(result)
-
-  # , train, train_labels, test, test_labels, partial
-  @cherrypy.expose
-  def classify(self, traindata, labelsTrainData, testDataSet):
-    result = self.radvizModel.classify(traindata, labelsTrainData, testDataSet)
+  def getRadvizPoints(self,index):
+    result = self._radvizModel.getRadvizPoints(index)
     return json.dumps(result)
 
   @cherrypy.expose
   def getURLsMetadata(self):
-    result = self.radvizModel.getURLsMetadata()
+    result = self._radvizModel.getURLsMetadata()
     return result
 
   @cherrypy.expose
   def computeTSP(self):
-    result = self.radvizModel.computeTSP()
+    result = self._radvizModel.computeTSP()
     return json.dumps(result)
 
 if __name__ == "__main__":
-  page = Page()
+  server = MDProjServer()
 
   # CherryPy always starts with app.root when trying to map request URIs
   # to objects, so we need to mount a request handler root. A request
   # to "/" will be mapped to HelloWorld().index().
-  app = cherrypy.quickstart(page, config=Page.getConfig())
-  cherrypy.config.update(page.config)
+  app = cherrypy.quickstart(server, config=MDProjServer.getConfig())
+  cherrypy.config.update(server.config)
   #app = cherrypy.tree.mount(page, "/", page.config)
 
   #if hasattr(cherrypy.engine, "signal_handler"):
@@ -83,7 +77,7 @@ if __name__ == "__main__":
   #cherrypy.engine.block()
 
 else:
-  page = Page()
+  server = MDProjServer()
   # This branch is for the test suite; you can ignore it.
-  config = Page.getConfig()
-  app = cherrypy.tree.mount(page, config=config)
+  config = MDProjServer.getConfig()
+  app = cherrypy.tree.mount(server, config=config)

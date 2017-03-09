@@ -33,7 +33,7 @@ class Domain extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      idDomain:'',
+	idDomain:'',
       searchText:'',
       flat:0,
       data:undefined,
@@ -44,23 +44,20 @@ class Domain extends Component {
     this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828"];
 };
 
-componentWillMount(){
-    console.log("header componentWillMount");
+    componentWillMount(){
     $.post(
         '/getRadvizPoints',
-        { },
+        {index: this.props.location.query.index},
         function(es) {
           var data = JSON.parse(es);
           let numericalData = [];
           let dimNames = Object.keys(data);
           let scaleColor = scaleOrdinal(this.colorTags);
           let colors = [];
-          data['tags'] = [];
           data['modelResult'] = [];
           for (let i = 0; i < data['labels'].length; ++i){
-              data['tags'][i] = "neutral";
               data['modelResult'][i] = "neutral";
-              colors.push(scaleColor(data['tags'][0]));
+              //colors.push(scaleColor(data['tags'][0]));
               let aux = {};
               for (let j = 0; j < dimNames.length-2; ++j){//except urls and labels
                   aux[dimNames[j]] = parseFloat(data[dimNames[j]][i]);
@@ -68,7 +65,6 @@ componentWillMount(){
 
               numericalData.push(aux);
           }
-          dimNames.push('tags');
           dimNames.push('modelResult');
           $.post(
             '/computeTSP',
@@ -88,16 +84,15 @@ componentWillMount(){
             }.bind(this)
           );
         }.bind(this)
-      );
+    );
     this.setState({idDomain: this.props.location.query.idDomain});
-};
+  };
 
 componentWillReceiveProps  = (newProps, nextState) => {
-  console.log("header componentWillReceiveProps");
   if(newProps.location.query.idDomain ===this.state.idDomain){
     return;
   }
-  this.setState({idDomain: this.props.location.query.idDomain});
+    this.setState({idDomain: this.props.location.query.idDomain});
 
 };
 /*
@@ -116,11 +111,10 @@ filterKeyword(searchText){
 }
 
 render() {
-  console.log("header");
   return (
     <div>
       <Header currentIdDomain={this.props.location.query.idDomain} currentNameDomain={this.props.location.query.nameDomain} dimNames={this.state.dimNames} filterKeyword={this.filterKeyword.bind(this)} />
-      <Body currentDomain={this.state.idDomain} searchText={this.state.searchText} originalData={this.state.originalData} data={this.state.data} colors={this.state.colors} flat={this.state.flat} dimNames={this.state.dimNames}/>
+	  <Body currentDomain={this.state.idDomain} searchText={this.state.searchText} originalData={this.state.originalData} data={this.state.data} colors={this.state.colors} flat={this.state.flat} dimNames={this.state.dimNames}/>
     </div>
   );
 }

@@ -3,9 +3,8 @@ name: mdproj
 channels:
   - nodefaults
   - memex
-  - bokeh
-
-
+  - anaconda
+  
 dependencies:
     - supervisor
     - scipy
@@ -13,4 +12,11 @@ dependencies:
     - scikit-learn >=0.16.1
     - cherrypy
     - joblib
+    - functools32
+    - jinja2
     - nodejs
+    - dateutil
+    - elasticsearch
+    - pyelasticsearch >=1.2
+    - nltk
+    - topik

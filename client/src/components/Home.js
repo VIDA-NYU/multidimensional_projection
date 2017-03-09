@@ -17,7 +17,7 @@ import AddBox from 'material-ui/svg-icons/content/add-box';
 import ContentCopy from 'material-ui/svg-icons/content/content-copy';
 import DeleteForever from 'material-ui/svg-icons/action/delete-forever';
 import {fullWhite} from 'material-ui/styles/colors';
-//import $ from 'jquery';
+import $ from 'jquery';
 
 
 import AppBar from 'material-ui/AppBar';
@@ -42,24 +42,24 @@ class Home extends Component {
     };
   }
 
-
-  componentWillMount() {
-    var domains = [{name: 'Escort', id: '1' }];
-    this.setState({domains: domains});
-    //Get domains.
-  /*  $.post(
-      '/getAvailableCrawlers',
+  getAvailableDomains(){
+    $.post(
+      '/getAvailableDomains',
       {"type": "init"},
-      function(domains) {
+	function(domains) {
         this.setState({domains: domains['crawlers']});
       }.bind(this)
-    );*/
+    );
+  }
+  componentWillMount() {
+    //var domains = [{name: 'Escort', id: '1' }];
+    //this.setState({domains: domains});
+    //Get domains.
+      this.getAvailableDomains();
   }
 
   render(){
-    console.log('home');
     if(this.state.domains!==undefined){
-      console.log('home into if');
       var mydata = this.state.domains;
       return (
         <div>
@@ -77,10 +77,10 @@ class Home extends Component {
                 <Col xs={6} md={6} style={styles.listDomains}>
                   <List>
                     <Subheader style={{color:'black'}}><h2>Domains</h2></Subheader>
-                    {Object.keys(mydata).map((k, index)=>{
-                      var str = (mydata[k].name).replace(/\s+/g, '');
-                      return <Link to={{ pathname: `/domain/${str}`, query: { nameDomain: mydata[k].name, idDomain: mydata[k].id} }}  text={"Machine Learning"}>
-                      <ListItem key={index} style={{textAlign: 'left'}}
+                    {Object.keys(mydata).map((k, i)=>{
+			var str = (mydata[k].name).replace(/\s+/g, '');
+			return <Link to={{ pathname: `/domain/${str}`, query: { nameDomain: mydata[k].name, idDomain: mydata[k].id, index: mydata[k].index} }}  text={"Machine Learning"}>
+                      <ListItem key={i} style={{textAlign: 'left'}}
                       primaryText={mydata[k].name}
                       rightIcon={<Forward />} />
                       </Link>

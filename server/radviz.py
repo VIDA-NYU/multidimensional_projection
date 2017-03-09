@@ -10,7 +10,13 @@ class  Radviz:
     features = None
     labels = None
     sampleNames = None
-    
+
+    def __init__(self, data, features, labels, sampleNames):
+        self.data = data
+        self.features = features
+        self.labels = labels
+        self.sampleNames = sampleNames
+        
     def loadData_pkl(self, pkl_file):
         self.data = joblib.load(pkl_file)
         return self.data

@@ -44,25 +44,12 @@ class Snippets extends Component{
         try {
             getRequests.push($.get(url, function(response, status, xhr) {
               var html = $(response).find('html');
-              var title= (html.find('meta[property|="og:title"]').attr('content')) ? html.find('meta[property|="og:title"]').attr('content') :
-                          ( html.find('meta[name=title]').attr('content') ) ? html.find('meta[name=title]').attr('content') :
-                            ( html.find('title').text()) ? html.find('title').text() : "";
-
-              var description= (html.find('meta[property|="og:description"]').attr('content')) ? html.find('meta[property|="og:description"]').attr('content') :
-                                (html.find('meta[property|="og:Description"]').attr('content')) ? html.find('meta[property|="og:Description"]').attr('content') :
-                                  ( html.find('meta[name=description]').attr('content') ) ? html.find('meta[name=description]').attr('content') :
-                                    ( html.find('meta[name=Description]').attr('content') ) ? html.find('meta[name=Description]').attr('content') : "";
-
-
-              var image= (html.find('meta[property|="og:image"]').attr('content')) ? html.find('meta[property|="og:image"]').attr('content') :
-                                (html.find('meta[property|="og:Image"]').attr('content')) ? html.find('meta[property|="og:Image"]').attr('content') :
-                                  ( html.find('meta[name=image]').attr('content') ) ? html.find('meta[name=image]').attr('content') :
-                                    ( html.find('meta[name=Image]').attr('content') ) ? html.find('meta[name=Image]').attr('content') :
-                                     ( html.find('img').attr('src') ) ?  html.find('img').attr('src') :  "";
+		var title= props.originalData["title"][i];
+              var description= props.originalData["snippet"][i];
+              var image= props.originalData["image_url"][i];
 
               //console.log(image);
               if(image!==""){
-                if(image.indexOf("//") === -1)  image = props.originalData['urls'][i].substring(0, props.originalData['urls'][i].indexOf("/", (props.originalData['urls'][i].indexOf("//")+2)))+image;
                 snippets.push(<div style={{  width:'440px', minHeight: '60px',  borderColor:"silver", marginLeft: '8px', marginTop: '5px',}}><div><p style={{float:'left'}}><img src={image} alt="HTML5 Icon" style={{width:'60px',height:'60px', marginRight:'3px'}}/></p> <p style={{ color:'blue'}} >{title} <br/><a target="_blank" href={props.originalData['urls'][i]} style={{fontSize:'10px'}}>{props.originalData['urls'][i]}</a></p></div><br/><div style={{marginTop:'-3px'}}><p>{description}</p></div><Divider /></div>);
               }
               else{
