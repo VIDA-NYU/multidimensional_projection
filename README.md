@@ -10,6 +10,24 @@ Building and deploying the MDPROJ can be done using its Makefile to create a loc
 
 First install conda, either through the Anaconda or miniconda installers provided by Continuum.  You will also need Git.  These are system tools that are generally not provided by conda.
 
+Set up Domain Discovery API
+
+```
+https://github.com/ViDA-NYU/domain_discovery_API.git
+cd domain_discovery_API
+```
+Use the `make` command to build MDPROJ and download/install its dependencies.
+
+```
+make
+```
+
+Set DD_API_HOME
+
+```
+export DD_API_HOME="{path-to-cloned-domain_discovery_API-repository}"
+```
+
 Clone the MDPROJ repository and enter it:
 
 ```
