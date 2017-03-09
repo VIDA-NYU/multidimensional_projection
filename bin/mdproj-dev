@@ -5,5 +5,6 @@ SCRIPT_DIR=$(dirname $SCRIPT_PATH)
 # ugly, but portable
 export MDPROJ_HOME=$(python -c "import os, sys; sys.stdout.write(os.path.abspath('$SCRIPT_DIR/..')+'\n')")
 echo "MDPROJ_HOME  : $MDPROJ_HOME"
-
+export PYTHONPATH=$DD_API_HOME/../:$DD_API_HOME:.:$PYTHONPATH
+echo "PYTHONPATH  : $PYTHONPATH"
 python $MDPROJ_HOME/server/server.py
