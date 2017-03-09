@@ -26,7 +26,6 @@ help                : Makefile
 
 clean:
 	rm -rf client/build; \
-	rm -rf client/node_modules; \
 	rm server/config.conf
 
 ## conda_env        : Install/update a conda environment with needed packages
