@@ -39,12 +39,8 @@ class Snippets extends Component{
     for (let i = 0; i < props.originalData['urls'].length; ++i){
       if(props.selectedPoints[i]){
         var title="", description="";
-        var query = 'select * from html where url="'+props.originalData['urls'][i]+'" and xpath="*"';
-        var url = 'https://query.yahooapis.com/v1/public/yql?q=' + query;
         try {
-            getRequests.push($.get(url, function(response, status, xhr) {
-              var html = $(response).find('html');
-		var title= props.originalData["title"][i];
+		          var title= props.originalData["title"][i];
               var description= props.originalData["snippet"][i];
               var image= props.originalData["image_url"][i];
 
@@ -56,11 +52,7 @@ class Snippets extends Component{
                 snippets.push(<div style={{ width:'440px',  borderColor:"silver", marginLeft: '8px',marginTop: '5px',}}><p style={{color:'blue'}}>{title}</p><p><a target="_blank" href={props.originalData['urls'][i]} style={{fontSize:'10px'}}>{props.originalData['urls'][i]}</a></p><p>{description}</p><Divider /></div>);
               }
               this.setState({snippets:snippets, selectedPoints:this.props.selectedPoints});
-            }.bind(this)).fail(function() {
-              snippets.push(<div style={{ width:'440px',  borderColor:"silver", marginLeft: '8px',marginTop: '5px',}}><p><a target="_blank" href={props.originalData['urls'][i]}>{props.originalData['urls'][i]}</a></p><Divider /></div>);
-              this.setState({snippets:snippets, selectedPoints:this.props.selectedPoints});
-            }.bind(this))
-          );
+
         }
         catch(err) {
           console.log(err);

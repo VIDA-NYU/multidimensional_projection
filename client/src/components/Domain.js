@@ -55,6 +55,7 @@ class Domain extends Component {
           let scaleColor = scaleOrdinal(this.colorTags);
           let colors = [];
           data['modelResult'] = [];
+
           for (let i = 0; i < data['labels'].length; ++i){
               data['modelResult'][i] = "neutral";
               //colors.push(scaleColor(data['tags'][0]));
@@ -62,7 +63,6 @@ class Domain extends Component {
               for (let j = 0; j < dimNames.length-2; ++j){//except urls and labels
                   aux[dimNames[j]] = parseFloat(data[dimNames[j]][i]);
               }
-
               numericalData.push(aux);
           }
           dimNames.push('modelResult');
