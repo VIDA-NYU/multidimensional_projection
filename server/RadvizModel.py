@@ -15,7 +15,7 @@ class RadvizModel(DomainModel):
 
     def getRadvizPoints(self, index):
         max_features = 200
-        ddteval_data = fetch_ddteval_data(index)
+        ddteval_data = fetch_data(index)
         data = ddteval_data["data"]
 
         labels = ddteval_data["labels"]
