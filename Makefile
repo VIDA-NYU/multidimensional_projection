@@ -3,7 +3,7 @@
 # Type "make help" for a list of commands
 
 # Variables for the Makefile
-.PHONY = cherrypy_config clean
+.PHONY = cherrypy_config clean nltk_data
 SHELL := /bin/bash
 CONDA_ROOT := $(shell conda info --root)
 CONDA_ENV := $(CONDA_ROOT)/envs/mdproj
@@ -12,11 +12,12 @@ CONDA_ENV_TARGET := $(CONDA_ENV)/conda-meta/history
 CHERRY_PY_CONFIG_TARGET := server/config.conf
 TSP_SOLVER_TARGET := ${PWD}/lib/tsp-solver-master/build
 GET_REACT_DATA_TARGET := client/build/index.html
+GET_NLTK_DATA_TARGET := nltk_data/corpora nltk_data/tokenizers
 
 # Makefile commands, see below for actual builds
 
 ## all              : set up mdproj development environment
-all: conda_env cherrypy_config tsp_solver get_react_data
+all: conda_env cherrypy_config tsp_solver get_react_data get_nltk_data
 
 ## help             : show all commands.
 # Note the double '##' in the line above: this is what's matched to produce
@@ -33,6 +34,9 @@ conda_env: $(CONDA_ENV_TARGET)
 
 ## cherrypy_config  : Configure CherryPy (set absolute root environment)
 cherrypy_config: $(CHERRY_PY_CONFIG_TARGET)
+
+## get_nltk_data    : Download NLTK corpus and tokenizers 
+get_nltk_data: $(GET_NLTK_DATA_TARGET)
 
 tsp_solver: $(TSP_SOLVER_TARGET)
 
@@ -53,6 +57,10 @@ $(TSP_SOLVER_TARGET): ${PWD}/lib/tsp-solver-master.zip
 	pushd ${PWD}/lib/tsp-solver-master; \
 	python setup.py install; \
 	popd
+
+$(GET_NLTK_DATA_TARGET): $(CONDA_ENV)
+	source activate mdproj; \
+	python -m nltk.downloader -d ${PWD}/nltk_data stopwords brown punkt averaged_perceptron_tagger
 
 $(GET_REACT_DATA_TARGET):
 	source activate mdproj; \
