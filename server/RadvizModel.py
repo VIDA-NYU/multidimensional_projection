@@ -24,9 +24,9 @@ class RadvizModel(DomainModel):
 
         tf_v = tf_vectorizer(convert_to_ascii=True, max_features=max_features)
         [X, features] = tf_v.vectorize(data)
-        
+
         matrix_transpose = np.transpose(X.todense())
-        
+
         print "\n\n Number of 1-gram features = ", len(features)
         print "\n\n tf 1-gram matrix size = ", np.shape(X)
 

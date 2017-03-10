@@ -13,23 +13,23 @@ def fetch_data( index, categories=[], remove_duplicate=True, convert_to_ascii=Tr
     print categories
 
     MAX_WORDS = 1000
-    
+
     index = index
     doctype = "page"
-    
+
     mapping = {"timestamp":"retrieved", "text":"text", "html":"html", "tag":"tag", "query":"query"}
 
     records = []
 
     fields = ["url", "tag", "text", "description", "image_url", "title"]
     query = {
-        "query": { 
+        "query": {
             "match_all": {}
         },
         "fields": fields,
         "size": 100000000
     }
-    
+
     if len(categories) > 0:
         query = {
             "query" : {
@@ -43,15 +43,15 @@ def fetch_data( index, categories=[], remove_duplicate=True, convert_to_ascii=Tr
             #size": 3000
             "size": 100000000
         }
-    
-    res = es.search(body=query, 
+
+    res = es.search(body=query,
                     index=index,
                     doc_type=doctype, request_timeout=600)
-    
-    
+
+
     if res['hits']['hits']:
         hits = res['hits']['hits']
-        
+
     for hit in hits:
         record = {}
         if not hit.get('fields') is None:
@@ -71,6 +71,7 @@ def fetch_data( index, categories=[], remove_duplicate=True, convert_to_ascii=Tr
     text = []
     topic_count = {}
     dup_count = 0
+    i_title=0
     for rec in records:
         dup = -1
         try:
@@ -79,7 +80,7 @@ def fetch_data( index, categories=[], remove_duplicate=True, convert_to_ascii=Tr
             pprint(rec)
         except ValueError:
             dup = -1
-            
+
         if remove_duplicate:
             if dup != -1:
                 dup_count = dup_count + 1
@@ -90,7 +91,7 @@ def fetch_data( index, categories=[], remove_duplicate=True, convert_to_ascii=Tr
             topic_name = rec["tag"][0]
         except KeyError:
             topic_name = "Neutral"
-            
+
         if (topic_name in categories) or len(categories) == 0:
             labels.append(topic_name)
             if preprocess:
@@ -104,6 +105,9 @@ def fetch_data( index, categories=[], remove_duplicate=True, convert_to_ascii=Tr
                 image_url.append(rec['image_url'][0])
             if not rec.get('title') is None:
                 title.append(rec['title'][0])
+            else:
+                title.append("")
+
 
             count = topic_count.get(topic_name)
             if count is None:
@@ -114,7 +118,7 @@ def fetch_data( index, categories=[], remove_duplicate=True, convert_to_ascii=Tr
 
     if remove_duplicate:
         print "\n\nDuplicates found = ", dup_count
-                    
+
     result["labels"] = labels
     result["data"] = text
     result["urls"] = urls
@@ -137,7 +141,7 @@ def preprocess(text, convert_to_ascii=True):
                 ascii_text.append(x.encode('ascii', 'ignore'))
             except:
                 continue
-            
+
         text = " ".join(ascii_text)
 
     preprocessed_text = " ".join([word.strip() for word in text.split(" ") if len(word.strip()) > 2 and (word.strip() != "") and (isnumeric(word.strip()) == False) and notHtmlTag(word.strip()) and notMonth(word.strip())])
@@ -163,7 +167,7 @@ def notMonth(word):
 
 def isnumeric(s):
     # Check if string is a numeric
-    try: 
+    try:
         int(s)
         return True
     except ValueError:
