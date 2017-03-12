@@ -85,7 +85,6 @@ class Header extends Component {
     super(props);
     this.state = {
       idDomain:'',
-      filterKeyword:'',
       searchText:'',
       selectedSearchText:[],
   };
@@ -98,10 +97,15 @@ componentWillMount(){
 
 componentWillReceiveProps  = (newProps, nextState) => {
   console.log("header componentWillReceiveProps");
+  let newState = {};
   if(newProps.currentIdDomain ===this.state.idDomain){
-    return;
+    if(newProps.filterTerm=="" && this.state.searchText!==""){
+      newState["searchText"] = newProps.filterTerm;
+    }
+    else return;
   }
-  this.setState({idDomain: newProps.currentIdDomain});
+  newState["idDomain"] = newProps.currentIdDomain;
+  this.setState(newState);
 
 };
 
@@ -132,8 +136,6 @@ render() {
       <Toolbar style={styles.toolBarHeader}>
         <ToolbarTitle text={this.props.currentNameDomain} style={styles.tittleCurrentDomain}/>
         <ToolbarSeparator  />
-        <IconButton tooltip="Create Model" style={{marginLeft:'-15px', marginRight:'-10px'}} > <Model />
-        </IconButton>
         <Link to='/'>
           <IconButton tooltip="Change Domain" style={{marginLeft:'-15px'}} > <Domain />
           </IconButton>
@@ -149,7 +151,7 @@ render() {
              searchText={this.state.searchText}
              onUpdateInput={this.handleUpdateInput}
              onNewRequest={this.handleNewRequest}
-             dataSource={this.props.dimNames}
+             dataSource={[""]}
              filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
              openOnFocus={true}
          />
@@ -160,3 +162,5 @@ render() {
 }
 
 export default Header;
+//AutoComplete
+//dataSource={this.props.dimNames}

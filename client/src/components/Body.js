@@ -23,6 +23,7 @@ import FlatButton from 'material-ui/FlatButton';
 import RelevantIcon from 'material-ui/svg-icons/action/thumb-up';
 import IrrelevantIcon from 'material-ui/svg-icons/action/thumb-down';
 import NeutralIcon from 'material-ui/svg-icons/action/thumbs-up-down';
+import ComeBackOriginalData from 'material-ui/svg-icons/action/cached';
 
 import RadViz from './RadViz';
 import SigmoidGraph from './SigmoidGraph';
@@ -70,7 +71,7 @@ class Body extends Component {
    this.colorDefault= [ "#0D47A1", "#C62828", "#9E9E9E", "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"];
    this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828", "#FFFFFF"];
      this.fontSize="13px";
-     
+
 
  };
 
@@ -138,7 +139,7 @@ class Body extends Component {
 
     handleNewRequest = (searchText) => {
 	var selected = [];
-	
+
 	if(searchText.replace(/\s/g,"") !== ""){
 	    for (let i = 0; i < this.state.data.length; ++i){
 		for(var j in this.state.dimNames){
@@ -149,13 +150,13 @@ class Body extends Component {
 	}
 	this.setState({ selectedSearchText: selected, searchText: searchText, selectedPoints:selected,});
     };
-    
+
 
     componentWillMount(){
 	this.setState({originalData: this.props.originalData, data:this.props.data, colors:this.props.colors, flat:this.props.flat, dimNames: this.props.dimNames});
 	this.runModel();
     }
-    
+
     componentWillReceiveProps(props){
 	if(props.originalData !== this.state.originalData){
 	    this.setState({originalData: props.originalData, data:props.data, colors:props.colors, flat:props.flat, dimNames: props.dimNames, });
@@ -185,6 +186,7 @@ class Body extends Component {
 	    '/getPages',
 	    {'session':  JSON.stringify(session)},
 	    function(predicted) {
+        console.log(predicted);
 		//var unsure = JSON.parse(predicted);
 		var unsure = predicted["data"];
 		let updateData = this.state.originalData;
@@ -196,7 +198,7 @@ class Body extends Component {
 		});
 		this.setState({originalData: updateData});
 		if(this.state.dimNames[this.state.value]=="modelResult") this.updateColorsTags(this.state.value);
-		
+
 	    }.bind(this)
 	);
 	session["selected_model_tags"] = 'Maybe relevant';
@@ -215,7 +217,7 @@ class Body extends Component {
 		});
 		this.setState({originalData: updateData});
 		if(this.state.dimNames[this.state.value]=="modelResult") this.updateColorsTags(this.state.value);
-		
+
 	    }.bind(this)
 	);
 	session["selected_model_tags"] = 'Maybe irrelevant';
@@ -234,12 +236,12 @@ class Body extends Component {
 		});
 		this.setState({originalData: updateData});
 		if(this.state.dimNames[this.state.value]=="modelResult") this.updateColorsTags(this.state.value);
-		
+
 	    }.bind(this)
 	);
 
     }
-    
+
     predictUnlabeled(){
 	$.post(
 	    '/predictUnlabeled',
@@ -270,7 +272,7 @@ class Body extends Component {
 	    }.bind(this)
 	);
     }
-    
+
     updateTags(selectedPages, tag){
 	var urls = [];
 	for(let i = 0;i < selectedPages.length;++i){
@@ -281,7 +283,7 @@ class Body extends Component {
 	}
 	this.setPagesTag(urls, tag, true);
     }
-    
+
   //Tagging selected data in radviz.
   tagsSelectedData(tag){
       let updateData = {};
@@ -321,7 +323,11 @@ class Body extends Component {
     }
     return cont;
   }
-
+  comeBack(){
+    console.log("comeback");
+    let keyword ='';
+    this.props.filterKeyword(keyword);
+  }
 
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
@@ -334,6 +340,11 @@ class Body extends Component {
       let selectedUrls = []; selectedUrls.push(<p></p>);
       let nroSelectedUrls = 0;
       if(this.state.selectedPoints.includes(true)) {selectedUrls = this.showingUrls(); nroSelectedUrls =selectedUrls.length; }
+    //  let linkBackOriginalData = (this.props.filterTerm !=="") ? <a title="Original data" onclick={this.comeBack.bind(this)}>Original data</a>:<a>-<a>;
+      let linkBackOriginalData = <div></div>;
+      if(this.props.filterTerm !==""){
+        linkBackOriginalData = <FlatButton label="Original data" labelPosition="before" primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:"8px"}} />;
+      }
       return(
         <Grid>
 
@@ -378,6 +389,7 @@ class Body extends Component {
 
           <Col  ls={7} md={7} style={{ background:"white", borderRight: '2px solid', borderColor:'lightgray'}}>
             <Row className="Menus-child">
+            {linkBackOriginalData}
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}/>
@@ -407,7 +419,7 @@ class Body extends Component {
       )
     }
     return(
-      <div>hi</div>
+      <div>Loading data</div>
     );
   }
 }
