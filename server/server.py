@@ -45,8 +45,8 @@ class MDProjServer(Page):
     return self.mdprojvis()
 
   @cherrypy.expose
-  def getRadvizPoints(self,index):
-    result = self._radvizModel.getRadvizPoints(index)
+  def getRadvizPoints(self,index,filterByTerm):
+    result = self._radvizModel.getRadvizPoints(index,filterByTerm)
     return json.dumps(result)
 
   @cherrypy.expose

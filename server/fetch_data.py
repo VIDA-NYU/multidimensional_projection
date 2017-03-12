@@ -5,7 +5,7 @@ from elasticsearch import Elasticsearch
 from pprint import pprint
 
 
-def fetch_data( index, categories=[], remove_duplicate=True, convert_to_ascii=True, preprocess=False, es_server="http://localhost:9200"):
+def fetch_data( index, filterByTerm, categories=[], remove_duplicate=True, convert_to_ascii=True, preprocess=False, es_server="http://localhost:9200"):
 
     es = Elasticsearch([es_server])
 
@@ -16,7 +16,6 @@ def fetch_data( index, categories=[], remove_duplicate=True, convert_to_ascii=Tr
 
     index = index
     doctype = "page"
-
     mapping = {"timestamp":"retrieved", "text":"text", "html":"html", "tag":"tag", "query":"query"}
 
     records = []
@@ -29,6 +28,17 @@ def fetch_data( index, categories=[], remove_duplicate=True, convert_to_ascii=Tr
         "fields": fields,
         "size": 100000000
     }
+    if filterByTerm != "":
+        query = "(text:" + filterByTerm + ")"
+        query = {
+            "query": {
+                "query_string": {
+                    "query": query
+                }
+            },
+            "fields": fields,
+            "size": 100000000
+        }
 
     if len(categories) > 0:
         query = {
@@ -47,7 +57,6 @@ def fetch_data( index, categories=[], remove_duplicate=True, convert_to_ascii=Tr
     res = es.search(body=query,
                     index=index,
                     doc_type=doctype, request_timeout=600)
-
 
     if res['hits']['hits']:
         hits = res['hits']['hits']
