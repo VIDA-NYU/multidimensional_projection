@@ -10,15 +10,20 @@ class WordCloud extends Component {
     super(props);
     this.state={
       selectedPoints : this.props.selectedPoints,
+      originalDataW: undefined,
     };
     this.setSelectedWordCloud = this.setSelectedWordCloud.bind(this);
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-       if (nextProps.selectedPoints === this.state.selectedPoints) {
+    if(nextProps.selectedPoints === this.state.selectedPoints){
+       if ( nextProps.originalData === this.state.originalDataW) {
          return false;
        }
-       return true;
+    }
+    if((!(nextProps.selectedPoints.includes(true)) && !(this.state.selectedPoints.includes(true))) && nextProps.originalData === this.state.originalDataW)
+      return false;
+    return true;
   }
 
   //Create a WordCloud based on data.
@@ -53,7 +58,7 @@ class WordCloud extends Component {
       var scaleX = scaleLinear().domain([0,maxValue]).range([minRange,maxRange]);
       frequency_list[i].value = scaleX(  frequency_list[i].value);
     }
-    this.setState({selectedPoints: this.props.selectedPoints});
+    this.setState({selectedPoints: this.props.selectedPoints, originalDataW: this.props.originalData});
     return frequency_list;
   }
 
