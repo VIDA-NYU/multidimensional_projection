@@ -47,10 +47,10 @@ class Body extends Component {
    super(props);
    this.state={
      flat:0,
-     value: 202,
+     value: 200, // the 'labels' field as the default projection
      data:undefined,
      colors:undefined,
-     originalData:undefined,
+     originalData:this.props.originalData,
      showedData:0,
      selectedPoints:[false],
      urls:undefined,
@@ -121,7 +121,7 @@ class Body extends Component {
  }
 
  //Handling change of dimensions into DropDown.
-    updateOnSelection(event, index, value){
+  updateOnSelection(event, index, value){
 	if(this.state.dimNames[value]=="modelResult"){
 	    this.predictUnlabeled(this.state.sessionBody);
 	}
@@ -152,15 +152,24 @@ class Body extends Component {
     };
 
 
-    componentWillMount(){
-	this.setState({originalData: this.props.originalData, data:this.props.data, colors:this.props.colors, flat:this.props.flat, dimNames: this.props.dimNames});
-	this.runModel();
-    }
+  componentWillMount(){
+	     this.setState({originalData: this.props.originalData, data:this.props.data, colors:this.props.colors, flat:this.props.flat, dimNames: this.props.dimNames});
+       //this.updateColorsTags(this.state.value);
+       this.runModel();
+  }
 
-    componentWillReceiveProps(props){
+  componentWillReceiveProps(props){
 	if(props.originalData !== this.state.originalData){
-	    this.setState({originalData: props.originalData, data:props.data, colors:props.colors, flat:props.flat, dimNames: props.dimNames, });
-	}
+      let colors = [];
+      let dimNames = Object.keys(props.originalData);
+      for (let i = 0; i < props.originalData[dimNames[0]].length; ++i){
+         var typeTag = props.originalData[dimNames[this.state.value]][i];
+          var colorTag=(typeTag.toLowerCase()=="neutral")? this.colorTags[0]: (typeTag.toLowerCase()=="relevant")? this.colorTags[1]: (typeTag.toLowerCase()=="irrelevant")? this.colorTags[2]: "";
+          colors.push(colorTag);
+      }
+      this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, flat:props.flat, dimNames: props.dimNames, });
+
+  }
 	if(this.state.dimNames.indexOf(props.searchText) !==-1){
 	    this.handleNewRequest(props.searchText);
 	}
