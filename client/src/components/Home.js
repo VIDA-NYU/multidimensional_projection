@@ -88,23 +88,7 @@ class Home extends Component {
                   </List>
                 </Col>
                 <Col xs={3} md={3}>
-                  <Link to='/playerOne'>
-                    <FlatButton style={{margin:'70px 10px 10px 10px'}}
-                    backgroundColor="#26C6DA"
-                    hoverColor="#80DEEA"
-                    icon={<AddBox color={fullWhite} />}
-                    />
-                    <FlatButton style={{margin:20}}
-                    backgroundColor="#26C6DA"
-                    hoverColor="#80DEEA"
-                    icon={<DeleteForever color={fullWhite} />}
-                    />
-                    <FlatButton style={{margin:20}}
-                    backgroundColor="#26C6DA"
-                    hoverColor="#80DEEA"
-                    icon={<ContentCopy color={fullWhite} />}
-                    />
-                  </Link>
+                  
                 </Col>
               </Row>
             </div>
