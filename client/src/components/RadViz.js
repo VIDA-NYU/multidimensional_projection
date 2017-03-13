@@ -140,7 +140,7 @@ class RadViz extends Component {
             if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
             if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
             this.currentMapping.push(p);
-            if(this.props.projection == "modelResult"){
+            if(this.props.projection == "Model Result"){
               if(this.props.modelResult[i]!=="trainData"){
                 ret = this.setColorPoints(i, ret, p[0], p[1]);
               }
@@ -306,8 +306,8 @@ class RadViz extends Component {
     }
 
     normalizeAngle(angle) {
-      return Math.atan2(Math.sin(angle), Math.cos(angle));  
-    }   
+      return Math.atan2(Math.sin(angle), Math.cos(angle));
+    }
 
     render() {
         console.log("rendering radViz");
@@ -325,7 +325,7 @@ class RadViz extends Component {
 
                 anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
                         key={i} onMouseDown={this.startDragAnchor(i)} style={{cursor:'hand', stroke:(this.state.selected[i]?'black':'none'), fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
-                
+
                 let normalizedAngle = this.normalizeAngle(this.state.anchorAngles[i] + this.state.offsetAnchors);
                 if (Math.abs(normalizedAngle) < Math.PI/2){
                   anchorText.push(

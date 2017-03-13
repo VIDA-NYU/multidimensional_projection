@@ -65,7 +65,7 @@ class Home extends Component {
         <div>
           <AppBar showMenuIconButton={true}
             style={{background: "#50137A"}}
-            title={  <span style={{color: 'white'}}> Multidimensional Projection - Home </span>}
+            title={  <span style={{color: 'white'}}> Document Explorer - Home </span>}
             //iconElementLeft={<IconButton><NavigationClose /></IconButton>}
             iconElementLeft={<img src={logoNYU}  height='45' width='40' />}
             //onLeftIconButtonTouchTap={this.removeRecord.bind(this)}

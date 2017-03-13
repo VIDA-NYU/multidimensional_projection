@@ -122,10 +122,10 @@ class Body extends Component {
 
  //Handling change of dimensions into DropDown.
   updateOnSelection(event, index, value){
-	if(this.state.dimNames[value]=="modelResult"){
+	if(this.state.dimNames[value]=="Model Result"){
 	    this.predictUnlabeled(this.state.sessionBody);
 	}
-	if(this.state.dimNames[value]=="labels" || this.state.dimNames[value]=="modelResult") this.updateColorsTags(value);
+	if(this.state.dimNames[value]=="labels" || this.state.dimNames[value]=="Model Result") this.updateColorsTags(value);
 	else this.updateColors(value);
     }
 
@@ -202,11 +202,11 @@ class Body extends Component {
 		Object.keys(unsure).map((k, i)=>{
 		    var index = updateData['urls'].indexOf(k);
 		    if( index > 0){
-			updateData['modelResult'][index]="Neutral";
+			updateData['Model Result'][index]="Neutral";
 		    }
 		});
 		this.setState({originalData: updateData});
-		if(this.state.dimNames[this.state.value]=="modelResult") this.updateColorsTags(this.state.value);
+		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
 
 	    }.bind(this)
 	);
@@ -221,11 +221,11 @@ class Body extends Component {
 		Object.keys(relevant).map((k, i)=>{
 		    var index = updateData['urls'].indexOf(k);
 		    if( index > 0){
-			updateData['modelResult'][index]="Relevant";
+			updateData['Model Result'][index]="Relevant";
 		    }
 		});
 		this.setState({originalData: updateData});
-		if(this.state.dimNames[this.state.value]=="modelResult") this.updateColorsTags(this.state.value);
+		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
 
 	    }.bind(this)
 	);
@@ -240,11 +240,11 @@ class Body extends Component {
 		Object.keys(irrelevant).map((k, i)=>{
 		    var index = updateData['urls'].indexOf(k);
 		    if( index > 0){
-			updateData['modelResult'][index]="Irrelevant";
+			updateData['Model Result'][index]="Irrelevant";
 		    }
 		});
 		this.setState({originalData: updateData});
-		if(this.state.dimNames[this.state.value]=="modelResult") this.updateColorsTags(this.state.value);
+		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
 
 	    }.bind(this)
 	);
@@ -407,7 +407,7 @@ class Body extends Component {
                    })}
                   </DropDownMenu>
                  <Divider />
-                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>OnlineClassifier</Subheader>
+                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Model</Subheader>
                  <div style={{marginLeft:"25px", fontSize:this.fontSize,}}>
                    <p>Total pages: {this.state.originalData['urls'].length}.</p>
                    <p>Labeled pages: {this.countTotalLabeledPages()}.</p>
