@@ -377,7 +377,7 @@ class Body extends Component {
       return(
         <Grid>
 
-          <Col ls={3} md={3} style={{marginLeft: '-50px', marginTop:'10px', border: '2px solid', borderColor:'lightgray', paddingBottom:"70px"}}>
+          <Col ls={3} md={3} style={{marginLeft: '-150px', marginTop:'10px', border: '2px solid', borderColor:'lightgray', paddingBottom:"70px"}}>
                <List>
                  <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Sigmoid</Subheader>
                  <ListItem>
@@ -416,7 +416,7 @@ class Body extends Component {
                </List>
           </Col>
 
-          <Col  ls={7} md={7} style={{ background:"white", borderRight: '2px solid', borderColor:'lightgray'}}>
+          <Col  ls={7} md={7} style={{ background:"white", }}>
             <Row className="Menus-child">
             {linkBackOriginalData}
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
@@ -430,7 +430,7 @@ class Body extends Component {
             </Row>
           </Col>
 
-          <Col  ls={2} md={2} style={{background:"white"}}>
+          <Col  ls={2} md={2} style={{background:"white", marginLeft:"30px", borderLeft: '2px solid', borderColor:'lightgray'}}>
             <Row className="Menus-child" >
             <div style={{width:'448px', borderTop:'solid', borderRight: '2px solid', borderColor:'lightgray'}}>
             <WordCloud dimNames={this.state.dimNames} selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
