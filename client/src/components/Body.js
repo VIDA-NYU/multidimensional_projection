@@ -272,26 +272,26 @@ class Body extends Component {
     return session;
   }
 
-    setPagesTag(urls, tag, applyTagFlag){
-	$.post(
-	    '/setPagesTag',
-	    {'pages': urls.join('|'), 'tag': tag, 'applyTagFlag': applyTagFlag, 'session': JSON.stringify(this.state.sessionBody)},
-	    function() {
-		this.runModel();
-	    }.bind(this)
-	);
-    }
+  setPagesTag(urls, tag, applyTagFlag){
+  	$.post(
+  	    '/setPagesTag',
+  	    {'pages': urls.join('|'), 'tag': tag, 'applyTagFlag': applyTagFlag, 'session': JSON.stringify(this.state.sessionBody)},
+  	    function() {
+  		      this.runModel();
+  	    }.bind(this)
+  	);
+  }
 
-    updateTags(selectedPages, tag){
-	var urls = [];
-	for(let i = 0;i < selectedPages.length;++i){
-	    var index = selectedPages[i];
-	    if (this.state.originalData["labels"][index] != "Neutral" && this.state.originalData["labels"][index] != tag)
-		this.setPagesTag([this.state.originalData["urls"][index]], this.state.originalData["labels"][index], false);
-	    urls.push(this.state.originalData["urls"][index]);
-	}
-	this.setPagesTag(urls, tag, true);
-    }
+  updateTags(selectedPages, tag){
+  	var urls = [];
+  	for(let i = 0;i < selectedPages.length;++i){
+  	    var index = selectedPages[i];
+  	    if (this.state.originalData["labels"][index] != "Neutral" && this.state.originalData["labels"][index] != tag)
+  		    this.setPagesTag([this.state.originalData["urls"][index]], this.state.originalData["labels"][index], false);
+  	    urls.push(this.state.originalData["urls"][index]);
+  	}
+  	this.setPagesTag(urls, tag, true);
+  }
 
   //Tagging selected data in radviz.
   tagsSelectedData(tag){
@@ -300,14 +300,13 @@ class Body extends Component {
       var selectedPoints = [];
       for (let i = 0; i < this.state.selectedPoints.length; ++i){
           if(this.state.selectedPoints[i]){
-              updateData["labels"][i] = tag;
-	      selectedPoints.push(i);
-	  }
+            updateData["labels"][i] = tag;
+	          selectedPoints.push(i);
+	        }
       }
       this.updateTags(selectedPoints, tag);
       this.setState({originalData: updateData});
       this.updateColorsTags(this.state.value);
-
   }
 
   //Labeling pages as a relevant.
@@ -323,6 +322,28 @@ class Body extends Component {
     this.tagsSelectedData("Neutral");//0
   }
 
+  getKeyByValue(object, value) {
+    return Object.keys(object).find(key => object[key] === value);
+  }
+  //Labeling pages from an snippet.
+  tagFromSnippets(tag, previus_tag, index_url){
+    //var tag = (typeTag.toLowerCase()==="Relevant")? "Relevant":(typeTag.toLowerCase()==="Irrelevant")?"Irrelevant" : "Neutral";
+    var index = index_url; //this.getKeyByValue(this.state.originalData["urls"], url );
+    let updateData = this.state.originalData;
+    var selectedPoints = [];
+    updateData["labels"][index] = tag;
+
+    //updateTags in elasticSearch
+    var urls = [];
+    if (previus_tag.toLowerCase() != "neutral" && previus_tag.toLowerCase() != tag.toLowerCase()){
+	    this.setPagesTag([this.state.originalData["urls"][index]], previus_tag, false);
+    }
+      urls.push(this.state.originalData["urls"][index]);
+  	  this.setPagesTag(urls, tag, true);
+    this.setState({originalData: updateData});
+    this.updateColorsTags(this.state.value);
+  }
+
   //Labeling pages as a Neutral.
   countTotalLabeledPages(){
     let cont =0;
@@ -333,7 +354,6 @@ class Body extends Component {
     return cont;
   }
   comeBack(){
-    console.log("comeback");
     let keyword ='';
     this.props.filterKeyword(keyword);
   }
@@ -420,7 +440,7 @@ class Body extends Component {
               <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray'}}>
                 <p style={{color:"silver", marginLeft:'30px'}}>Selected pages: {nroSelectedUrls}</p>
               </div>
-              <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
+              <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData} tagFromSnippets={this.tagFromSnippets.bind(this)}/>
             </Row>
           </Col>
         </Grid>
