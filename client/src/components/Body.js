@@ -122,10 +122,10 @@ class Body extends Component {
 
  //Handling change of dimensions into DropDown.
   updateOnSelection(event, index, value){
-	if(this.state.dimNames[value]=="modelResult"){
+	if(this.state.dimNames[value]=="Model Result"){
 	    this.predictUnlabeled(this.state.sessionBody);
 	}
-	if(this.state.dimNames[value]=="labels" || this.state.dimNames[value]=="modelResult") this.updateColorsTags(value);
+	if(this.state.dimNames[value]=="labels" || this.state.dimNames[value]=="Model Result") this.updateColorsTags(value);
 	else this.updateColors(value);
     }
 
@@ -202,11 +202,11 @@ class Body extends Component {
 		Object.keys(unsure).map((k, i)=>{
 		    var index = updateData['urls'].indexOf(k);
 		    if( index > 0){
-			updateData['modelResult'][index]="Neutral";
+			updateData['Model Result'][index]="Neutral";
 		    }
 		});
 		this.setState({originalData: updateData});
-		if(this.state.dimNames[this.state.value]=="modelResult") this.updateColorsTags(this.state.value);
+		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
 
 	    }.bind(this)
 	);
@@ -221,11 +221,11 @@ class Body extends Component {
 		Object.keys(relevant).map((k, i)=>{
 		    var index = updateData['urls'].indexOf(k);
 		    if( index > 0){
-			updateData['modelResult'][index]="Relevant";
+			updateData['Model Result'][index]="Relevant";
 		    }
 		});
 		this.setState({originalData: updateData});
-		if(this.state.dimNames[this.state.value]=="modelResult") this.updateColorsTags(this.state.value);
+		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
 
 	    }.bind(this)
 	);
@@ -240,11 +240,11 @@ class Body extends Component {
 		Object.keys(irrelevant).map((k, i)=>{
 		    var index = updateData['urls'].indexOf(k);
 		    if( index > 0){
-			updateData['modelResult'][index]="Irrelevant";
+			updateData['Model Result'][index]="Irrelevant";
 		    }
 		});
 		this.setState({originalData: updateData});
-		if(this.state.dimNames[this.state.value]=="modelResult") this.updateColorsTags(this.state.value);
+		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
 
 	    }.bind(this)
 	);
@@ -377,7 +377,7 @@ class Body extends Component {
       return(
         <Grid>
 
-          <Col ls={3} md={3} style={{marginLeft: '-50px', marginTop:'10px', border: '2px solid', borderColor:'lightgray', paddingBottom:"70px"}}>
+          <Col ls={3} md={3} style={{marginLeft: '-150px', marginTop:'10px', border: '2px solid', borderColor:'lightgray', paddingBottom:"70px"}}>
                <List>
                  <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Sigmoid</Subheader>
                  <ListItem>
@@ -407,7 +407,7 @@ class Body extends Component {
                    })}
                   </DropDownMenu>
                  <Divider />
-                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>OnlineClassifier</Subheader>
+                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Model</Subheader>
                  <div style={{marginLeft:"25px", fontSize:this.fontSize,}}>
                    <p>Total pages: {this.state.originalData['urls'].length}.</p>
                    <p>Labeled pages: {this.countTotalLabeledPages()}.</p>
@@ -416,7 +416,7 @@ class Body extends Component {
                </List>
           </Col>
 
-          <Col  ls={7} md={7} style={{ background:"white", borderRight: '2px solid', borderColor:'lightgray'}}>
+          <Col  ls={7} md={7} style={{ background:"white", }}>
             <Row className="Menus-child">
             {linkBackOriginalData}
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
@@ -430,7 +430,7 @@ class Body extends Component {
             </Row>
           </Col>
 
-          <Col  ls={2} md={2} style={{background:"white"}}>
+          <Col  ls={2} md={2} style={{background:"white", marginLeft:"30px", borderLeft: '2px solid', borderColor:'lightgray'}}>
             <Row className="Menus-child" >
             <div style={{width:'448px', borderTop:'solid', borderRight: '2px solid', borderColor:'lightgray'}}>
             <WordCloud dimNames={this.state.dimNames} selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>

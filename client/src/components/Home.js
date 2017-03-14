@@ -65,7 +65,7 @@ class Home extends Component {
         <div>
           <AppBar showMenuIconButton={true}
             style={{background: "#50137A"}}
-            title={  <span style={{color: 'white'}}> Multidimensional Projection - Home </span>}
+            title={  <span style={{color: 'white'}}> Document Explorer - Home </span>}
             //iconElementLeft={<IconButton><NavigationClose /></IconButton>}
             iconElementLeft={<img src={logoNYU}  height='45' width='40' />}
             //onLeftIconButtonTouchTap={this.removeRecord.bind(this)}
@@ -88,23 +88,7 @@ class Home extends Component {
                   </List>
                 </Col>
                 <Col xs={3} md={3}>
-                  <Link to='/playerOne'>
-                    <FlatButton style={{margin:'70px 10px 10px 10px'}}
-                    backgroundColor="#26C6DA"
-                    hoverColor="#80DEEA"
-                    icon={<AddBox color={fullWhite} />}
-                    />
-                    <FlatButton style={{margin:20}}
-                    backgroundColor="#26C6DA"
-                    hoverColor="#80DEEA"
-                    icon={<DeleteForever color={fullWhite} />}
-                    />
-                    <FlatButton style={{margin:20}}
-                    backgroundColor="#26C6DA"
-                    hoverColor="#80DEEA"
-                    icon={<ContentCopy color={fullWhite} />}
-                    />
-                  </Link>
+                  
                 </Col>
               </Row>
             </div>

@@ -128,7 +128,7 @@ render() {
   return (
       <AppBar showMenuIconButton={true}
         style={styles.backgound}
-        title={  <span style={styles.titleText}> Multidimensional Projection </span>}
+        title={  <span style={styles.titleText}> Document Explorer </span>}
         //iconElementLeft={<IconButton><NavigationClose /></IconButton>}
         iconElementLeft={<img src={logoNYU}  height='45' width='40'  />}
         //onLeftIconButtonTouchTap={this.removeRecord.bind(this)}

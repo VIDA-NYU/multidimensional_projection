@@ -59,10 +59,10 @@ loadDataFromElasticSearch(index,  filterTerm){
         let dimNames = Object.keys(data);
         let scaleColor = scaleOrdinal(this.colorTags);
         let colors = [];
-        data['modelResult'] = [];
+        data['Model Result'] = [];
 
         for (let i = 0; i < data['labels'].length; ++i){
-            data['modelResult'][i] = "neutral";
+            data['Model Result'][i] = "neutral";
             //colors.push(scaleColor(data['tags'][0]));
             let aux = {};
             for (let j = 0; j < dimNames.length-2; ++j){//except urls and labels
@@ -70,7 +70,7 @@ loadDataFromElasticSearch(index,  filterTerm){
             }
             numericalData.push(aux);
         }
-        dimNames.push('modelResult');
+        dimNames.push('Model Result');
         $.post(
           '/computeTSP',
           { },
