@@ -5,17 +5,18 @@ from elasticsearch import Elasticsearch
 from pprint import pprint
 
 
-def fetch_data( index, filterByTerm, categories=[], remove_duplicate=True, convert_to_ascii=True, preprocess=False, es_server="http://localhost:9200"):
+def fetch_data( index, filterByTerm, categories=[], remove_duplicate=True, convert_to_ascii=True, preprocess=False, es_doc_type="page", es=None):
 
-    es = Elasticsearch([es_server])
-
+    if es == None:
+        es = Elasticsearch("http://localhost:9200")
+        
     print index
     print categories
 
     MAX_WORDS = 1000
 
     index = index
-    doctype = "page"
+    doctype = es_doc_type
     mapping = {"timestamp":"retrieved", "text":"text", "html":"html", "tag":"tag", "query":"query"}
 
     records = []
