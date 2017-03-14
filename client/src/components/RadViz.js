@@ -172,8 +172,16 @@ class RadViz extends Component {
         		let selected = [];
         		for (let i = 0; i < this.props.data.length; ++i){
               var tempSelected = this.pointInPolygon(this.currentMapping[i], this.selectionPoly);
-              if(tempSelected && (this.props.showedData===2 && !(this.state.selected[i]))) tempSelected = !tempSelected;
-        			selected.push(tempSelected);
+              if(this.props.projection == "Model Result"){
+                if(this.props.modelResult[i]!=="trainData"){
+                  if(tempSelected && (this.props.showedData===2 && !(this.state.selected[i]))) tempSelected = !tempSelected;
+                }
+                else tempSelected = false;
+              }
+              else{
+                if(tempSelected && (this.props.showedData===2 && !(this.state.selected[i]))) tempSelected = !tempSelected;
+              }
+              selected.push(tempSelected);
         		}
         		this.selectionPoly= [];
         		this.setState({'draggingSelection':false, 'selected':selected})

@@ -59,8 +59,8 @@ class Body extends Component {
      dimNames:[],
      'sigmoidScale':1,
      'sigmoidTranslate':0,
-       accuracy: "0",
-       sessionBody: this.createSession(this.props.currentDomain),
+     accuracy: "0",
+     sessionBody: this.createSession(this.props.currentDomain),
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
@@ -121,13 +121,13 @@ class Body extends Component {
  }
 
  //Handling change of dimensions into DropDown.
-  updateOnSelection(event, index, value){
-	if(this.state.dimNames[value]=="Model Result"){
-	    this.predictUnlabeled(this.state.sessionBody);
-	}
-	if(this.state.dimNames[value]=="labels" || this.state.dimNames[value]=="Model Result") this.updateColorsTags(value);
-	else this.updateColors(value);
-    }
+ updateOnSelection(event, index, value){
+    	if(this.state.dimNames[value]=="Model Result"){
+    	    this.predictUnlabeled(this.state.sessionBody);
+    	}
+    	if(this.state.dimNames[value]=="labels" || this.state.dimNames[value]=="Model Result") this.updateColorsTags(value);
+    	else this.updateColors(value);
+  }
 
   updateSigmoidScale(s){
       this.setState({'sigmoidScale':s})
@@ -158,108 +158,107 @@ class Body extends Component {
        this.runModel();
   }
 
-  componentWillReceiveProps(props){
-	if(props.originalData !== this.state.originalData){
-      let colors = [];
-      let dimNames = Object.keys(props.originalData);
-      for (let i = 0; i < props.originalData[dimNames[0]].length; ++i){
-         var typeTag = props.originalData[dimNames[this.state.value]][i];
-          var colorTag=(typeTag.toLowerCase()=="neutral")? this.colorTags[0]: (typeTag.toLowerCase()=="relevant")? this.colorTags[1]: (typeTag.toLowerCase()=="irrelevant")? this.colorTags[2]: "";
-          colors.push(colorTag);
-      }
-      this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, flat:props.flat, dimNames: props.dimNames, });
+componentWillReceiveProps(props){
+  	if(props.originalData !== this.state.originalData){
+        let colors = [];
+        let dimNames = Object.keys(props.originalData);
+        for (let i = 0; i < props.originalData[dimNames[0]].length; ++i){
+           var typeTag = props.originalData[dimNames[this.state.value]][i];
+            var colorTag=(typeTag.toLowerCase()=="neutral")? this.colorTags[0]: (typeTag.toLowerCase()=="relevant")? this.colorTags[1]: (typeTag.toLowerCase()=="irrelevant")? this.colorTags[2]: "";
+            colors.push(colorTag);
+        }
+        this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, flat:props.flat, dimNames: props.dimNames, });
+
+    }
+  	if(this.state.dimNames.indexOf(props.searchText) !==-1){
+  	    this.handleNewRequest(props.searchText);
+  	}
+  }
+
+  //Run model if there is an enought positiveTrainData and negativeTrainData.
+  runModel(){
+	    //apply onlineClassifier
+    	$.post(
+    	    '/updateOnlineClassifier',
+    	    {'session':  JSON.stringify(this.state.sessionBody)},
+    	    function(accuracy) {
+    		      this.setState({accuracy: accuracy});
+              if(this.state.dimNames[this.state.value]=="Model Result")
+                this.predictUnlabeled();
+    	    }.bind(this)
+    	);
+  }
+
+  getPredictedLabels(){
+  	var session = this.state.sessionBody;
+  	session['pageRetrievalCriteria'] = 'Model Tags';
+  	session["selected_model_tags"] = 'Unsure';
+    let updateData = this.state.originalData;
+    for (let i = 0; i < updateData['Model Result'].length; i++){
+        updateData['Model Result'][i]="trainData";
+    }
+
+  	$.post(
+  	    '/getPages',
+  	    {'session':  JSON.stringify(session)},
+  	    function(predicted) {
+      		var unsure = predicted["data"];
+      		Object.keys(unsure).map((k, i)=>{
+      		    var index = updateData['urls'].indexOf(k);
+      		    if( index > 0){
+      			       updateData['Model Result'][index]="Neutral";
+      		    }
+      		});
+      		this.setState({originalData: updateData });
+      		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
+    	    }.bind(this)
+    );
+  	session["selected_model_tags"] = 'Maybe relevant';
+  	$.post(
+  	    '/getPages',
+  	    {'session':  JSON.stringify(session)},
+  	    function(predicted) {
+      		var relevant = predicted["data"];
+      		Object.keys(relevant).map((k, i)=>{
+      		    var index = updateData['urls'].indexOf(k);
+      		    if( index > 0){
+      			       updateData['Model Result'][index]="Relevant";
+      		    }
+      		});
+      		this.setState({originalData: updateData});
+      		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
+
+  	    }.bind(this)
+  	 );
+  	session["selected_model_tags"] = 'Maybe irrelevant';
+  	$.post(
+  	    '/getPages',
+  	    {'session':  JSON.stringify(session)},
+  	    function(predicted) {
+      		var irrelevant = predicted["data"];
+      		Object.keys(irrelevant).map((k, i)=>{
+      		    var index = updateData['urls'].indexOf(k);
+      		    if( index > 0){
+      			       updateData['Model Result'][index]="Irrelevant";
+      		    }
+      		});
+      		this.setState({originalData: updateData});
+      		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
+
+  	    }.bind(this)
+  	);
 
   }
-	if(this.state.dimNames.indexOf(props.searchText) !==-1){
-	    this.handleNewRequest(props.searchText);
-	}
-    }
 
-    //Run model if there is an enought positiveTrainData and negativeTrainData.
-    runModel(){
-	//apply onlineClassifier
-	$.post(
-	    '/updateOnlineClassifier',
-	    {'session':  JSON.stringify(this.state.sessionBody)},
-	    function(accuracy) {
-		this.setState({accuracy: accuracy});
-	    }.bind(this)
-	);
-    }
-
-    getPredictedLabels(){
-	var session = this.state.sessionBody;
-	session['pageRetrievalCriteria'] = 'Model Tags';
-	session["selected_model_tags"] = 'Unsure';
-	$.post(
-	    '/getPages',
-	    {'session':  JSON.stringify(session)},
-	    function(predicted) {
-        console.log(predicted);
-		//var unsure = JSON.parse(predicted);
-		var unsure = predicted["data"];
-		let updateData = this.state.originalData;
-		Object.keys(unsure).map((k, i)=>{
-		    var index = updateData['urls'].indexOf(k);
-		    if( index > 0){
-			updateData['Model Result'][index]="Neutral";
-		    }
-		});
-		this.setState({originalData: updateData});
-		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
-
-	    }.bind(this)
-	);
-	session["selected_model_tags"] = 'Maybe relevant';
-	$.post(
-	    '/getPages',
-	    {'session':  JSON.stringify(session)},
-	    function(predicted) {
-		//var relevant = JSON.parse(predicted);
-		var relevant = predicted["data"];
-		let updateData = this.state.originalData;
-		Object.keys(relevant).map((k, i)=>{
-		    var index = updateData['urls'].indexOf(k);
-		    if( index > 0){
-			updateData['Model Result'][index]="Relevant";
-		    }
-		});
-		this.setState({originalData: updateData});
-		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
-
-	    }.bind(this)
-	);
-	session["selected_model_tags"] = 'Maybe irrelevant';
-	$.post(
-	    '/getPages',
-	    {'session':  JSON.stringify(session)},
-	    function(predicted) {
-		//var irrelevant = JSON.parse(predicted);
-		var irrelevant = predicted["data"];
-		let updateData = this.state.originalData;
-		Object.keys(irrelevant).map((k, i)=>{
-		    var index = updateData['urls'].indexOf(k);
-		    if( index > 0){
-			updateData['Model Result'][index]="Irrelevant";
-		    }
-		});
-		this.setState({originalData: updateData});
-		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
-
-	    }.bind(this)
-	);
-
-    }
-
-    predictUnlabeled(){
-	$.post(
-	    '/predictUnlabeled',
-	    {'session':  JSON.stringify(this.state.sessionBody)},
-	    function(){
-		this.getPredictedLabels();
-	    }.bind(this)
-	);
-    }
+  predictUnlabeled(){
+    	$.post(
+    	    '/predictUnlabeled',
+    	    {'session':  JSON.stringify(this.state.sessionBody)},
+    	    function(){
+    		this.getPredictedLabels();
+    	    }.bind(this)
+    	);
+  }
 
     /*consultaQueries: {"search_engine":"GOOG","activeProjectionAlg":"Group by Correlation"
       ,"domainId":"AVWjx7ciIf40cqEj1ACn","pagesCap":"100","fromDate":null,"toDate":null,
