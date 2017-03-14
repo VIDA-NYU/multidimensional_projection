@@ -5,6 +5,7 @@ import json
 from sklearn import linear_model
 from domain_discovery_API.online_classifier.tf_vector import tf_vectorizer
 from domain_discovery_API.models.domain_discovery_model import DomainModel
+from domain_discovery_API.elastic.config import es, es_doc_type, es_server
 from fetch_data import fetch_data
 
 #import urllib2
@@ -15,7 +16,7 @@ class RadvizModel(DomainModel):
 
     def getRadvizPoints(self, index, filterByTerm):
         max_features = 200
-        ddteval_data = fetch_data(index, filterByTerm)
+        ddteval_data = fetch_data(index, filterByTerm, es_doc_type=es_doc_type, es=es)
         data = ddteval_data["data"]
 
         labels = ddteval_data["labels"]
