@@ -19,4 +19,3 @@ dependencies:
     - elasticsearch
     - pyelasticsearch >=1.2
     - nltk
-    - topik
