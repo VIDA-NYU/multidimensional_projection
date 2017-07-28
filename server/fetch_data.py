@@ -107,7 +107,10 @@ def fetch_data( index, filterByTerm, categories=[], remove_duplicate=True, conve
             if preprocess:
                 text.append(preprocess(rec["text"][0])[0:MAX_WORDS])
             else:
-                text.append(rec["text"][0][0:MAX_WORDS])
+                if rec.get("text") is not None:
+                    text.append(rec["text"][0][0:MAX_WORDS])
+                else:
+                    continue
             urls.append(rec["url"][0])
             if not rec.get('description') is None:
                 snippet.append(" ".join(rec['description'][0].split(" ")[0:20]))
