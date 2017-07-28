@@ -14,6 +14,10 @@ from fetch_data import fetch_data
 class RadvizModel(DomainModel):
     radviz = None
 
+    def __init__(self, path):
+        self._path = path
+        super(RadvizModel, self).__init__(path)
+
     def getRadvizPoints(self, index, filterByTerm):
         max_features = 200
         ddteval_data = fetch_data(index, filterByTerm, es_doc_type=es_doc_type, es=es)
