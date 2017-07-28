@@ -30,9 +30,10 @@ class MDProjServer(Page):
 
   # Default constructor reading app config file.
   def __init__(self):
-    self._radvizModel = RadvizModel()
     path = os.path.dirname(__file__)
-    super(MDProjServer, self).__init__(self._radvizModel, path)
+    self._radvizModel = RadvizModel(path)
+    models = {"domain": self._radvizModel}
+    super(MDProjServer, self).__init__(models, path)
 
   # Access to seed crawler vis.
   @cherrypy.expose
