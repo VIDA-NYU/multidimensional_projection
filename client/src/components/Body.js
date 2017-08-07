@@ -376,7 +376,7 @@ componentWillReceiveProps(props){
       return(
         <Grid>
 
-          <Col ls={3} md={3} style={{marginLeft: '-150px', marginTop:'10px', border: '2px solid', borderColor:'lightgray', paddingBottom:"70px"}}>
+          <Row ls={3} md={3} style={{marginLeft: '-50px', marginTop:'10px', border: '2px solid', borderColor:'lightgray', paddingBottom:"70px", display:"flex"}}>
                <List>
                  <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Sigmoid</Subheader>
                  <ListItem>
@@ -388,7 +388,6 @@ componentWillReceiveProps(props){
                  <ListItem >
                   <SigmoidGraph sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}/>
                  </ListItem>
-                 <Divider />
                  <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Interaction</Subheader>
                  <ListItem>
                    <RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData}>
@@ -397,7 +396,6 @@ componentWillReceiveProps(props){
                     <RadioButton value={2} label="Hide unselected" labelStyle={styles.radioButton}/>
                   </RadioButtonGroup>
                  </ListItem>
-                 <Divider />
                  <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Projection</Subheader>
                    <DropDownMenu style={{marginTop:"-20px", fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
                    {Object.keys(dimensions).map((k, index)=>{
@@ -407,13 +405,13 @@ componentWillReceiveProps(props){
                   </DropDownMenu>
                  <Divider />
                  <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Model</Subheader>
-                 <div style={{marginLeft:"25px", fontSize:this.fontSize,}}>
+                 <div style={{ fontSize:this.fontSize,}}>
                    <p>Total pages: {this.state.originalData['urls'].length}.</p>
                    <p>Labeled pages: {this.countTotalLabeledPages()}.</p>
                    <p>Accuracy: {this.state.accuracy} %</p>
                  </div>
                </List>
-          </Col>
+          </Row>
 
           <Col  ls={7} md={7} style={{ background:"white", }}>
             <Row className="Menus-child">
