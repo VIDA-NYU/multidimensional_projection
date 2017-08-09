@@ -374,56 +374,19 @@ componentWillReceiveProps(props){
         linkBackOriginalData = <FlatButton label="Original data" labelPosition="before" primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:"8px"}} />;
       }
       return(
-        <Grid>
-
-          <Row ls={3} md={3} style={{marginLeft: '-50px', marginTop:'10px', border: '2px solid', borderColor:'lightgray', paddingBottom:"70px", display:"flex"}}>
-               <List>
-                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Sigmoid</Subheader>
-                 <ListItem>
-                   <p style={{fontSize:this.fontSize,}} >Translation:</p> <Slider min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
-                 </ListItem>
-                 <ListItem>
-                   <p style={{fontSize:this.fontSize,}}>Scale:</p> <Slider min={0} max={100} step={1} defaultValue={1} onChange={this.updateSigmoidScale}/>
-                 </ListItem>
-                 <ListItem >
-                  <SigmoidGraph sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}/>
-                 </ListItem>
-                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Interaction</Subheader>
-                 <ListItem>
-                   <RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData}>
-                    <RadioButton value={0} label="Show all" labelStyle={styles.radioButton}/>
-                    <RadioButton value={1} label="Hide selected" labelStyle={styles.radioButton}/>
-                    <RadioButton value={2} label="Hide unselected" labelStyle={styles.radioButton}/>
-                  </RadioButtonGroup>
-                 </ListItem>
-                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Projection</Subheader>
-                   <DropDownMenu style={{marginTop:"-20px", fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
-                   {Object.keys(dimensions).map((k, index)=>{
-                        var attibute = dimensions[k].attribute;
-                        return <MenuItem value={index} primaryText={attibute} style={{fontSize:this.fontSize,}} />
-                   })}
-                  </DropDownMenu>
-                 <Divider />
-                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Model</Subheader>
-                 <div style={{ fontSize:this.fontSize,}}>
-                   <p>Total pages: {this.state.originalData['urls'].length}.</p>
-                   <p>Labeled pages: {this.countTotalLabeledPages()}.</p>
-                   <p>Accuracy: {this.state.accuracy} %</p>
-                 </div>
-               </List>
-          </Row>
-
+        <div>
+        <Grid style={{marginTop:'20px'}}>
           <Col  ls={7} md={7} style={{ background:"white", }}>
             <Row className="Menus-child">
+            <div style={{position: "absolute", left: "-5%"  }}>
+            <FlatButton primary={true} backgroundColor="#0D47A1" hoverColor="#1A237E" icon={<RelevantIcon color="#ffffff"/>} onTouchTap={this.tagsRelevant.bind(this)} style={{width:'20px'}} />
+            <FlatButton primary={true} backgroundColor="#B71C1C" hoverColor="#B71C1C" icon={<IrrelevantIcon color="#ffffff"/>} onTouchTap={this.tagsIrrelevant.bind(this)} style={{width:'20px'}}  />
+            <FlatButton primary={true} backgroundColor="#BDBDBD" hoverColor="#616161" icon={<NeutralIcon color="#ffffff"/>} onTouchTap={this.tagsNeutral.bind(this)} style={{width:'20px'}}  />
+            </div>
             {linkBackOriginalData}
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}/>
-            <div style={{position: "absolute", left: "23%"  }}>
-            <FlatButton label="Relevant" primary={true} backgroundColor="#0D47A1" hoverColor="#1A237E" icon={<RelevantIcon color="#ffffff"/>} onTouchTap={this.tagsRelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff", textTransform: "capitalize"}}/>
-            <FlatButton label="Irrelevant" primary={true} backgroundColor="#B71C1C" hoverColor="#B71C1C" icon={<IrrelevantIcon color="#ffffff"/>} onTouchTap={this.tagsIrrelevant.bind(this)} style={{marginRight:"8px"}} labelStyle={{color:"#ffffff", textTransform: "capitalize"}} />
-            <FlatButton label="Neutral" primary={true} backgroundColor="#BDBDBD" hoverColor="#616161" icon={<NeutralIcon color="#ffffff"/>} onTouchTap={this.tagsNeutral.bind(this)} labelStyle={{color:"#ffffff", textTransform: "capitalize"}}/>
-            </div>
             </Row>
           </Col>
 
@@ -440,7 +403,55 @@ componentWillReceiveProps(props){
               <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData} tagFromSnippets={this.tagFromSnippets.bind(this)}/>
             </Row>
           </Col>
+          </Grid>
+          <Grid>
+          <Row ls={1} md={1} style={{ marginTop:'10px', border: '2px solid', borderColor:'lightgray', width:'700px'}}>
+               <List style={{display:"flex"}}>
+               <Col>
+                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Sigmoid</Subheader>
+                 <List style={{display:"flex"}}>
+                 <ListItem>
+                   <p style={{fontSize:this.fontSize,}} >Translation:</p> <Slider min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
+                 </ListItem>
+                 <ListItem>
+                   <p style={{fontSize:this.fontSize,}}>Scale:</p> <Slider min={0} max={100} step={1} defaultValue={1} onChange={this.updateSigmoidScale}/>
+                 </ListItem>
+                 <ListItem>
+                  <SigmoidGraph sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}/>
+                 </ListItem>
+                 </List>
+                </Col>
+                <Col>
+                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Interaction</Subheader>
+                 <ListItem>
+                   <RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData}>
+                    <RadioButton value={0} label="Show all" labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
+                    <RadioButton value={1} label="Hide selected" labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
+                    <RadioButton value={2} label="Hide unselected" labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
+                  </RadioButtonGroup>
+                 </ListItem>
+                 </Col>
+                 <Col>
+                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black",marginLeft:'-10px'}}>Projection</Subheader>
+                   <DropDownMenu style={{marginTop:"-20px", fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
+                   {Object.keys(dimensions).map((k, index)=>{
+                        var attibute = dimensions[k].attribute;
+                        return <MenuItem value={index} primaryText={attibute} style={{fontSize:this.fontSize,}} />
+                   })}
+                  </DropDownMenu>
+                  </Col>
+                  <Col>
+                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Model</Subheader>
+                 <div style={{ fontSize:this.fontSize,}}>
+                   <p>Total pages: {this.state.originalData['urls'].length}.</p>
+                   <p>Labeled pages: {this.countTotalLabeledPages()}.</p>
+                   <p>Accuracy: {this.state.accuracy} %</p>
+                 </div>
+                </Col>
+               </List>
+          </Row>
         </Grid>
+        </div>
 
       )
     }

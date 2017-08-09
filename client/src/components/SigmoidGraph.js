@@ -33,7 +33,7 @@ class SigmoidGraph extends Component {
 
 
 SigmoidGraph.defaultProps = {
-	width:210,
+	width:150,
 	height:80,
 	marginX:1,
 	marginY:1
