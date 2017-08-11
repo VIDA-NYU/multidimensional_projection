@@ -24,20 +24,25 @@ import RelevantIcon from 'material-ui/svg-icons/action/thumb-up';
 import IrrelevantIcon from 'material-ui/svg-icons/action/thumb-down';
 import NeutralIcon from 'material-ui/svg-icons/action/thumbs-up-down';
 import ComeBackOriginalData from 'material-ui/svg-icons/action/cached';
-
+import RelevantFace from 'material-ui/svg-icons/action/thumb-up';
+import IrrelevantFace from 'material-ui/svg-icons/action/thumb-down';
+import NeutralFace from 'material-ui/svg-icons/action/thumbs-up-down';
+import IconButton from 'material-ui/IconButton';
+import { ButtonGroup, Button, OverlayTrigger, Tooltip} from 'react-bootstrap';
 import RadViz from './RadViz';
 import SigmoidGraph from './SigmoidGraph';
 import WordCloud from './WordCloud';
 import Snippets from './Snippets';
+import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 
 const styles = {
   block: {
     maxWidth: 250,
   },
   radioButton: {
-    fontSize: '13px',
-    fontWeight:'normal',
-    marginBottom: 16,
+    fontSize: '10px',
+    fontWeight:'small',
+    marginLeft:'-15px'
   },
 };
 
@@ -61,6 +66,8 @@ class Body extends Component {
      'sigmoidTranslate':0,
      accuracy: "0",
      sessionBody: this.createSession(this.props.currentDomain),
+     checkSigmoid:false,
+     checkProjection:false,
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
@@ -356,7 +363,14 @@ componentWillReceiveProps(props){
     let keyword ='';
     this.props.filterKeyword(keyword);
   }
-
+  handleSigmoid(){
+    (this.state.checkSigmoid)?this.setState({checkSigmoid: false}):this.setState({checkSigmoid: true});
+    this.forceUpdate();
+  }
+  handleProjection(){
+    (this.state.checkProjection)?this.setState({checkProjection: false}):this.setState({checkProjection: true});
+    this.forceUpdate();
+  }
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
     {
@@ -373,15 +387,59 @@ componentWillReceiveProps(props){
       if(this.props.filterTerm !==""){
         linkBackOriginalData = <FlatButton label="Original data" labelPosition="before" primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:"8px"}} />;
       }
+      let sigmoid = (this.state.checkSigmoid)?<div style={{display:'flex'}}>
+      <ListItem style={{display:'flex'}}>Translation:<Slider min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
+      </ListItem>
+      <ListItem style={{display:'flex'}}>
+      Scale:<Slider min={0} max={100} step={1} defaultValue={1} onChange={this.updateSigmoidScale}/>
+      </ListItem></div> : <div></div>;
+      let interaction = <div style={{width:'140px'}}><RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
+       <RadioButton value={0} label="Show all" labelStyle={styles.radioButton} />
+       <RadioButton value={1} label="Hide selected" labelStyle={styles.radioButton} style={{marginLeft:'-50px'}} />
+       <RadioButton value={2} label="Hide unselected" labelStyle={styles.radioButton} style={{marginLeft:'-30px'}} />
+     </RadioButtonGroup></div>;
+     let projection= (this.state.checkProjection)?<div><DropDownMenu style={{marginTop:"-20px", fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
+         {Object.keys(dimensions).map((k, index)=>{
+              var attibute = dimensions[k].attribute;
+              return <MenuItem value={index} primaryText={attibute} style={{fontSize:this.fontSize,}} />
+         })}
+        </DropDownMenu></div>:<div></div>;
       return(
         <div>
-        <Grid style={{marginTop:'20px'}}>
+        <Toolbar style={{width:'100%',height:'70%'}}>
+        <ToolbarGroup firstChild={true}>
+             <List style={{display:"flex"}}>
+              <FlatButton style={{fontSize:"16px", fontWeight:"bold", color:"black"}} label="Sigmoid"  onClick={this.handleSigmoid.bind(this)}/>
+              {sigmoid}
+              <FlatButton style={{fontSize:"16px", fontWeight:"bold", color:"black"}} label="Projection" onClick={this.handleProjection.bind(this)} />
+              {projection}
+              <FlatButton style={{fontSize:"16px", fontWeight:"bold", color:"black"}} label="Interaction"  disabled={true} />
+              {interaction}
+             </List>
+        </ToolbarGroup>
+      </Toolbar>
+        <Grid>
           <Col  ls={7} md={7} style={{ background:"white", }}>
             <Row className="Menus-child">
             <div style={{position: "absolute", left: "-5%"  }}>
-            <FlatButton primary={true} backgroundColor="#0D47A1" hoverColor="#1A237E" icon={<RelevantIcon color="#ffffff"/>} onTouchTap={this.tagsRelevant.bind(this)} style={{width:'20px'}} />
-            <FlatButton primary={true} backgroundColor="#B71C1C" hoverColor="#B71C1C" icon={<IrrelevantIcon color="#ffffff"/>} onTouchTap={this.tagsIrrelevant.bind(this)} style={{width:'20px'}}  />
-            <FlatButton primary={true} backgroundColor="#BDBDBD" hoverColor="#616161" icon={<NeutralIcon color="#ffffff"/>} onTouchTap={this.tagsNeutral.bind(this)} style={{width:'20px'}}  />
+            <ButtonGroup>
+              <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Relevant</Tooltip>}>
+                <Button >
+                   <IconButton onTouchTap={this.tagsRelevant.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px",  }} style={{height: 8, margin: "-10px", padding:0,}}><RelevantFace /></IconButton>
+                </Button>
+              </OverlayTrigger>
+              <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Irrelevant</Tooltip>}>
+                <Button>
+                  <IconButton onTouchTap={this.tagsIrrelevant.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px",  }} style={{height: 8, margin: "-10px", padding:0,}}><IrrelevantFace /></IconButton>
+                </Button>
+              </OverlayTrigger>
+              <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Neutral</Tooltip>}>
+                <Button >
+                  <IconButton onTouchTap={this.tagsNeutral.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px",  }} style={{height: 8, margin: "-10px", padding:0,}}><NeutralFace /></IconButton>
+                </Button>
+              </OverlayTrigger>
+            </ButtonGroup>
+
             </div>
             {linkBackOriginalData}
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
@@ -404,7 +462,7 @@ componentWillReceiveProps(props){
             </Row>
           </Col>
           </Grid>
-          <Grid>
+    {/*      <Grid>
           <Row ls={1} md={1} style={{ marginTop:'10px', border: '2px solid', borderColor:'lightgray', width:'700px'}}>
                <List style={{display:"flex"}}>
                <Col>
@@ -440,17 +498,10 @@ componentWillReceiveProps(props){
                    })}
                   </DropDownMenu>
                   </Col>
-                  <Col>
-                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Model</Subheader>
-                 <div style={{ fontSize:this.fontSize,}}>
-                   <p>Total pages: {this.state.originalData['urls'].length}.</p>
-                   <p>Labeled pages: {this.countTotalLabeledPages()}.</p>
-                   <p>Accuracy: {this.state.accuracy} %</p>
-                 </div>
-                </Col>
+
                </List>
           </Row>
-        </Grid>
+        </Grid>*/}
         </div>
 
       )

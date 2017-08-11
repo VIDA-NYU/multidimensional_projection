@@ -84,7 +84,6 @@ class RadViz extends Component {
 
           this.scaleX = scaleLinear().domain([-1,1]).range([props.marginX/2, props.width-props.marginX/2]);
           this.scaleY = scaleLinear().domain([-1,1]).range([props.marginY/2, props.height - props.marginY/2]);
-
           let newState = {"normalizedData":normalizedData, "dimNames":dimNames, "nDims":nDims,
                           "denominators":denominators, "offsetAnchors":0, "sigmoid_scale":props.sigmoid_scale, "sigmoid_translate":props.sigmoid_translate};
 
@@ -135,7 +134,7 @@ class RadViz extends Component {
             for (let j = 0; j < anchors.length;++j){
                 let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
                 p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i] * s;
-                p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] *  s;
+                p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] * s;
             }
             if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
             if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
@@ -338,12 +337,12 @@ class RadViz extends Component {
                 if (Math.abs(normalizedAngle) < Math.PI/2){
                   anchorText.push(
                             <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                            <text textAnchor="start" x={0} y={0} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+                            <text textAnchor="start" x={0} y={0} onMouseDown={this.startDragAnchor(i)} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
                             </g>);
                 }else{
                   anchorText.push(
                             <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                            <text textAnchor="end" x={0} y={7} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+                            <text textAnchor="end" x={0} y={7} onMouseDown={this.startDragAnchor(i)} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
                             </g>);
                 }
 
