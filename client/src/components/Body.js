@@ -106,7 +106,7 @@ class Body extends Component {
    let colors = [];
    for (let i = 0; i < this.state.originalData[dimNames[0]].length; ++i){
       var typeTag = this.state.originalData[dimNames[value]][i];
-       var colorTag=(typeTag.toLowerCase()=="neutral")? this.colorTags[0]: (typeTag.toLowerCase()=="relevant")? this.colorTags[1]: (typeTag.toLowerCase()=="irrelevant")? this.colorTags[2]: "";
+       var colorTag=(typeTag.toString().toLowerCase()=="neutral")? this.colorTags[0]: (typeTag.toString().toLowerCase()=="relevant")? this.colorTags[1]: (typeTag.toString().toLowerCase()=="irrelevant")? this.colorTags[2]: "";
        colors.push(colorTag);
    }
    this.setState({value: value, colors:colors});
@@ -121,7 +121,7 @@ class Body extends Component {
    for (let i = 0; i < this.state.originalData[dimNames[0]].length; ++i){
        //colors.push(scaleColor(this.state.originalData[dimNames[value]][i]));
        var typeTag = this.state.originalData[dimNames[value]][i];
-       var colorTag=(typeTag.toLowerCase()=="neutral")? this.colorTags[0]: (typeTag.toLowerCase()=="relevant")? this.colorTags[1]: (typeTag.toLowerCase()=="irrelevant")? this.colorTags[2]: "";
+       var colorTag=(typeTag.toString().toLowerCase()=="neutral")? this.colorTags[0]: (typeTag.toString().toLowerCase()=="relevant")? this.colorTags[1]: (typeTag.toString().toLowerCase()=="irrelevant")? this.colorTags[2]: "";
        colors.push(colorTag);
    }
    this.setState({value:value, colors:colors})
@@ -129,10 +129,11 @@ class Body extends Component {
 
  //Handling change of dimensions into DropDown.
  updateOnSelection(event, index, value){
+   console.log("in update");
     	if(this.state.dimNames[value]=="Model Result"){
     	    this.predictUnlabeled(this.state.sessionBody);
     	}
-    	if(this.state.dimNames[value]==="labels" || this.state.dimNames[value]==="Model Result") this.updateColorsTags(value);
+    	if(this.state.dimNames[value]=="labels" || this.state.dimNames[value]=="Model Result") this.updateColorsTags(value);
     	else this.updateColors(value);
   }
 
@@ -387,15 +388,15 @@ componentWillReceiveProps(props){
       if(this.props.filterTerm !==""){
         linkBackOriginalData = <FlatButton label="Original data" labelPosition="before" primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:"8px"}} />;
       }
-      let sigmoid = <div style={{display:'flex',marginLeft:'170px'}}><ListItem>
-      Translation:<Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
+      let sigmoid = <div style={{display:'flex'}}><ListItem>
+      <Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
       </ListItem></div>;
       let interaction = <div style={{width:'140px'}}><RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
        <RadioButton value={0} label="Show all" labelStyle={styles.radioButton} />
        <RadioButton value={1} label="Hide selected" labelStyle={styles.radioButton} style={{marginLeft:'-50px'}} />
        <RadioButton value={2} label="Hide unselected" labelStyle={styles.radioButton} style={{marginLeft:'-30px'}} />
      </RadioButtonGroup></div>;
-     let projection1= (this.state.checkProjection)?<div>
+     let projection_labels = (this.state.checkProjection)?<div>
      <DropDownMenu style={{marginTop:"-20px", fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
                    {Object.keys(dimensions).map((k, index)=>{
                         var attibute = dimensions[k].attribute;
@@ -421,9 +422,10 @@ componentWillReceiveProps(props){
         <ToolbarGroup firstChild={true}>
              <List style={{display:"flex"}}>
              {interaction}
-              {sigmoid}
+             <div style={{marginLeft:'170px'}}> Translation: </div>
+             {sigmoid}
               <FlatButton style={{fontSize:"16px", fontWeight:"bold", color:"black"}} label="Projection" onClick={this.handleProjection.bind(this)} />
-              {projection1}
+              {projection_labels}
              </List>
         </ToolbarGroup>
       </Toolbar>
