@@ -34,7 +34,7 @@ import SigmoidGraph from './SigmoidGraph';
 import WordCloud from './WordCloud';
 import Snippets from './Snippets';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
-
+import Select from 'react-select';
 const styles = {
   block: {
     maxWidth: 250,
@@ -132,7 +132,7 @@ class Body extends Component {
     	if(this.state.dimNames[value]=="Model Result"){
     	    this.predictUnlabeled(this.state.sessionBody);
     	}
-    	if(this.state.dimNames[value]=="labels" || this.state.dimNames[value]=="Model Result") this.updateColorsTags(value);
+    	if(this.state.dimNames[value]==="labels" || this.state.dimNames[value]==="Model Result") this.updateColorsTags(value);
     	else this.updateColors(value);
   }
 
@@ -387,34 +387,43 @@ componentWillReceiveProps(props){
       if(this.props.filterTerm !==""){
         linkBackOriginalData = <FlatButton label="Original data" labelPosition="before" primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:"8px"}} />;
       }
-      let sigmoid = (this.state.checkSigmoid)?<div style={{display:'flex'}}>
-      <ListItem style={{display:'flex'}}>Translation:<Slider min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
-      </ListItem>
-      <ListItem style={{display:'flex'}}>
-      Scale:<Slider min={0} max={100} step={1} defaultValue={1} onChange={this.updateSigmoidScale}/>
-      </ListItem></div> : <div></div>;
+      let sigmoid = <div style={{display:'flex',marginLeft:'170px'}}><ListItem>
+      Translation:<Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
+      </ListItem></div>;
       let interaction = <div style={{width:'140px'}}><RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
        <RadioButton value={0} label="Show all" labelStyle={styles.radioButton} />
        <RadioButton value={1} label="Hide selected" labelStyle={styles.radioButton} style={{marginLeft:'-50px'}} />
        <RadioButton value={2} label="Hide unselected" labelStyle={styles.radioButton} style={{marginLeft:'-30px'}} />
      </RadioButtonGroup></div>;
-     let projection= (this.state.checkProjection)?<div><DropDownMenu style={{marginTop:"-20px", fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
-         {Object.keys(dimensions).map((k, index)=>{
-              var attibute = dimensions[k].attribute;
-              return <MenuItem value={index} primaryText={attibute} style={{fontSize:this.fontSize,}} />
-         })}
-        </DropDownMenu></div>:<div></div>;
+     let projection1= (this.state.checkProjection)?<div>
+     <DropDownMenu style={{marginTop:"-20px", fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
+                   {Object.keys(dimensions).map((k, index)=>{
+                        var attibute = dimensions[k].attribute;
+                        return <MenuItem value={index} primaryText={attibute} style={{fontSize:this.fontSize,}} />
+                   })}
+                  </DropDownMenu>
+              {/*       <Select.Creatable
+                        className="menu-outer-top"
+                        multi={false}
+                        options={Object.keys(dimensions).map((k, index)=>{
+                             var attribute = dimensions[k].attribute;
+                             return {value: index, label: attribute};
+                        })}
+                        onChange={this.updateOnSelection}
+                        ignoreCase={true}
+                      />*/}
+                    </div>
+
+      :<div></div>;
       return(
         <div>
         <Toolbar style={{width:'100%',height:'70%'}}>
         <ToolbarGroup firstChild={true}>
              <List style={{display:"flex"}}>
-              <FlatButton style={{fontSize:"16px", fontWeight:"bold", color:"black"}} label="Sigmoid"  onClick={this.handleSigmoid.bind(this)}/>
+             {interaction}
               {sigmoid}
               <FlatButton style={{fontSize:"16px", fontWeight:"bold", color:"black"}} label="Projection" onClick={this.handleProjection.bind(this)} />
-              {projection}
-              <FlatButton style={{fontSize:"16px", fontWeight:"bold", color:"black"}} label="Interaction"  disabled={true} />
-              {interaction}
+              {projection1}
              </List>
         </ToolbarGroup>
       </Toolbar>
@@ -425,21 +434,20 @@ componentWillReceiveProps(props){
             <ButtonGroup>
               <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Relevant</Tooltip>}>
                 <Button >
-                   <IconButton onTouchTap={this.tagsRelevant.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px",  }} style={{height: 8, margin: "-10px", padding:0,}}><RelevantFace /></IconButton>
+                   <IconButton onTouchTap={this.tagsRelevant.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:"#0000FF" }} style={{height: 8, margin: "-10px", padding:0,}}><RelevantFace /></IconButton>
                 </Button>
               </OverlayTrigger>
               <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Irrelevant</Tooltip>}>
                 <Button>
-                  <IconButton onTouchTap={this.tagsIrrelevant.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px",  }} style={{height: 8, margin: "-10px", padding:0,}}><IrrelevantFace /></IconButton>
+                  <IconButton onTouchTap={this.tagsIrrelevant.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px",color:"#FF0000"  }} style={{height: 8, margin: "-10px", padding:0}}><IrrelevantFace /></IconButton>
                 </Button>
               </OverlayTrigger>
               <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Neutral</Tooltip>}>
                 <Button >
-                  <IconButton onTouchTap={this.tagsNeutral.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px",  }} style={{height: 8, margin: "-10px", padding:0,}}><NeutralFace /></IconButton>
+                  <IconButton onTouchTap={this.tagsNeutral.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:"#C0C0C0" }} style={{height: 8, margin: "-10px", padding:0,}}><NeutralFace /></IconButton>
                 </Button>
               </OverlayTrigger>
             </ButtonGroup>
-
             </div>
             {linkBackOriginalData}
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}

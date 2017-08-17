@@ -2,6 +2,10 @@ import React, {Component} from 'react';
 import Divider from 'material-ui/Divider';
 import { ButtonGroup, Button, OverlayTrigger, Tooltip} from 'react-bootstrap';
 import $ from 'jquery';
+import RelevantFace from 'material-ui/svg-icons/action/thumb-up';
+import IrrelevantFace from 'material-ui/svg-icons/action/thumb-down';
+import NeutralFace from 'material-ui/svg-icons/action/thumbs-up-down';
+import IconButton from 'material-ui/IconButton';
 
 
 class Snippets extends Component{
@@ -63,13 +67,19 @@ class Snippets extends Component{
                                   <p style={{float:'right'}}>
                                   <ButtonGroup bsSize="small">
                                     <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Relevant</Tooltip>}>
-                                      <Button id={"Relevant-"+i} value={uniqueTag} onClick={this.onTagActionClicked.bind(this)}  style={{backgroundColor:colorTagRelev}} >Rel</Button>
+                                      <Button id={"Relevant-"+i}>
+                                         <IconButton onTouchTap={this.onTagActionClicked.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:colorTagRelev }} style={{height: 8, margin: "-10px", padding:0,}}><RelevantFace /></IconButton>
+                                      </Button>
                                     </OverlayTrigger>
                                     <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Irrelevant</Tooltip>}>
-                                      <Button id={"Irrelevant-" +i} value={uniqueTag} onClick={this.onTagActionClicked.bind(this)} style={{backgroundColor:colorTagIrrelev}} >Irr</Button>
+                                      <Button id={"Relevant-"+i}>
+                                        <IconButton onTouchTap={this.onTagActionClicked.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px",color:colorTagIrrelev  }} style={{height: 8, margin: "-10px", padding:0}}><IrrelevantFace /></IconButton>
+                                      </Button>
                                     </OverlayTrigger>
                                     <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Neutral</Tooltip>}>
-                                      <Button id={"Neutral-"+ i} value={uniqueTag} onClick={this.onTagActionClicked.bind(this)}  style={{backgroundColor:colorTagNeutral}} >Neu</Button>
+                                      <Button id={"Relevant-"+i}>
+                                        <IconButton onTouchTap={this.onTagActionClicked.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:colorTagNeutral }} style={{height: 8, margin: "-10px", padding:0,}}><NeutralFace /></IconButton>
+                                      </Button>
                                     </OverlayTrigger>
                                   </ButtonGroup></p>
                                   <p><a target="_blank" href={url} style={{ color:'blue'}} >{title}</a> <br/><a target="_blank" href={url} style={{fontSize:'11px'}}>{url}</a></p>
@@ -86,15 +96,22 @@ class Snippets extends Component{
                                 <p style={{float:'right'}}>
                                 <ButtonGroup bsSize="small">
                                   <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Relevant</Tooltip>}>
-                                    <Button id={"Relevant-"+i} value={uniqueTag} onClick={this.onTagActionClicked.bind(this)}  style={{backgroundColor:colorTagRelev}} >Rel</Button>
+                                    <Button id={"Relevant-"+i}>
+                                       <IconButton onTouchTap={this.onTagActionClicked.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:colorTagRelev }} style={{height: 8, margin: "-10px", padding:0,}}><RelevantFace /></IconButton>
+                                    </Button>
                                   </OverlayTrigger>
                                   <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Irrelevant</Tooltip>}>
-                                    <Button id={"Irrelevant-" +i} value={uniqueTag} onClick={this.onTagActionClicked.bind(this)}  style={{backgroundColor:colorTagIrrelev}} >Irr</Button>
+                                    <Button id={"Relevant-"+i}>
+                                      <IconButton onTouchTap={this.onTagActionClicked.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px",color:colorTagIrrelev  }} style={{height: 8, margin: "-10px", padding:0}}><IrrelevantFace /></IconButton>
+                                    </Button>
                                   </OverlayTrigger>
                                   <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Neutral</Tooltip>}>
-                                    <Button id={"Neutral-"+ i} value={uniqueTag} onClick={this.onTagActionClicked.bind(this)}  style={{backgroundColor:colorTagNeutral}} >Neu</Button>
+                                    <Button id={"Relevant-"+i}>
+                                      <IconButton onTouchTap={this.onTagActionClicked.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:colorTagNeutral}} style={{height: 8, margin: "-10px", padding:0,}}><NeutralFace /></IconButton>
+                                    </Button>
                                   </OverlayTrigger>
-                                </ButtonGroup></p>
+                                </ButtonGroup>
+                              </p>
                                   <p>
                                     <a target="_blank" href={props.originalData['urls'][i]} style={{fontSize:'10px'}}>{props.originalData['urls'][i]}</a>
                                   </p>

@@ -17,6 +17,7 @@ class RadViz extends Component {
         this.selectionPoly = [];
         this.pointInPolygon = this.pointInPolygon.bind(this);
         this.startDragAnchorGroup = this.startDragAnchorGroup.bind(this);
+        this.startanchorAngles = 0;
     }
     componentWillMount(){
       window.addEventListener('keydown', this.handleKeyDown);//esc key to unselect all data.
@@ -199,7 +200,6 @@ class RadViz extends Component {
     	if (this.state.draggingAnchor){
     		this.setState({'draggingAnchor':false});
     	}
-
     }
 
     startDragAnchor(i){
@@ -331,9 +331,10 @@ class RadViz extends Component {
             for (let i = 0; i < this.state.nDims; ++i){
 
                 anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
-                        key={i} onMouseDown={this.startDragAnchor(i)} style={{cursor:'hand', stroke:(this.state.selected[i]?'black':'none'), fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
+                        key={i} style={{cursor:'hand', stroke:(this.state.selected[i]?'black':'none'), fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
 
                 let normalizedAngle = this.normalizeAngle(this.state.anchorAngles[i] + this.state.offsetAnchors);
+
                 if (Math.abs(normalizedAngle) < Math.PI/2){
                   anchorText.push(
                             <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
@@ -345,8 +346,6 @@ class RadViz extends Component {
                             <text textAnchor="end" x={0} y={7} onMouseDown={this.startDragAnchor(i)} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
                             </g>);
                 }
-
-
             }
 
               sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
