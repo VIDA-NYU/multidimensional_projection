@@ -35,6 +35,7 @@ import WordCloud from './WordCloud';
 import Snippets from './Snippets';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import Select from 'react-select';
+
 const styles = {
   block: {
     maxWidth: 250,
@@ -68,6 +69,7 @@ class Body extends Component {
      sessionBody: this.createSession(this.props.currentDomain),
      checkSigmoid:false,
      checkProjection:false,
+     searchText: '',
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
@@ -129,12 +131,11 @@ class Body extends Component {
 
  //Handling change of dimensions into DropDown.
  updateOnSelection(event, index, value){
-   console.log("in update");
-    	if(this.state.dimNames[value]=="Model Result"){
+    	if(event=="Model Result"){
     	    this.predictUnlabeled(this.state.sessionBody);
     	}
-    	if(this.state.dimNames[value]=="labels" || this.state.dimNames[value]=="Model Result") this.updateColorsTags(value);
-    	else this.updateColors(value);
+    	if(event=="labels" || event=="Model Result") this.updateColorsTags(this.state.dimNames.indexOf(event));
+    	else this.updateColors(this.state.dimNames.indexOf(event));
   }
 
   updateSigmoidScale(s){
@@ -372,13 +373,27 @@ componentWillReceiveProps(props){
     (this.state.checkProjection)?this.setState({checkProjection: false}):this.setState({checkProjection: true});
     this.forceUpdate();
   }
+  handleUpdateInput = (searchText) => {
+      this.setState({
+        searchText: searchText,
+      });
+    };
+
+    handleNewRequest = () => {
+      this.setState({
+        searchText: '',
+      });
+    };
+
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
     {
       var dimensions=[];
+      var values=[];
       this.state.dimNames.forEach(function (attribute,idx) {
           var dim = {id: idx,name: attribute,attribute: attribute,available: true,group: false,pos: 0,weight: 1}; //addDimension( id : number, name_circle: small name, name_attribute: complete name)
           dimensions.push(dim);
+          values.push(attribute);
       });
       let selectedUrls = []; selectedUrls.push(<p></p>);
       let nroSelectedUrls = 0;
@@ -388,32 +403,30 @@ componentWillReceiveProps(props){
       if(this.props.filterTerm !==""){
         linkBackOriginalData = <FlatButton label="Original data" labelPosition="before" primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:"8px"}} />;
       }
-      let sigmoid = <div style={{display:'flex'}}><ListItem>
-      <Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
+      let sigmoid = <div style={{display:'flex',marginLeft:'170px'}}><ListItem>
+      Translation:<Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
       </ListItem></div>;
       let interaction = <div style={{width:'140px'}}><RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
        <RadioButton value={0} label="Show all" labelStyle={styles.radioButton} />
        <RadioButton value={1} label="Hide selected" labelStyle={styles.radioButton} style={{marginLeft:'-50px'}} />
        <RadioButton value={2} label="Hide unselected" labelStyle={styles.radioButton} style={{marginLeft:'-30px'}} />
      </RadioButtonGroup></div>;
-     let projection_labels = (this.state.checkProjection)?<div>
-     <DropDownMenu style={{marginTop:"-20px", fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
+     let projection_labels = (this.state.checkProjection)?<ListItem>
+  {/*}  <DropDownMenu style={{marginTop:"-20px", fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
                    {Object.keys(dimensions).map((k, index)=>{
                         var attibute = dimensions[k].attribute;
                         return <MenuItem value={index} primaryText={attibute} style={{fontSize:this.fontSize,}} />
                    })}
-                  </DropDownMenu>
-              {/*       <Select.Creatable
-                        className="menu-outer-top"
-                        multi={false}
-                        options={Object.keys(dimensions).map((k, index)=>{
-                             var attribute = dimensions[k].attribute;
-                             return {value: index, label: attribute};
-                        })}
-                        onChange={this.updateOnSelection}
-                        ignoreCase={true}
-                      />*/}
-                    </div>
+                  </DropDownMenu>*/}
+          <AutoComplete
+          hintText="case insensitive"
+          searchText={this.state.searchText}
+          onUpdateInput={this.handleUpdateInput}
+          onNewRequest={this.updateOnSelection}
+          dataSource={ values}
+          filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
+          openOnFocus={true}/>
+                    </ListItem>
 
       :<div></div>;
       return(
@@ -422,7 +435,6 @@ componentWillReceiveProps(props){
         <ToolbarGroup firstChild={true}>
              <List style={{display:"flex"}}>
              {interaction}
-             <div style={{marginLeft:'170px'}}> Translation: </div>
              {sigmoid}
               <FlatButton style={{fontSize:"16px", fontWeight:"bold", color:"black"}} label="Projection" onClick={this.handleProjection.bind(this)} />
               {projection_labels}

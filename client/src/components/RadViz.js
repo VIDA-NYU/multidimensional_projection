@@ -10,6 +10,7 @@ class RadViz extends Component {
         this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], "data": undefined, };
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
+        this.arrangeanchors = this.arrangeanchors.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
         this.dragSVG = this.dragSVG.bind(this);
         this.unselectAllData = this.unselectAllData.bind(this);
@@ -204,10 +205,24 @@ class RadViz extends Component {
 
     startDragAnchor(i){
         return function(e){
-            this.setState({'draggingAnchor':true, 'draggingAnchor_anchor_id':i});
+          let container = $("#svg_radviz").get(0).getBoundingClientRect();
+          let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
+
+              let center=[this.props.width/2, this.props.height/2];
+              let vec=[mouse[0] - center[0], mouse[1]-center[1]];
+              let normVec=numeric.norm2(vec);
+              vec[0] /= normVec;
+              vec[1] /= normVec;
+              // Computing the angle by making a dot product with the [1,0] vector
+              let cosAngle = vec[0];
+              let angle = Math.acos(cosAngle);
+              if (mouse[1] < center[1])
+                  angle *= -1;
+            this.setState({'draggingAnchor':true, 'draggingAnchor_anchor_id':i,'startanchorAngles':angle});
             e.stopPropagation();
-        }.bind(this);
-    }
+
+    }.bind(this);
+  }
 
     pointInPolygon(point, polygon){
         polygon.push(polygon[0])
@@ -315,7 +330,33 @@ class RadViz extends Component {
     normalizeAngle(angle) {
       return Math.atan2(Math.sin(angle), Math.cos(angle));
     }
-
+    arrangeanchors(e){
+      let container = $("#svg_radviz").get(0).getBoundingClientRect();
+      let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
+      if (this.state.draggingAnchor){
+          let center=[this.props.width/2, this.props.height/2];
+          let vec=[mouse[0] - center[0], mouse[1]-center[1]];
+          let normVec=numeric.norm2(vec);
+          vec[0] /= normVec;
+          vec[1] /= normVec;
+          // Computing the angle by making a dot product with the [1,0] vector
+          let cosAngle = vec[0];
+          let angle = Math.acos(cosAngle);
+          if (mouse[1] < center[1])
+              angle *= -1;
+          let newAnchorAngles = this.state.anchorAngles.slice();
+          let angleDifference = angle - this.state.startanchorAngles;
+          newAnchorAngles[this.state.draggingAnchor_anchor_id] = angle;
+          console.log(newAnchorAngles.length);
+      //  newAnchorAngles[this.state.draggingAnchor_anchor_id+1]= newAnchorAngles[this.state.draggingAnchor_anchor_id+1]+0.03;
+        let anchorXY = [];
+        for (let i = 0; i < this.state.nDims; ++i)
+          anchorXY.push(this.anglesToXY(this.state.anchorAngles[i], 1));
+          this.setState({'anchorAngles':newAnchorAngles.sort()});
+          this.forceUpdate();
+      //console.log(angleDifference);
+    }
+}
     render() {
         console.log("rendering radViz");
         let sampleDots = [];
@@ -338,12 +379,12 @@ class RadViz extends Component {
                 if (Math.abs(normalizedAngle) < Math.PI/2){
                   anchorText.push(
                             <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                            <text textAnchor="start" x={0} y={0} onMouseDown={this.startDragAnchor(i)} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+                            <text textAnchor="start" x={0} y={0} onMouseDown={this.startDragAnchor(i)} onMouseUp={this.arrangeanchors}  transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
                             </g>);
                 }else{
                   anchorText.push(
                             <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                            <text textAnchor="end" x={0} y={7} onMouseDown={this.startDragAnchor(i)} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+                            <text textAnchor="end" x={0} y={7} onMouseDown={this.startDragAnchor(i)} onMouseUp={this.arrangeanchors}  transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
                             </g>);
                 }
             }
