@@ -402,7 +402,7 @@ componentWillReceiveProps(props){
       if(this.props.filterTerm !==""){
         linkBackOriginalData = <FlatButton label="Original data" labelPosition="before" primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:"8px"}} />;
       }
-      let sigmoid = <div style={{display:'flex',marginLeft:'170px'}}><ListItem>
+      let sigmoid = <div style={{display:'flex',marginLeft:'170px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
       Translation:<Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
       </ListItem></div>;
       let interaction = <div style={{width:'140px'}}><RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
@@ -425,19 +425,23 @@ componentWillReceiveProps(props){
       :<div></div>;
       return(
         <div>
-        <Toolbar style={{width:'100%',height:'70%'}}>
-        <ToolbarGroup firstChild={true}>
-             <List style={{display:"flex"}}>
-             {interaction}
-             {sigmoid}
-              <FlatButton style={{fontSize:"16px", fontWeight:"bold", color:"black"}} label="Projection" onClick={this.handleProjection.bind(this)} />
-              {projection_labels}
-             </List>
-        </ToolbarGroup>
-      </Toolbar>
         <Grid>
           <Col  ls={7} md={7} style={{ background:"white", }}>
             <Row className="Menus-child">
+            <div>
+            <Toolbar style={{width:'100%',height:'70%'}}>
+            <ToolbarGroup firstChild={true}>
+              {interaction}
+            </ToolbarGroup>
+            <ToolbarGroup >
+              {sigmoid}
+            </ToolbarGroup>
+            <ToolbarGroup>
+              <FlatButton style={{fontSize:"16px", fontWeight:"bold", color:"black"}} label="Projection" onClick={this.handleProjection.bind(this)} />
+              {projection_labels}
+            </ToolbarGroup>
+          </Toolbar>
+            </div>
             <div style={{position: "absolute", left: "-5%"  }}>
             <ButtonGroup>
               <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Relevant</Tooltip>}>
