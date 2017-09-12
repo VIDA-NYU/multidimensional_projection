@@ -7,7 +7,7 @@ class RadViz extends Component {
 
     constructor(props){
         super(props);
-        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], "data": undefined, };
+        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], "data": undefined,'nDims': 0 };
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.arrangeanchors = this.arrangeanchors.bind(this);
@@ -347,15 +347,30 @@ class RadViz extends Component {
           let newAnchorAngles = this.state.anchorAngles.slice();
           let angleDifference = angle - this.state.startanchorAngles;
           newAnchorAngles[this.state.draggingAnchor_anchor_id] = angle;
-          console.log(newAnchorAngles.length);
+      //    console.log(newAnchorAngles.length);
       //  newAnchorAngles[this.state.draggingAnchor_anchor_id+1]= newAnchorAngles[this.state.draggingAnchor_anchor_id+1]+0.03;
-        let anchorXY = [];
-        for (let i = 0; i < this.state.nDims; ++i)
-          anchorXY.push(this.anglesToXY(this.state.anchorAngles[i], 1));
-          this.setState({'anchorAngles':newAnchorAngles.sort()});
-          this.forceUpdate();
+  //      this.setState({'anchorAngles':newAnchorAngles});
       //console.log(angleDifference);
     }
+
+}
+  arrange(props){
+
+
+    let argsort = (x1) => {
+	     let x2 = x1.map((d,i)=>[d,i])
+	     let x2sorted = x2.sort((a,b)=>a[0]-b[0])
+	     return x2sorted.map(d=>d[1])
+}
+//console.log(argsort(this.state.anchorAngles));
+let newAnchorAngles1=[];
+for (let i = 0; i < this.state.anchorAngles.length; ++i){
+    console.log(argsort(this.state.anchorAngles)[i]);
+    newAnchorAngles1.push(argsort(this.state.anchorAngles)[i] * 2*Math.PI / this.state.anchorAngles.length);
+}
+//console.log(newAnchorAngles1);
+  this.setState({'anchorAngles':newAnchorAngles1});
+
 }
     render() {
         console.log("rendering radViz");
@@ -379,12 +394,12 @@ class RadViz extends Component {
                 if (Math.abs(normalizedAngle) < Math.PI/2){
                   anchorText.push(
                             <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                            <text textAnchor="start" x={0} y={0} onMouseDown={this.startDragAnchor(i)} onMouseUp={this.arrangeanchors}  transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+                            <text textAnchor="start" x={0} y={0} onMouseDown={this.startDragAnchor(i)} onMouseUp={this.arrange.bind(this)}  transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
                             </g>);
                 }else{
                   anchorText.push(
                             <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                            <text textAnchor="end" x={0} y={7} onMouseDown={this.startDragAnchor(i)} onMouseUp={this.arrangeanchors}  transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+                            <text textAnchor="end" x={0} y={7} onMouseDown={this.startDragAnchor(i)}   onMouseUp={this.arrange.bind(this)}  transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
                             </g>);
                 }
             }

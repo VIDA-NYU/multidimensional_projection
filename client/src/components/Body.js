@@ -29,13 +29,12 @@ import IrrelevantFace from 'material-ui/svg-icons/action/thumb-down';
 import NeutralFace from 'material-ui/svg-icons/action/thumbs-up-down';
 import IconButton from 'material-ui/IconButton';
 import { ButtonGroup, Button, OverlayTrigger, Tooltip} from 'react-bootstrap';
-import RadViz from './RadViz';
 import SigmoidGraph from './SigmoidGraph';
 import WordCloud from './WordCloud';
 import Snippets from './Snippets';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import Select from 'react-select';
-
+import RadViz from 'react-radviz';
 const styles = {
   block: {
     maxWidth: 250,
@@ -412,20 +411,15 @@ componentWillReceiveProps(props){
        <RadioButton value={2} label="Hide unselected" labelStyle={styles.radioButton} style={{marginLeft:'-30px'}} />
      </RadioButtonGroup></div>;
      let projection_labels = (this.state.checkProjection)?<ListItem>
-  {/*}  <DropDownMenu style={{marginTop:"-20px", fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
-                   {Object.keys(dimensions).map((k, index)=>{
-                        var attibute = dimensions[k].attribute;
-                        return <MenuItem value={index} primaryText={attibute} style={{fontSize:this.fontSize,}} />
-                   })}
-                  </DropDownMenu>*/}
           <AutoComplete
           hintText="case insensitive"
           searchText={this.state.searchText}
           onUpdateInput={this.handleUpdateInput}
           onNewRequest={this.updateOnSelection}
-          dataSource={ values}
+          dataSource={values}
           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
-          openOnFocus={true}/>
+          openOnFocus={true}
+          />
                     </ListItem>
 
       :<div></div>;
