@@ -4,32 +4,12 @@
 // Author: Sonia Castelo (scastelo2@gmail.com)
 
 import React, { Component } from 'react';
-import AppBar from 'material-ui/AppBar';
-import logoNYU from '../images/nyu_logo_purple.png';
-
-import { } from 'material-ui/styles/colors';
-
-import IconButton from 'material-ui/IconButton';
-import {Toolbar, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
-import FontIcon from 'material-ui/FontIcon';
-import Model from 'material-ui/svg-icons/image/blur-linear';
-//import Domain from 'material-ui/svg-icons/maps/transfer-within-a-station';
-var ReactRouter = require('react-router');
-var Link = ReactRouter.Link;
-import { FormControl} from 'react-bootstrap';
-import Search from 'material-ui/svg-icons/action/search';
-import AutoComplete from 'material-ui/AutoComplete';
-
-
-import IconLocationOn from 'material-ui/svg-icons/communication/location-on';
-import Body from './Body';
 import Header from './Header';
-import TextField from 'material-ui/TextField';
 import $ from 'jquery';
-import {scaleOrdinal, schemeCategory10} from 'd3-scale';
-
+import {scaleOrdinal} from 'd3-scale';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
+import Body from './Body.js';
 
 class Domain extends Component {
 
@@ -106,15 +86,6 @@ componentWillReceiveProps  = (newProps, nextState) => {
     this.setState({idDomain: this.props.location.query.idDomain});
 
 };
-/*
-shouldComponentUpdate(nextProps, nextState) {
- console.log("header shouldComponentUpdate");
-  if(nextProps.location.query.idDomain ===this.state.idDomain){
-        return false;
-   }
-    return true;
-};
-*/
 
 //Filter by terms (ex. ebola AND virus)
 filterKeyword(filterTerm){
