@@ -18,7 +18,20 @@ class RadvizModel(DomainModel):
         self._path = path
         super(RadvizModel, self).__init__(path)
 
-    def getRadvizPoints(self, index, filterByTerm):
+    def _esInfo(self, domainId):
+        es_info = {
+          "activeDomainIndex": self._domains[domainId]['index'],
+          "docType": self._domains[domainId]['doc_type']
+        }
+        if not self._domains[domainId].get("mapping") is None:
+          es_info["mapping"] = self._domains[domainId]["mapping"]
+        else:
+          es_info["mapping"] = self._mapping
+        return es_info
+
+    def getRadvizPoints(self, session, filterByTerm):
+        es_info = self._esInfo(session['domainId'])
+        index = es_info['activeDomainIndex']
         max_features = 200
         ddteval_data = fetch_data(index, filterByTerm, es_doc_type=es_doc_type, es=es)
         data = ddteval_data["data"]
