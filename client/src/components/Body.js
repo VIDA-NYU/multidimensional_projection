@@ -33,8 +33,7 @@ import SigmoidGraph from './SigmoidGraph';
 import WordCloud from './WordCloud';
 import Snippets from './Snippets';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
-import Select from 'react-select';
-import RadViz from 'react-radviz';
+import RadViz from './RadViz';
 const styles = {
   block: {
     maxWidth: 250,
