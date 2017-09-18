@@ -409,19 +409,17 @@ componentWillReceiveProps(props){
        <RadioButton value={1} label="Hide selected" labelStyle={styles.radioButton} style={{marginLeft:'-50px'}} />
        <RadioButton value={2} label="Hide unselected" labelStyle={styles.radioButton} style={{marginLeft:'-30px'}} />
      </RadioButtonGroup></div>;
-     let projection_labels = (this.state.checkProjection)?<ListItem>
+     let projection_labels =
           <AutoComplete
-          hintText="case insensitive"
+          floatingLabelText="Projection"
+          textFieldStyle={{width:'70%'}}
           searchText={this.state.searchText}
           onUpdateInput={this.handleUpdateInput}
           onNewRequest={this.updateOnSelection}
           dataSource={values}
           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
           openOnFocus={true}
-          />
-                    </ListItem>
-
-      :<div></div>;
+          />;
       return(
         <div>
         <Grid>
@@ -435,8 +433,7 @@ componentWillReceiveProps(props){
             <ToolbarGroup >
               {sigmoid}
             </ToolbarGroup>
-            <ToolbarGroup>
-              <FlatButton style={{fontSize:"16px", fontWeight:"bold", color:"black"}} label="Projection" onClick={this.handleProjection.bind(this)} />
+            <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px'}}>
               {projection_labels}
             </ToolbarGroup>
           </Toolbar>
