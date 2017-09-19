@@ -423,9 +423,9 @@ componentWillReceiveProps(props){
       return(
         <div>
         <Grid>
-          <Col  ls={7} md={7} style={{ background:"white", }}>
+          <Col  ls={7} md={7} style={{ background:"white",}}>
             <Row className="Menus-child">
-            <div>
+            <div style={{ marginLeft:'-70px' ,marginRight:'-60px'}}>
             <Toolbar style={{width:'100%',height:'70%'}}>
             <ToolbarGroup firstChild={true}>
               {interaction}
@@ -438,7 +438,7 @@ componentWillReceiveProps(props){
             </ToolbarGroup>
           </Toolbar>
             </div>
-            <div style={{position: "absolute", left: "-5%"  }}>
+            <div style={{position: "absolute", left: "-5%", marginTop:'10px' ,marginRight:'-20px' }}>
             <ButtonGroup>
               <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Relevant</Tooltip>}>
                 <Button >
@@ -464,14 +464,14 @@ componentWillReceiveProps(props){
             </Row>
           </Col>
 
-          <Col  ls={2} md={2} style={{background:"white", marginLeft:"30px", borderLeft: '2px solid', borderColor:'lightgray'}}>
+          <Col  ls={2} md={2} style={{background:"white", marginLeft:"60px", borderLeft: '2px solid', borderColor:'lightgray'}}>
             <Row className="Menus-child" >
             <div style={{width:'448px', borderTop:'solid', borderRight: '2px solid', borderColor:'lightgray'}}>
             <WordCloud dimNames={this.state.dimNames} selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
             </div>
             </Row>
             <Row className="Menus-child">
-              <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray'}}>
+              <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray',marginRight:'-50px'}}>
                 <p style={{color:"silver", marginLeft:'30px'}}>Selected pages: {nroSelectedUrls}</p>
               </div>
               <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData} tagFromSnippets={this.tagFromSnippets.bind(this)}/>

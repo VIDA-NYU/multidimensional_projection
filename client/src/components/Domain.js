@@ -9,8 +9,8 @@ import $ from 'jquery';
 import {scaleOrdinal} from 'd3-scale';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
+import RadvizComponent from 'radviz-component';
 import Body from './Body';
-
 class Domain extends Component {
 
   constructor(props) {
