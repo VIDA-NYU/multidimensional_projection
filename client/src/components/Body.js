@@ -280,6 +280,12 @@ componentWillReceiveProps(props){
   }
 
   setPagesTag(urls, tag, applyTagFlag){
+    "--------------------------******************SetPagesforntend-********************--------------"
+    console.log("setPagesTag");
+    console.log(urls);
+    console.log(tag);
+    console.log(applyTagFlag);
+    console.log(this.state.sessionBody);
   	$.post(
   	    '/setPagesTag',
   	    {'pages': urls.join('|'), 'tag': tag, 'applyTagFlag': applyTagFlag, 'session': JSON.stringify(this.state.sessionBody)},
@@ -293,10 +299,11 @@ componentWillReceiveProps(props){
   	var urls = [];
   	for(let i = 0;i < selectedPages.length;++i){
   	    var index = selectedPages[i];
-  	    if (this.state.originalData["labels"][index] != "Neutral" && this.state.originalData["labels"][index] != tag)
-  		    this.setPagesTag([this.state.originalData["urls"][index]], this.state.originalData["labels"][index], false);
-  	    urls.push(this.state.originalData["urls"][index]);
-        console.log(urls);
+        var temp_urls = [];
+        temp_urls.push(this.state.originalData['urls'][i]);
+  	    if (this.state.originalData["labels"][i] != "Neutral" && this.state.originalData["labels"][i] != tag)
+  		    this.setPagesTag(temp_urls, this.state.originalData["labels"][i], false);
+  	    urls.push(this.state.originalData['urls'][i]);
   	}
   	this.setPagesTag(urls, tag, true);
   }
@@ -339,15 +346,19 @@ componentWillReceiveProps(props){
     var index = index_url; //this.getKeyByValue(this.state.originalData["urls"], url );
     let updateData = this.state.originalData;
     var selectedPoints = [];
-    updateData["labels"][index] = tag;
-
+    var index_int = updateData["labels"].indexOf(index);
+    updateData["labels"][index_int] = tag;
+    console.log("tagFromSnippets");
+    console.log(index_url);
+    console.log(updateData);
     //updateTags in elasticSearch
     var urls = [];
+    urls.push(index);
     if (previus_tag.toLowerCase() != "neutral" && previus_tag.toLowerCase() != tag.toLowerCase()){
-	    this.setPagesTag([this.state.originalData["urls"][index]], previus_tag, false);
+	    this.setPagesTag(urls, previus_tag, false);
     }
-      urls.push(this.state.originalData["urls"][index]);
-  	  this.setPagesTag(urls, tag, true);
+    console.log(urls);
+	  this.setPagesTag(urls, tag, true);
     this.setState({originalData: updateData});
     this.updateColorsTags(this.state.value);
   }
