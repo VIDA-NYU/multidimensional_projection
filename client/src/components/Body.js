@@ -201,6 +201,7 @@ componentWillReceiveProps(props){
   	session['pageRetrievalCriteria'] = 'Model Tags';
   	session["selected_model_tags"] = 'Unsure';
     let updateData = this.state.originalData;
+    console.log(updateData);
     for (let i = 0; i < updateData['Model Result'].length; i++){
         updateData['Model Result'][i]="trainData";
     }
@@ -295,6 +296,7 @@ componentWillReceiveProps(props){
   	    if (this.state.originalData["labels"][index] != "Neutral" && this.state.originalData["labels"][index] != tag)
   		    this.setPagesTag([this.state.originalData["urls"][index]], this.state.originalData["labels"][index], false);
   	    urls.push(this.state.originalData["urls"][index]);
+        console.log(urls);
   	}
   	this.setPagesTag(urls, tag, true);
   }
