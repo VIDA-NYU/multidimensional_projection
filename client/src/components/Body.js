@@ -296,15 +296,18 @@ componentWillReceiveProps(props){
   	);
   }
 
-  updateTags(selectedPages, tag){
+  updateTags(data, selectedPages, tag, selectedPointsTags){
   	var urls = [];
   	for(let i = 0;i < selectedPages.length;++i){
   	    var index = selectedPages[i];
         var temp_urls = [];
-        temp_urls.push(this.state.originalData['urls'][index]);
-  	    if (this.state.originalData["labels"][index] != "Neutral" && this.state.originalData["labels"][index] != tag)
-  		    this.setPagesTag(temp_urls, this.state.originalData["labels"][index], false);
-  	    urls.push(this.state.originalData['urls'][index]);
+        temp_urls.push(data['urls'][index]);
+  	    if (selectedPointsTags[i].toLowerCase() != "neutral" && selectedPointsTags[i].toLowerCase() != tag.toLowerCase())
+  		    this.setPagesTag(temp_urls, selectedPointsTags[i], false);
+        else {
+          this.setPagesTag(temp_urls, selectedPointsTags[i], false);
+  	      urls.push(data['urls'][index]);
+  	    }
   	}
   	this.setPagesTag(urls, tag, true);
   }
@@ -314,15 +317,17 @@ componentWillReceiveProps(props){
       let updateData = {};
       updateData = this.state.originalData;
       var selectedPoints = [];
+      var selectedPointsTags = [];
       for (let i = 0; i < this.state.selectedPoints.length; ++i){
           if(this.state.selectedPoints[i]){
+            selectedPointsTags.push(updateData["labels"][i]);
             updateData["labels"][i] = tag;
 	          selectedPoints.push(i);
 	        }
       }
-      this.updateTags(selectedPoints, tag);
-      this.setState({originalData: updateData});
+      this.updateTags(this.state.originalData, selectedPoints, tag, selectedPointsTags);
       this.updateColorsTags(this.state.value);
+      this.setState({originalData: updateData});
   }
 
   //Labeling pages as a relevant.
