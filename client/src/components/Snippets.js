@@ -32,7 +32,6 @@ class Snippets extends Component{
   //Handling click event on the tag button. When it is clicked it should update tag of the page in elasticsearch.
   onTagActionClicked(tag,url,previus_tag){
     //i.props.originalData["labels"][url];
-    console.log(tag,url,);
     var previus_tags = previus_tag ;
   //  var idButton = (event.target.id).split("-")
     var new_tag = tag;
@@ -75,12 +74,12 @@ class Snippets extends Component{
                                     </OverlayTrigger>
                                     <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Irrelevant</Tooltip>}>
                                       <Button id={"Irrelevant-"+i}>
-                                        <IconButton onTouchTap={this.onTagActionClicked.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px",color:colorTagIrrelev  }} style={{height: 8, margin: "-10px", padding:0}}><IrrelevantFace /></IconButton>
+                                        <IconButton onTouchTap={this.onTagActionClicked.bind(this,"Irrelevant",url,uniqueTag)} iconStyle={{width:25,height: 25,marginBottom:"-9px",color:colorTagIrrelev  }} style={{height: 8, margin: "-10px", padding:0}}><IrrelevantFace /></IconButton>
                                       </Button>
                                     </OverlayTrigger>
                                     <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Neutral</Tooltip>}>
                                       <Button id={"Neutral-"+i}>
-                                        <IconButton onTouchTap={this.onTagActionClicked.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:colorTagNeutral }} style={{height: 8, margin: "-10px", padding:0,}}><NeutralFace /></IconButton>
+                                        <IconButton onTouchTap={this.onTagActionClicked.bind(this,"Neutral",url,uniqueTag)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:colorTagNeutral }} style={{height: 8, margin: "-10px", padding:0,}}><NeutralFace /></IconButton>
                                       </Button>
                                     </OverlayTrigger>
                                   </ButtonGroup></p>
@@ -99,17 +98,17 @@ class Snippets extends Component{
                                 <ButtonGroup bsSize="small">
                                   <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Relevant</Tooltip>}>
                                     <Button id={"Relevant-"+i}>
-                                       <IconButton onTouchTap={this.onTagActionClicked.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:colorTagRelev }} style={{height: 8, margin: "-10px", padding:0,}}><RelevantFace /></IconButton>
+                                       <IconButton onTouchTap={this.onTagActionClicked.bind(this,"Relevant",url,uniqueTag)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:colorTagRelev }} style={{height: 8, margin: "-10px", padding:0,}}><RelevantFace /></IconButton>
                                     </Button>
                                   </OverlayTrigger>
                                   <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Irrelevant</Tooltip>}>
-                                    <Button id={"Relevant-"+i}>
-                                      <IconButton onTouchTap={this.onTagActionClicked.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px",color:colorTagIrrelev  }} style={{height: 8, margin: "-10px", padding:0}}><IrrelevantFace /></IconButton>
+                                    <Button id={"Irrelevant-"+i}>
+                                      <IconButton onTouchTap={this.onTagActionClicked.bind(this,"Irrelevant",url,uniqueTag)} iconStyle={{width:25,height: 25,marginBottom:"-9px",color:colorTagIrrelev  }} style={{height: 8, margin: "-10px", padding:0}}><IrrelevantFace /></IconButton>
                                     </Button>
                                   </OverlayTrigger>
                                   <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Neutral</Tooltip>}>
-                                    <Button id={"Relevant-"+i}>
-                                      <IconButton onTouchTap={this.onTagActionClicked.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:colorTagNeutral}} style={{height: 8, margin: "-10px", padding:0,}}><NeutralFace /></IconButton>
+                                    <Button id={"Neutral-"+i}>
+                                      <IconButton onTouchTap={this.onTagActionClicked.bind(this,"Neutral",url,uniqueTag)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:colorTagNeutral}} style={{height: 8, margin: "-10px", padding:0,}}><NeutralFace /></IconButton>
                                     </Button>
                                   </OverlayTrigger>
                                 </ButtonGroup>
