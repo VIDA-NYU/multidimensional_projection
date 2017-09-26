@@ -63,7 +63,7 @@ class Body extends Component {
      dimNames:[],
      'sigmoidScale':1,
      'sigmoidTranslate':0,
-     accuracy: "0",
+     accuracy: '0',
      sessionBody: this.createSession(this.props.currentDomain),
      checkSigmoid:false,
      checkProjection:false,
@@ -75,9 +75,9 @@ class Body extends Component {
    this.updateSigmoidTranslate = this.updateSigmoidTranslate.bind(this);
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
-   this.colorDefault= [ "#0D47A1", "#C62828", "#9E9E9E", "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"];
-   this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828", "#FFFFFF"];
-     this.fontSize="13px";
+   this.colorDefault= [ '#0D47A1', '#C62828', '#9E9E9E', '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
+   this.colorTags= [ '#9E9E9E', '#0D47A1', '#C62828', '#FFFFFF'];
+     this.fontSize='13px';
 
 
  };
@@ -87,14 +87,14 @@ class Body extends Component {
  }
 
  setSelectedPoints(selected){
-    if(this.state.searchText.replace(/\s/g,"") === ""){var selectedSearchText = []; this.setState({selectedPoints:selected, selectedSearchText: selectedSearchText,})}
+    if(this.state.searchText.replace(/\s/g,'') === ''){var selectedSearchText = []; this.setState({selectedPoints:selected, selectedSearchText: selectedSearchText,});}
     else this.setState({selectedPoints:selected, selectedSearchText: selected,});
  }
  showingUrls(){
    let urls = [];
    for (let i = 0; i < this.state.originalData['urls'].length; ++i){
        if(this.state.selectedPoints[i]){
-         urls.push(<p>{this.state.originalData['urls'][i] }</p>)
+         urls.push(<p>{this.state.originalData['urls'][i] }</p>);
        }
      }
   return urls;
@@ -106,7 +106,7 @@ class Body extends Component {
    let colors = [];
    for (let i = 0; i < this.state.originalData[dimNames[0]].length; ++i){
       var typeTag = this.state.originalData[dimNames[value]][i];
-       var colorTag=(typeTag.toString().toLowerCase()=="neutral")? this.colorTags[0]: (typeTag.toString().toLowerCase()=="relevant")? this.colorTags[1]: (typeTag.toString().toLowerCase()=="irrelevant")? this.colorTags[2]: "";
+       var colorTag=(typeTag.toString().toLowerCase()=='neutral')? this.colorTags[0]: (typeTag.toString().toLowerCase()=='relevant')? this.colorTags[1]: (typeTag.toString().toLowerCase()=='irrelevant')? this.colorTags[2]: '';
        colors.push(colorTag);
    }
    this.setState({value: value, colors:colors});
@@ -122,7 +122,7 @@ class Body extends Component {
    for (let i = 0; i < this.state.originalData[dimNames[0]].length; ++i){
        //colors.push(scaleColor(this.state.originalData[dimNames[value]][i]));
        var typeTag = this.state.originalData[dimNames[value]][i];
-       var colorTag=(typeTag.toString().toLowerCase()=="neutral")? this.colorTags[0]: (typeTag.toString().toLowerCase()=="relevant")? this.colorTags[1]: (typeTag.toString().toLowerCase()=="irrelevant")? this.colorTags[2]: "";
+       var colorTag=(typeTag.toString().toLowerCase()=='neutral')? this.colorTags[0]: (typeTag.toString().toLowerCase()=='relevant')? this.colorTags[1]: (typeTag.toString().toLowerCase()=='irrelevant')? this.colorTags[2]: '';
        colors.push(colorTag);
    }
    this.setState({value:value, colors:colors})
@@ -130,10 +130,10 @@ class Body extends Component {
 
  //Handling change of dimensions into DropDown.
  updateOnSelection(event, index, value){
-    	if(event=="Model Result"){
+    	if(event=='Model Result'){
     	    this.predictUnlabeled(this.state.sessionBody);
     	}
-    	if(event=="labels" || event=="Model Result") this.updateColorsTags(this.state.dimNames.indexOf(event));
+    	if(event=='labels' || event=='Model Result') this.updateColorsTags(this.state.dimNames.indexOf(event));
     	else this.updateColors(this.state.dimNames.indexOf(event));
   }
 
@@ -148,7 +148,7 @@ class Body extends Component {
     handleNewRequest = (searchText) => {
 	var selected = [];
 
-	if(searchText.replace(/\s/g,"") !== ""){
+	if(searchText.replace(/\s/g,'') !== ''){
 	    for (let i = 0; i < this.state.data.length; ++i){
 		for(var j in this.state.dimNames){
 		    if( this.state.dimNames[j] === searchText && this.state.data[i][this.state.dimNames[j]]>0)  { selected[i]=true; break;}
@@ -172,7 +172,7 @@ componentWillReceiveProps(props){
         let dimNames = Object.keys(props.originalData);
         for (let i = 0; i < props.originalData[dimNames[0]].length; ++i){
            var typeTag = props.originalData[dimNames[this.state.value]][i];
-            var colorTag=(typeTag.toLowerCase()=="neutral")? this.colorTags[0]: (typeTag.toLowerCase()=="relevant")? this.colorTags[1]: (typeTag.toLowerCase()=="irrelevant")? this.colorTags[2]: "";
+            var colorTag=(typeTag.toLowerCase()=='neutral')? this.colorTags[0]: (typeTag.toLowerCase()=='relevant')? this.colorTags[1]: (typeTag.toLowerCase()=='irrelevant')? this.colorTags[2]: '';
             colors.push(colorTag);
         }
         this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, flat:props.flat, dimNames: props.dimNames, });
@@ -191,8 +191,8 @@ componentWillReceiveProps(props){
     	    {'session':  JSON.stringify(this.state.sessionBody)},
     	    function(accuracy) {
     		      this.setState({accuracy: accuracy});
-              if(this.state.dimNames[this.state.value]=="Model Result")
-                this.predictUnlabeled();
+              if(this.state.dimNames[this.state.value]=='Model Result')
+                {this.predictUnlabeled();}
     	    }.bind(this)
     	);
   }
@@ -200,58 +200,58 @@ componentWillReceiveProps(props){
   getPredictedLabels(){
   	var session = this.state.sessionBody;
   	session['pageRetrievalCriteria'] = 'Model Tags';
-  	session["selected_model_tags"] = 'Unsure';
+  	session['selected_model_tags'] = 'Unsure';
     let updateData = this.state.originalData;
     for (let i = 0; i < updateData['Model Result'].length; i++){
-        updateData['Model Result'][i]="trainData";
+        updateData['Model Result'][i]='trainData';
     }
 
   	$.post(
   	    '/getPages',
   	    {'session':  JSON.stringify(session)},
   	    function(predicted) {
-      		var unsure = predicted["data"];
+      		var unsure = predicted['data'];
       		Object.keys(unsure).map((k, i)=>{
       		    var index = updateData['urls'].indexOf(k);
       		    if( index > 0){
-      			       updateData['Model Result'][index]="Neutral";
+      			       updateData['Model Result'][index]='Neutral';
       		    }
       		});
       		this.setState({originalData: updateData });
-      		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
+      		if(this.state.dimNames[this.state.value]=='Model Result') this.updateColorsTags(this.state.value);
     	    }.bind(this)
     );
-  	session["selected_model_tags"] = 'Maybe relevant';
+  	session['selected_model_tags'] = 'Maybe relevant';
   	$.post(
   	    '/getPages',
   	    {'session':  JSON.stringify(session)},
   	    function(predicted) {
-      		var relevant = predicted["data"];
+      		var relevant = predicted['data'];
       		Object.keys(relevant).map((k, i)=>{
       		    var index = updateData['urls'].indexOf(k);
       		    if( index > 0){
-      			       updateData['Model Result'][index]="Relevant";
+      			       updateData['Model Result'][index]='Relevant';
       		    }
       		});
       		this.setState({originalData: updateData});
-      		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
+      		if(this.state.dimNames[this.state.value]=='Model Result') this.updateColorsTags(this.state.value);
 
   	    }.bind(this)
   	 );
-  	session["selected_model_tags"] = 'Maybe irrelevant';
+  	session['selected_model_tags'] = 'Maybe irrelevant';
   	$.post(
   	    '/getPages',
   	    {'session':  JSON.stringify(session)},
   	    function(predicted) {
-      		var irrelevant = predicted["data"];
+      		var irrelevant = predicted['data'];
       		Object.keys(irrelevant).map((k, i)=>{
       		    var index = updateData['urls'].indexOf(k);
       		    if( index > 0){
-      			       updateData['Model Result'][index]="Irrelevant";
+      			       updateData['Model Result'][index]='Irrelevant';
       		    }
       		});
       		this.setState({originalData: updateData});
-      		if(this.state.dimNames[this.state.value]=="Model Result") this.updateColorsTags(this.state.value);
+      		if(this.state.dimNames[this.state.value]=='Model Result') this.updateColorsTags(this.state.value);
 
   	    }.bind(this)
   	);
@@ -268,10 +268,10 @@ componentWillReceiveProps(props){
     	);
   }
 
-    /*consultaQueries: {"search_engine":"GOOG","activeProjectionAlg":"Group by Correlation"
-      ,"domainId":"AVWjx7ciIf40cqEj1ACn","pagesCap":"100","fromDate":null,"toDate":null,
-      "filter":null,"pageRetrievalCriteria":"Most Recent","selected_morelike":"",
-      "model":{"positive":"Relevant","nagative":"Irrelevant"}}*/
+    /*consultaQueries: {'search_engine':'GOOG','activeProjectionAlg':'Group by Correlation'
+      ,'domainId':'AVWjx7ciIf40cqEj1ACn','pagesCap':'100','fromDate':null,'toDate':null,
+      'filter':null,'pageRetrievalCriteria':'Most Recent','selected_morelike':'',
+      'model':{'positive':'Relevant','nagative':'Irrelevant'}}*/
   createSession(domainId){
     var session = {};
       session['domainId'] = domainId;
@@ -295,8 +295,8 @@ componentWillReceiveProps(props){
   	    var index = selectedPages[i];
         var temp_urls = [];
         temp_urls.push(data['urls'][index]);
-  	    if (selectedPointsTags[i].toLowerCase() != "neutral" && selectedPointsTags[i].toLowerCase() != tag.toLowerCase())
-  		    this.setPagesTag(temp_urls, selectedPointsTags[i], false);
+  	    if (selectedPointsTags[i].toLowerCase() != 'neutral' && selectedPointsTags[i].toLowerCase() != tag.toLowerCase())
+  		    {this.setPagesTag(temp_urls, selectedPointsTags[i], false);}
         else {
           this.setPagesTag(temp_urls, selectedPointsTags[i], false);
   	      urls.push(data['urls'][index]);
@@ -313,8 +313,8 @@ componentWillReceiveProps(props){
       var selectedPointsTags = [];
       for (let i = 0; i < this.state.selectedPoints.length; ++i){
           if(this.state.selectedPoints[i]){
-            selectedPointsTags.push(updateData["labels"][i]);
-            updateData["labels"][i] = tag;
+            selectedPointsTags.push(updateData['labels'][i]);
+            updateData['labels'][i] = tag;
 	          selectedPoints.push(i);
 	        }
       }
@@ -325,15 +325,15 @@ componentWillReceiveProps(props){
 
   //Labeling pages as a relevant.
   tagsRelevant(){
-    this.tagsSelectedData("Relevant");//1
+    this.tagsSelectedData('Relevant');//1
   };
   //Labeling pages as a Irrelevant.
   tagsIrrelevant(){
-    this.tagsSelectedData("Irrelevant");//2
+    this.tagsSelectedData('Irrelevant');//2
   };
   //Labeling pages as a Neutral.
   tagsNeutral(){
-    this.tagsSelectedData("Neutral");//0
+    this.tagsSelectedData('Neutral');//0
   }
 
   getKeyByValue(object, value) {
@@ -341,16 +341,16 @@ componentWillReceiveProps(props){
   }
   //Labeling pages from an snippet.
   tagFromSnippets(tag, previus_tag, index_url){
-    //var tag = (typeTag.toLowerCase()==="Relevant")? "Relevant":(typeTag.toLowerCase()==="Irrelevant")?"Irrelevant" : "Neutral";
-    var index = index_url; //this.getKeyByValue(this.state.originalData["urls"], url );
+    //var tag = (typeTag.toLowerCase()==='Relevant')? 'Relevant':(typeTag.toLowerCase()==='Irrelevant')?'Irrelevant' : 'Neutral';
+    var index = index_url; //this.getKeyByValue(this.state.originalData['urls'], url );
     let updateData = this.state.originalData;
     var selectedPoints = [];
-    var index_int = updateData["urls"].indexOf(index);
-    updateData["labels"][index_int] = tag;
+    var index_int = updateData['urls'].indexOf(index);
+    updateData['labels'][index_int] = tag;
     //updateTags in elasticSearch
     var urls = [];
     urls.push(index);
-    if (previus_tag.toLowerCase() != "neutral" && previus_tag.toLowerCase() != tag.toLowerCase()){
+    if (previus_tag.toLowerCase() != 'neutral' && previus_tag.toLowerCase() != tag.toLowerCase()){
 	    this.setPagesTag(urls, previus_tag, false);
     }
 	  this.setPagesTag(urls, tag, true);
@@ -361,9 +361,9 @@ componentWillReceiveProps(props){
   //Labeling pages as a Neutral.
   countTotalLabeledPages(){
     let cont =0;
-    for (let i = 0; i < this.state.originalData["labels"].length; ++i){
-        if(this.state.originalData["labels"][i].toLowerCase()=="relevant" || this.state.originalData["labels"][i].toLowerCase()=="irrelevant")
-            cont++;
+    for (let i = 0; i < this.state.originalData['labels'].length; ++i){
+        if(this.state.originalData['labels'][i].toLowerCase()=='relevant' || this.state.originalData['labels'][i].toLowerCase()=='irrelevant')
+          {  cont++;}
     }
     return cont;
   }
@@ -404,22 +404,22 @@ componentWillReceiveProps(props){
       let selectedUrls = []; selectedUrls.push(<p></p>);
       let nroSelectedUrls = 0;
       if(this.state.selectedPoints.includes(true)) {selectedUrls = this.showingUrls(); nroSelectedUrls =selectedUrls.length; }
-    //  let linkBackOriginalData = (this.props.filterTerm !=="") ? <a title="Original data" onclick={this.comeBack.bind(this)}>Original data</a>:<a>-<a>;
+    //  let linkBackOriginalData = (this.props.filterTerm !=='') ? <a title='Original data' onclick={this.comeBack.bind(this)}>Original data</a>:<a>-<a>;
       let linkBackOriginalData = <div></div>;
-      if(this.props.filterTerm !==""){
-        linkBackOriginalData = <FlatButton label="Original data" labelPosition="before" primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:"8px"}} />;
+      if(this.props.filterTerm !==''){
+        linkBackOriginalData = <FlatButton label='Original data' labelPosition='before' primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:'8px'}} />;
       }
       let sigmoid = <div style={{display:'flex',marginLeft:'170px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
       Translation:<Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
       </ListItem></div>;
-      let interaction = <div style={{width:'140px'}}><RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
-       <RadioButton value={0} label="Show all" labelStyle={styles.radioButton} />
-       <RadioButton value={1} label="Hide selected" labelStyle={styles.radioButton} style={{marginLeft:'-50px'}} />
-       <RadioButton value={2} label="Hide unselected" labelStyle={styles.radioButton} style={{marginLeft:'-30px'}} />
+      let interaction = <div style={{width:'140px'}}><RadioButtonGroup name='shipSpeed' defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
+       <RadioButton value={0} label='Show all' labelStyle={styles.radioButton} />
+       <RadioButton value={1} label='Hide selected' labelStyle={styles.radioButton} style={{marginLeft:'-50px'}} />
+       <RadioButton value={2} label='Hide unselected' labelStyle={styles.radioButton} style={{marginLeft:'-30px'}} />
      </RadioButtonGroup></div>;
      let projection_labels =
           <AutoComplete
-          floatingLabelText="Projection"
+          floatingLabelText='Projection'
           textFieldStyle={{width:'70%'}}
           searchText={this.state.searchText}
           onUpdateInput={this.handleUpdateInput}
@@ -431,8 +431,8 @@ componentWillReceiveProps(props){
       return(
         <div>
         <Grid>
-          <Col  ls={7} md={7} style={{ background:"white",}}>
-            <Row className="Menus-child">
+          <Col  ls={7} md={7} style={{ background:'white',}}>
+            <Row className='Menus-child'>
             <div style={{ marginLeft:'-70px' ,marginRight:'-60px'}}>
             <Toolbar style={{width:'100%',height:'70%'}}>
             <ToolbarGroup firstChild={true}>
@@ -446,21 +446,21 @@ componentWillReceiveProps(props){
             </ToolbarGroup>
           </Toolbar>
             </div>
-            <div style={{position: "absolute", left: "-5%", marginTop:'10px' ,marginRight:'-20px' }}>
+            <div style={{position: 'absolute', left: '-5%', marginTop:'10px' ,marginRight:'-20px' }}>
             <ButtonGroup>
-              <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Relevant</Tooltip>}>
+              <OverlayTrigger placement='bottom' overlay={<Tooltip id='tooltip'>Relevant</Tooltip>}>
                 <Button >
-                   <IconButton onTouchTap={this.tagsRelevant.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:"#0000FF" }} style={{height: 8, margin: "-10px", padding:0,}}><RelevantFace /></IconButton>
+                   <IconButton onTouchTap={this.tagsRelevant.bind(this)} iconStyle={{width:25,height: 25,marginBottom:'-9px', color:'#0000FF' }} style={{height: 8, margin: '-10px', padding:0,}}><RelevantFace /></IconButton>
                 </Button>
               </OverlayTrigger>
-              <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Irrelevant</Tooltip>}>
+              <OverlayTrigger placement='bottom' overlay={<Tooltip id='tooltip'>Irrelevant</Tooltip>}>
                 <Button>
-                  <IconButton onTouchTap={this.tagsIrrelevant.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px",color:"#FF0000"  }} style={{height: 8, margin: "-10px", padding:0}}><IrrelevantFace /></IconButton>
+                  <IconButton onTouchTap={this.tagsIrrelevant.bind(this)} iconStyle={{width:25,height: 25,marginBottom:'-9px',color:'#FF0000'  }} style={{height: 8, margin: '-10px', padding:0}}><IrrelevantFace /></IconButton>
                 </Button>
               </OverlayTrigger>
-              <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Neutral</Tooltip>}>
+              <OverlayTrigger placement='bottom' overlay={<Tooltip id='tooltip'>Neutral</Tooltip>}>
                 <Button >
-                  <IconButton onTouchTap={this.tagsNeutral.bind(this)} iconStyle={{width:25,height: 25,marginBottom:"-9px", color:"#C0C0C0" }} style={{height: 8, margin: "-10px", padding:0,}}><NeutralFace /></IconButton>
+                  <IconButton onTouchTap={this.tagsNeutral.bind(this)} iconStyle={{width:25,height: 25,marginBottom:'-9px', color:'#C0C0C0' }} style={{height: 8, margin: '-10px', padding:0,}}><NeutralFace /></IconButton>
                 </Button>
               </OverlayTrigger>
             </ButtonGroup>
@@ -472,15 +472,15 @@ componentWillReceiveProps(props){
             </Row>
           </Col>
 
-          <Col  ls={2} md={2} style={{background:"white", marginLeft:"60px", borderLeft: '2px solid', borderColor:'lightgray'}}>
-            <Row className="Menus-child" >
+          <Col  ls={2} md={2} style={{background:'white', marginLeft:'60px', borderLeft: '2px solid', borderColor:'lightgray'}}>
+            <Row className='Menus-child' >
             <div style={{width:'448px', borderTop:'solid', borderRight: '2px solid', borderColor:'lightgray'}}>
             <WordCloud dimNames={this.state.dimNames} selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
             </div>
             </Row>
-            <Row className="Menus-child">
+            <Row className='Menus-child'>
               <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray',marginRight:'-50px'}}>
-                <p style={{color:"silver", marginLeft:'30px'}}>Selected pages: {nroSelectedUrls}</p>
+                <p style={{color:'silver', marginLeft:'30px'}}>Selected pages: {nroSelectedUrls}</p>
               </div>
               <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData} tagFromSnippets={this.tagFromSnippets.bind(this)}/>
             </Row>
@@ -488,10 +488,10 @@ componentWillReceiveProps(props){
           </Grid>
     {/*      <Grid>
           <Row ls={1} md={1} style={{ marginTop:'10px', border: '2px solid', borderColor:'lightgray', width:'700px'}}>
-               <List style={{display:"flex"}}>
+               <List style={{display:'flex'}}>
                <Col>
-                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Sigmoid</Subheader>
-                 <List style={{display:"flex"}}>
+                 <Subheader style={{fontSize:'16px', fontWeight:'bold', color:'black'}}>Sigmoid</Subheader>
+                 <List style={{display:'flex'}}>
                  <ListItem>
                    <p style={{fontSize:this.fontSize,}} >Translation:</p> <Slider min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
                  </ListItem>
@@ -504,18 +504,18 @@ componentWillReceiveProps(props){
                  </List>
                 </Col>
                 <Col>
-                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black"}}>Interaction</Subheader>
+                 <Subheader style={{fontSize:'16px', fontWeight:'bold', color:'black'}}>Interaction</Subheader>
                  <ListItem>
-                   <RadioButtonGroup name="shipSpeed" defaultSelected={0} onChange={this.showingData}>
-                    <RadioButton value={0} label="Show all" labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
-                    <RadioButton value={1} label="Hide selected" labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
-                    <RadioButton value={2} label="Hide unselected" labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
+                   <RadioButtonGroup name='shipSpeed' defaultSelected={0} onChange={this.showingData}>
+                    <RadioButton value={0} label='Show all' labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
+                    <RadioButton value={1} label='Hide selected' labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
+                    <RadioButton value={2} label='Hide unselected' labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
                   </RadioButtonGroup>
                  </ListItem>
                  </Col>
                  <Col>
-                 <Subheader style={{fontSize:"16px", fontWeight:"bold", color:"black",marginLeft:'-10px'}}>Projection</Subheader>
-                   <DropDownMenu style={{marginTop:"-20px", fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
+                 <Subheader style={{fontSize:'16px', fontWeight:'bold', color:'black',marginLeft:'-10px'}}>Projection</Subheader>
+                   <DropDownMenu style={{marginTop:'-20px', fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
                    {Object.keys(dimensions).map((k, index)=>{
                         var attibute = dimensions[k].attribute;
                         return <MenuItem value={index} primaryText={attibute} style={{fontSize:this.fontSize,}} />
@@ -528,7 +528,7 @@ componentWillReceiveProps(props){
         </Grid>*/}
         </div>
 
-      )
+      );
     }
     return(
       <div>Loading data</div>
