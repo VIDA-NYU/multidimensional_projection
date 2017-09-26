@@ -202,7 +202,6 @@ componentWillReceiveProps(props){
   	session['pageRetrievalCriteria'] = 'Model Tags';
   	session["selected_model_tags"] = 'Unsure';
     let updateData = this.state.originalData;
-    console.log(updateData);
     for (let i = 0; i < updateData['Model Result'].length; i++){
         updateData['Model Result'][i]="trainData";
     }
@@ -281,12 +280,6 @@ componentWillReceiveProps(props){
   }
 
   setPagesTag(urls, tag, applyTagFlag){
-    "--------------------------******************SetPagesforntend-********************--------------"
-    console.log("setPagesTag");
-    console.log(urls);
-    console.log(tag);
-    console.log(applyTagFlag);
-    console.log(this.state.sessionBody);
   	$.post(
   	    '/setPagesTag',
   	    {'pages': urls.join('|'), 'tag': tag, 'applyTagFlag': applyTagFlag, 'session': JSON.stringify(this.state.sessionBody)},
@@ -353,20 +346,13 @@ componentWillReceiveProps(props){
     let updateData = this.state.originalData;
     var selectedPoints = [];
     var index_int = updateData["urls"].indexOf(index);
-    console.log(index);
-    console.log(index_int);
     updateData["labels"][index_int] = tag;
-
-    console.log("tagFromSnippets");
-    console.log(index_url);
-    console.log(updateData);
     //updateTags in elasticSearch
     var urls = [];
     urls.push(index);
     if (previus_tag.toLowerCase() != "neutral" && previus_tag.toLowerCase() != tag.toLowerCase()){
 	    this.setPagesTag(urls, previus_tag, false);
     }
-    console.log(urls);
 	  this.setPagesTag(urls, tag, true);
     this.setState({originalData: updateData});
     this.updateColorsTags(this.state.value);
