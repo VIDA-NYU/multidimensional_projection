@@ -110,6 +110,7 @@ class Body extends Component {
        colors.push(colorTag);
    }
    this.setState({value: value, colors:colors});
+   this.forceUpdate();
  }
 
  //Update colors based on the dimension selected.
@@ -300,10 +301,10 @@ componentWillReceiveProps(props){
   	for(let i = 0;i < selectedPages.length;++i){
   	    var index = selectedPages[i];
         var temp_urls = [];
-        temp_urls.push(this.state.originalData['urls'][i]);
-  	    if (this.state.originalData["labels"][i] != "Neutral" && this.state.originalData["labels"][i] != tag)
-  		    this.setPagesTag(temp_urls, this.state.originalData["labels"][i], false);
-  	    urls.push(this.state.originalData['urls'][i]);
+        temp_urls.push(this.state.originalData['urls'][index]);
+  	    if (this.state.originalData["labels"][index] != "Neutral" && this.state.originalData["labels"][index] != tag)
+  		    this.setPagesTag(temp_urls, this.state.originalData["labels"][index], false);
+  	    urls.push(this.state.originalData['urls'][index]);
   	}
   	this.setPagesTag(urls, tag, true);
   }
@@ -346,8 +347,11 @@ componentWillReceiveProps(props){
     var index = index_url; //this.getKeyByValue(this.state.originalData["urls"], url );
     let updateData = this.state.originalData;
     var selectedPoints = [];
-    var index_int = updateData["labels"].indexOf(index);
+    var index_int = updateData["urls"].indexOf(index);
+    console.log(index);
+    console.log(index_int);
     updateData["labels"][index_int] = tag;
+
     console.log("tagFromSnippets");
     console.log(index_url);
     console.log(updateData);
