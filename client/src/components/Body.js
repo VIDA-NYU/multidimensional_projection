@@ -145,7 +145,7 @@ class Body extends Component {
       this.setState({'sigmoidTranslate':s})
   }
 
-    handleNewRequest = (searchText) => {
+    handleNewRequest(searchText){
 	var selected = [];
 
 	if(searchText.replace(/\s/g,'') !== ''){
@@ -379,13 +379,13 @@ componentWillReceiveProps(props){
     (this.state.checkProjection)?this.setState({checkProjection: false}):this.setState({checkProjection: true});
     this.forceUpdate();
   }
-  handleUpdateInput = (searchText) => {
+  handleUpdateInput(searchText){
       this.setState({
         searchText: searchText,
       });
     };
 
-    handleNewRequest = () => {
+    handleNewRequest(){
       this.setState({
         searchText: '',
       });
