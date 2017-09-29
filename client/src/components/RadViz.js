@@ -311,20 +311,20 @@ class RadViz extends Component {
     }
 
     startDragAnchorGroup(e){
-    	let container = $("#svg_radviz").get(0).getBoundingClientRect();
-        let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
-        let center=[this.props.width/2, this.props.height/2];
-        let vec=[mouse[0] - center[0], mouse[1]-center[1]];
-        let normVec=numeric.norm2(vec);
-        vec[0] /= normVec;
-        vec[1] /= normVec;
-        // Computing the angle by making a dot product with the [1,0] vector
-        let cosAngle = vec[0];
-        let angle = Math.acos(cosAngle);
-        if (mouse[1] < center[1])
-            angle *= -1;
-        e.stopPropagation();
-    	this.setState({'draggingAnchorGroup':true, 'startAnchorGroupAngle':angle});
+      let container = $("#svg_radviz").get(0).getBoundingClientRect();
+      let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
+      let center=[this.props.width/2, this.props.height/2];
+      let vec=[mouse[0] - center[0], mouse[1]-center[1]];
+      let normVec=numeric.norm2(vec);
+      vec[0] /= normVec;
+      vec[1] /= normVec;
+      // Computing the angle by making a dot product with the [1,0] vector
+      let cosAngle = vec[0];
+      let angle = Math.acos(cosAngle);
+      if (mouse[1] < center[1])
+      angle *= -1;
+      e.stopPropagation();
+      this.setState({'draggingAnchorGroup':true, 'startAnchorGroupAngle':angle});
     }
 
     normalizeAngle(angle) {
@@ -334,44 +334,39 @@ class RadViz extends Component {
       let container = $("#svg_radviz").get(0).getBoundingClientRect();
       let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
       if (this.state.draggingAnchor){
-          let center=[this.props.width/2, this.props.height/2];
-          let vec=[mouse[0] - center[0], mouse[1]-center[1]];
-          let normVec=numeric.norm2(vec);
-          vec[0] /= normVec;
-          vec[1] /= normVec;
-          // Computing the angle by making a dot product with the [1,0] vector
-          let cosAngle = vec[0];
-          let angle = Math.acos(cosAngle);
-          if (mouse[1] < center[1])
-              angle *= -1;
-          let newAnchorAngles = this.state.anchorAngles.slice();
-          let angleDifference = angle - this.state.startanchorAngles;
-          newAnchorAngles[this.state.draggingAnchor_anchor_id] = angle;
-      //    console.log(newAnchorAngles.length);
-      //  newAnchorAngles[this.state.draggingAnchor_anchor_id+1]= newAnchorAngles[this.state.draggingAnchor_anchor_id+1]+0.03;
-  //      this.setState({'anchorAngles':newAnchorAngles});
-      //console.log(angleDifference);
+        let center=[this.props.width/2, this.props.height/2];
+        let vec=[mouse[0] - center[0], mouse[1]-center[1]];
+        let normVec=numeric.norm2(vec);
+        vec[0] /= normVec;
+        vec[1] /= normVec;
+        // Computing the angle by making a dot product with the [1,0] vector
+        let cosAngle = vec[0];
+        let angle = Math.acos(cosAngle);
+        if (mouse[1] < center[1])
+        angle *= -1;
+        let newAnchorAngles = this.state.anchorAngles.slice();
+        let angleDifference = angle - this.state.startanchorAngles;
+        newAnchorAngles[this.state.draggingAnchor_anchor_id] = angle;
+        //    console.log(newAnchorAngles.length);
+        //  newAnchorAngles[this.state.draggingAnchor_anchor_id+1]= newAnchorAngles[this.state.draggingAnchor_anchor_id+1]+0.03;
+        //      this.setState({'anchorAngles':newAnchorAngles});
+        //console.log(angleDifference);
+      }
+
     }
-
-}
-  arrange(props){
-
-
-    let argsort = (x1) => {
-	     let x2 = x1.map((d,i)=>[d,i])
-	     let x2sorted = x2.sort((a,b)=>a[0]-b[0])
-	     return x2sorted.map(d=>d[1])
-}
-//console.log(argsort(this.state.anchorAngles));
-let newAnchorAngles1=[];
-for (let i = 0; i < this.state.anchorAngles.length; ++i){
-    console.log(argsort(this.state.anchorAngles)[i]);
-    newAnchorAngles1.push(argsort(this.state.anchorAngles)[i] * 2*Math.PI / this.state.anchorAngles.length);
-}
-//console.log(newAnchorAngles1);
-  this.setState({'anchorAngles':newAnchorAngles1});
-
-}
+    arrange(props){
+      let argsort = (x1) => {
+        let x2 = x1.map((d,i)=>[d,i])
+        let x2sorted = x2.sort((a,b)=>a[0]-b[0])
+        return x2sorted.map(d=>d[1])
+      }
+      //console.log(argsort(this.state.anchorAngles));
+      let newAnchorAngles1=[];
+      for (let i = 0; i < this.state.anchorAngles.length; ++i){
+        newAnchorAngles1.push(argsort(this.state.anchorAngles)[i] * 2*Math.PI / this.state.anchorAngles.length);
+      }
+      this.setState({'anchorAngles':newAnchorAngles1});
+    }
     render() {
         console.log("rendering radViz");
         let sampleDots = [];
