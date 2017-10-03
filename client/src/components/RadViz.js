@@ -10,7 +10,6 @@ class RadViz extends Component {
         this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0 };
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
-        this.arrangeanchors = this.arrangeanchors.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
         this.dragSVG = this.dragSVG.bind(this);
         this.unselectAllData = this.unselectAllData.bind(this);
@@ -18,7 +17,9 @@ class RadViz extends Component {
         this.selectionPoly = [];
         this.pointInPolygon = this.pointInPolygon.bind(this);
         this.startDragAnchorGroup = this.startDragAnchorGroup.bind(this);
+        this.sortDimensions = this.sortDimensions.bind(this);
         this.startanchorAngles = 0;
+        this.currentUpdatedAngle=0;
     }
     componentWillMount(){
       window.addEventListener('keydown', this.handleKeyDown);//esc key to unselect all data.
@@ -129,29 +130,29 @@ class RadViz extends Component {
     }
 
     radvizMapping(data, anchors){
-      	this.currentMapping = [];
-          let ret = [];
-          for (let i = 0; i < data.length; ++i){
-            let p = [0,0];
-            for (let j = 0; j < anchors.length;++j){
-                let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
-                p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i] * s;
-                p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] * s;
-            }
-            if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
-            if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
-            this.currentMapping.push(p);
-            if(this.props.projection == 'Model Result'){
-              if(this.props.modelResult[i]!=='trainData'){
-                ret = this.setColorPoints(i, ret, p[0], p[1]);
-              }
-            }
-            else{
-              ret = this.setColorPoints(i, ret, p[0], p[1]);
-            }
-
+      this.currentMapping = [];
+      let ret = [];
+      for (let i = 0; i < data.length; ++i){
+        let p = [0,0];
+        for (let j = 0; j < anchors.length;++j){
+          let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
+          p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i] * s;
+          p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] * s;
+        }
+        if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
+        if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
+        this.currentMapping.push(p);
+        if(this.props.projection == 'Model Result'){
+          if(this.props.modelResult[i]!=='trainData'){
+            ret = this.setColorPoints(i, ret, p[0], p[1]);
           }
-          return ret;
+        }
+        else{
+          ret = this.setColorPoints(i, ret, p[0], p[1]);
+        }
+
+      }
+      return ret;
     }
 
     setSelectedAnchors(data){
@@ -199,30 +200,19 @@ class RadViz extends Component {
     		this.setState({'draggingAnchorGroup':false, 'startAnchorGroupAngle':0, 'anchorAngles':anchorAngles, 'offsetAnchors':0});
     	}
     	if (this.state.draggingAnchor){
-    		this.setState({'draggingAnchor':false});
+        this.setState({'draggingAnchor':false});
+        this.sortDimensions();
+
     	}
     }
 
+
     startDragAnchor(i){
         return function(e){
-          let container = $('#svg_radviz').get(0).getBoundingClientRect();
-          let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
-
-              let center=[this.props.width/2, this.props.height/2];
-              let vec=[mouse[0] - center[0], mouse[1]-center[1]];
-              let normVec=numeric.norm2(vec);
-              vec[0] /= normVec;
-              vec[1] /= normVec;
-              // Computing the angle by making a dot product with the [1,0] vector
-              let cosAngle = vec[0];
-              let angle = Math.acos(cosAngle);
-              if (mouse[1] < center[1])
-                  {angle *= -1;}
-            this.setState({'draggingAnchor':true, 'draggingAnchor_anchor_id':i,'startanchorAngles':angle});
+            this.setState({'draggingAnchor':true, 'draggingAnchor_anchor_id':i});
             e.stopPropagation();
-
-    }.bind(this);
-  }
+        }.bind(this);
+    }
 
     pointInPolygon(point, polygon){
         polygon.push(polygon[0]);
@@ -238,7 +228,6 @@ class RadViz extends Component {
     }
 
     dragSVG(e){
-
         let container = $('#svg_radviz').get(0).getBoundingClientRect();
         let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
         if (this.state.draggingAnchor){
@@ -279,7 +268,6 @@ class RadViz extends Component {
     }
 
     svgPoly(points){
-
         if (points && points.length > 0){
             let pointsStr = '';
             for (let i = 0; i < points.length; ++i){
@@ -311,113 +299,87 @@ class RadViz extends Component {
     }
 
     startDragAnchorGroup(e){
-    	let container = $('#svg_radviz').get(0).getBoundingClientRect();
-        let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
-        let center=[this.props.width/2, this.props.height/2];
-        let vec=[mouse[0] - center[0], mouse[1]-center[1]];
-        let normVec=numeric.norm2(vec);
-        vec[0] /= normVec;
-        vec[1] /= normVec;
-        // Computing the angle by making a dot product with the [1,0] vector
-        let cosAngle = vec[0];
-        let angle = Math.acos(cosAngle);
-        if (mouse[1] < center[1])
-            {angle *= -1;}
-        e.stopPropagation();
-    	this.setState({'draggingAnchorGroup':true, 'startAnchorGroupAngle':angle});
+      let container = $('#svg_radviz').get(0).getBoundingClientRect();
+      let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
+      let center=[this.props.width/2, this.props.height/2];
+      let vec=[mouse[0] - center[0], mouse[1]-center[1]];
+      let normVec=numeric.norm2(vec);
+      vec[0] /= normVec;
+      vec[1] /= normVec;
+      // Computing the angle by making a dot product with the [1,0] vector
+      let cosAngle = vec[0];
+      let angle = Math.acos(cosAngle);
+      if (mouse[1] < center[1])
+      {angle *= -1;}
+      e.stopPropagation();
+      this.setState({'draggingAnchorGroup':true, 'startAnchorGroupAngle':angle});
     }
 
     normalizeAngle(angle) {
       return Math.atan2(Math.sin(angle), Math.cos(angle));
     }
-    arrangeanchors(e){
-      let container = $('#svg_radviz').get(0).getBoundingClientRect();
-      let mouse = [e.nativeEvent.clientX - container.left, e.nativeEvent.clientY - container.top];
-      if (this.state.draggingAnchor){
-          let center=[this.props.width/2, this.props.height/2];
-          let vec=[mouse[0] - center[0], mouse[1]-center[1]];
-          let normVec=numeric.norm2(vec);
-          vec[0] /= normVec;
-          vec[1] /= normVec;
-          // Computing the angle by making a dot product with the [1,0] vector
-          let cosAngle = vec[0];
-          let angle = Math.acos(cosAngle);
-          if (mouse[1] < center[1])
-            {  angle *= -1;}
-          let newAnchorAngles = this.state.anchorAngles.slice();
-          let angleDifference = angle - this.state.startanchorAngles;
-          newAnchorAngles[this.state.draggingAnchor_anchor_id] = angle;
-      //    console.log(newAnchorAngles.length);
-      //  newAnchorAngles[this.state.draggingAnchor_anchor_id+1]= newAnchorAngles[this.state.draggingAnchor_anchor_id+1]+0.03;
-  //      this.setState({'anchorAngles':newAnchorAngles});
-      //console.log(angleDifference);
+
+
+    sortDimensions(){
+      var anchorAngles_Obj =  Object.assign({}, this.state.anchorAngles.slice());
+      Object.keys(anchorAngles_Obj).forEach(key => {
+        if(anchorAngles_Obj[key]<0) { anchorAngles_Obj[key]=(anchorAngles_Obj[key]+3.141592653589793)+3.141592653589793;}
+      });
+
+      var keysSorted = Object.keys(anchorAngles_Obj).sort(function(a,b){return anchorAngles_Obj[a]-anchorAngles_Obj[b]})
+
+      var temp = this.state.anchorAngles.slice();
+      for (let i = 0; i < this.state.nDims; ++i){
+            temp[keysSorted[i]]=i * 2*Math.PI / this.state.nDims;
+      }
+      this.setState({'anchorAngles':temp});
     }
 
-}
-  arrange(props){
-
-
-    let argsort = (x1) => {
-	     let x2 = x1.map((d,i)=>[d,i]);
-	     let x2sorted = x2.sort((a,b)=>a[0]-b[0]);
-	     return x2sorted.map(d=>d[1]);
-};
-//console.log(argsort(this.state.anchorAngles));
-let newAnchorAngles1=[];
-for (let i = 0; i < this.state.anchorAngles.length; ++i){
-    console.log(argsort(this.state.anchorAngles)[i]);
-    newAnchorAngles1.push(argsort(this.state.anchorAngles)[i] * 2*Math.PI / this.state.anchorAngles.length);
-}
-//console.log(newAnchorAngles1);
-  this.setState({'anchorAngles':newAnchorAngles1});
-
-}
     render() {
-        console.log('rendering radViz');
-        let sampleDots = [];
-        let anchorDots = [];
-        let anchorText = [];
-        let selectedAnchors = [];
-        if (this.props.data){
-            let anchorXY = [];
-            for (let i = 0; i < this.state.nDims; ++i)
-                {anchorXY.push(this.anglesToXY(this.state.anchorAngles[i], 1));}
+      let sampleDots = [];
+      let anchorDots = [];
+      let anchorText = [];
+      let selectedAnchors = [];
+      if (this.props.data){
+        let anchorXY = [];
+        for (let i = 0; i < this.state.nDims; ++i)
+        {anchorXY.push(this.anglesToXY(this.state.anchorAngles[i], 1));}
 
-            selectedAnchors = this.setSelectedAnchors(this.state.normalizedData);
-            for (let i = 0; i < this.state.nDims; ++i){
+        selectedAnchors = this.setSelectedAnchors(this.state.normalizedData);
+        for (let i = 0; i < this.state.nDims; ++i){
 
-                anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
-                        key={i} style={{cursor:'hand', stroke:(this.state.selected[i]?'black':'none'), fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
+          anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
+          key={i} style={{cursor:'hand', stroke:(this.state.selected[i]?'black':'none'), fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
 
-                let normalizedAngle = this.normalizeAngle(this.state.anchorAngles[i] + this.state.offsetAnchors);
+          let normalizedAngle = this.normalizeAngle(this.state.anchorAngles[i] + this.state.offsetAnchors);
 
-                if (Math.abs(normalizedAngle) < Math.PI/2){
-                  anchorText.push(
-                            <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                            <text textAnchor='start' x={0} y={0} onMouseDown={this.startDragAnchor(i)} onMouseUp={this.arrange.bind(this)}  transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
-                            </g>);
-                }else{
-                  anchorText.push(
-                            <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                            <text textAnchor='end' x={0} y={7} onMouseDown={this.startDragAnchor(i)}   onMouseUp={this.arrange.bind(this)}  transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
-                            </g>);
-                }
+          if (Math.abs(normalizedAngle) < Math.PI/2){
+            anchorText.push(
+              <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
+              <text textAnchor='start' x={0} y={0} onMouseDown={this.startDragAnchor(i)}  transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+              </g>);
+            }else{
+              anchorText.push(
+                <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
+                <text textAnchor='end' x={0} y={7} onMouseDown={this.startDragAnchor(i)} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+                </g>);
+              }
             }
 
-              sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
+            sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
+          }
+          return (
+            <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
+            onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect} onDoubleClick = {this.unselectAllData} onClick={this.unselectAllData}  onKeyDown={this.handleKeyDown}>
+            <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
+            style={{stroke:'aquamarine',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
+            {sampleDots}
+            {this.svgPoly(this.selectionPoly)}
+            {anchorText}
+            {anchorDots}
+            </svg>
+          );
         }
-        return (
-                <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
-                onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect} onDoubleClick = {this.unselectAllData} onClick={this.unselectAllData}  onKeyDown={this.handleKeyDown}>
-	                <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
-                  style={{stroke:'aquamarine',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
-                  {sampleDots}
-                  {this.svgPoly(this.selectionPoly)}
-                  {anchorText}
-	                {anchorDots}
-                </svg>
-               );
-    }
 }
 
 RadViz.defaultProps = {
