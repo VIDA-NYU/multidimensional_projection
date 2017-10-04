@@ -349,7 +349,8 @@ class RadViz extends Component {
         for (let i = 0; i < this.state.nDims; ++i){
 
           anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
-          key={i} style={{cursor:'hand', stroke:(this.state.selected[i]?'black':'none'), fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
+
+          key={i} style={{cursor:'hand', stroke:(this.state.selected[i]?'black':'black'), fill:(selectedAnchors[this.state.dimNames[i]]?'#4c997f':'black'), strokeWidth:(selectedAnchors[this.state.dimNames[i]]?2:'none'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
 
           let normalizedAngle = this.normalizeAngle(this.state.anchorAngles[i] + this.state.offsetAnchors);
 
@@ -372,7 +373,7 @@ class RadViz extends Component {
             <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
             onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect} onDoubleClick = {this.unselectAllData} onClick={this.unselectAllData}  onKeyDown={this.handleKeyDown}>
             <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
-            style={{stroke:'aquamarine',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
+            style={{stroke:'lightgray',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
             {sampleDots}
             {this.svgPoly(this.selectionPoly)}
             {anchorText}
@@ -385,8 +386,8 @@ class RadViz extends Component {
 RadViz.defaultProps = {
 	width:700,
 	height:700,
-	marginX:200,
-	marginY:200,
+	marginX:190,
+	marginY:190,
     sigmoid_translate:0,
     sigmoid_scale:1,
 	colors:['red','green','blue'],
