@@ -31,7 +31,7 @@ import IconButton from 'material-ui/IconButton';
 import { ButtonGroup, Button, OverlayTrigger, Tooltip} from 'react-bootstrap';
 import SigmoidGraph from './SigmoidGraph';
 import WordCloud from './WordCloud';
-import Snippets from './Snippets';
+import SnippetView from './SnippetView';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import RadViz from './RadViz';
 
@@ -65,7 +65,7 @@ class Body extends Component {
      'sigmoidScale':1,
      'sigmoidTranslate':0,
      accuracy: '0',
-     sessionBody: this.createSession(this.props.currentDomain),
+     sessionBody: this.props.session,
      checkSigmoid:false,
      checkProjection:false,
      searchText: '',
@@ -395,9 +395,24 @@ componentWillReceiveProps(props){
       });
     };
 
+
+  //Set pages to object format. It is necessary because SnippetView component, which shows pages as snippets, was already working with this format in DDT. SnippetView component are being re-used with some little changes.
+  setPagesToObjectFormat(selectedPoints, originalData){
+    var pages = {};
+    if(selectedPoints.length>0){
+      for (let i = 0; i < originalData['urls'].length; ++i){
+        if(selectedPoints[i]){
+          pages[originalData['urls'][i]] = {'idRadViz':i, 'image_url':originalData['image_url'][i], 'order':0, 'snippet':originalData['snippet'][i], 'timestamp':'', 'title':originalData['title'][i] };
+        }
+      }
+    }
+    return pages;
+  }
+
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
     {
+      console.log("Body RadViz");
       var dimensions=[];
       var values=[];
       this.state.dimNames.forEach(function (attribute,idx) {
@@ -432,6 +447,12 @@ componentWillReceiveProps(props){
           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
           openOnFocus={true}
           />;
+
+      //Setting pages to object format:
+      var selectedPoints_aux = this.state.selectedPoints;
+      var originalData_aux = this.state.originalData;
+      var pagesObjectFormat = this.setPagesToObjectFormat(selectedPoints_aux, originalData_aux);
+
       return(
         <div>
         <Grid>
@@ -486,50 +507,10 @@ componentWillReceiveProps(props){
               <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray',marginRight:'-50px'}}>
                 <p style={{color:'silver', marginLeft:'30px'}}>Selected pages: {nroSelectedUrls}</p>
               </div>
-              <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData} tagFromSnippets={this.tagFromSnippets.bind(this)}/>
+              <SnippetView pages={pagesObjectFormat} session={this.state.sessionBody}  internalUpdating={false} />
             </Row>
           </Col>
           </Grid>
-    {/*      <Grid>
-          <Row ls={1} md={1} style={{ marginTop:'10px', border: '2px solid', borderColor:'lightgray', width:'700px'}}>
-               <List style={{display:'flex'}}>
-               <Col>
-                 <Subheader style={{fontSize:'16px', fontWeight:'bold', color:'black'}}>Sigmoid</Subheader>
-                 <List style={{display:'flex'}}>
-                 <ListItem>
-                   <p style={{fontSize:this.fontSize,}} >Translation:</p> <Slider min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
-                 </ListItem>
-                 <ListItem>
-                   <p style={{fontSize:this.fontSize,}}>Scale:</p> <Slider min={0} max={100} step={1} defaultValue={1} onChange={this.updateSigmoidScale}/>
-                 </ListItem>
-                 <ListItem>
-                  <SigmoidGraph sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}/>
-                 </ListItem>
-                 </List>
-                </Col>
-                <Col>
-                 <Subheader style={{fontSize:'16px', fontWeight:'bold', color:'black'}}>Interaction</Subheader>
-                 <ListItem>
-                   <RadioButtonGroup name='shipSpeed' defaultSelected={0} onChange={this.showingData}>
-                    <RadioButton value={0} label='Show all' labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
-                    <RadioButton value={1} label='Hide selected' labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
-                    <RadioButton value={2} label='Hide unselected' labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
-                  </RadioButtonGroup>
-                 </ListItem>
-                 </Col>
-                 <Col>
-                 <Subheader style={{fontSize:'16px', fontWeight:'bold', color:'black',marginLeft:'-10px'}}>Projection</Subheader>
-                   <DropDownMenu style={{marginTop:'-20px', fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
-                   {Object.keys(dimensions).map((k, index)=>{
-                        var attibute = dimensions[k].attribute;
-                        return <MenuItem value={index} primaryText={attibute} style={{fontSize:this.fontSize,}} />
-                   })}
-                  </DropDownMenu>
-                  </Col>
-
-               </List>
-          </Row>
-        </Grid>*/}
         </div>
 
       );
@@ -540,4 +521,6 @@ componentWillReceiveProps(props){
   }
 }
 // width:320,
+//  <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData} tagFromSnippets={this.tagFromSnippets.bind(this)}/>
+
 export default Body;
