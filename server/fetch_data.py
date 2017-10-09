@@ -6,7 +6,7 @@ from pprint import pprint
 
 
 def fetch_data( index, filterByTerm, categories=[], remove_duplicate=True, convert_to_ascii=True, preprocess=False, es_doc_type="page", es=None):
-    
+
     if es == None:
         es = Elasticsearch("http://localhost:9200")
 
@@ -98,7 +98,7 @@ def fetch_data( index, filterByTerm, categories=[], remove_duplicate=True, conve
                 continue
 
         try:
-            topic_name = rec["tag"][0]
+            topic_name = ",".join(rec["tag"])
         except KeyError:
             topic_name = "Neutral"
 
