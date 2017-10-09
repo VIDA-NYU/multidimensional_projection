@@ -402,7 +402,8 @@ componentWillReceiveProps(props){
     if(selectedPoints.length>0){
       for (let i = 0; i < originalData['urls'].length; ++i){
         if(selectedPoints[i]){
-          pages[originalData['urls'][i]] = {'idRadViz':i, 'image_url':originalData['image_url'][i], 'order':0, 'snippet':originalData['snippet'][i], 'timestamp':'', 'title':originalData['title'][i] };
+          pages[originalData['urls'][i]] = {'idRadViz':i, 'image_url':originalData['image_url'][i], 'order':0, 'snippet':originalData['snippet'][i], 'timestamp':'', 'title':originalData['title'][i],
+          'tags': originalData['labels'][i].split(',')};
         }
       }
     }

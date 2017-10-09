@@ -71,7 +71,6 @@ class Domain extends Component {
           let scaleColor = scaleOrdinal(this.colorTags);
           let colors = [];
           data['Model Result'] = [];
-
           for (let i = 0; i < data['labels'].length; ++i){
               data['Model Result'][i] = "neutral";
               //colors.push(scaleColor(data['tags'][0]));
