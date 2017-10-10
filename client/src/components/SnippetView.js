@@ -89,7 +89,6 @@ class ViewTabSnippets extends React.Component{
       openDialogTagAllPages:false
 
     };
-    console.log(this.props.session);
     this.state.allSearchQueries = this.buildQueryString(this.props.session);
     this.updatingCheckSelectAllPages = this.updatingCheckSelectAllPages.bind(this);
     this.perPage=12; //default 12
@@ -126,7 +125,6 @@ class ViewTabSnippets extends React.Component{
 
   componentWillMount(){
     this.getAvailableTags();
-    console.log(this.props.pages);
     this.setState({
         session:this.props.session, sessionString: JSON.stringify(this.props.session), pages:this.props.pages, currentPagination:0, offset:0, lengthPages:Object.keys(this.props.pages).length, lengthTotalPages:this.props.lengthTotalPages,
         //session:this.props.session, sessionString: JSON.stringify(this.props.session), pages:this.props.pages, currentPagination:this.props.currentPagination, offset:this.props.offset, lengthPages:this.props.lengthPages, lengthTotalPages:this.props.lengthTotalPages,
@@ -195,7 +193,6 @@ class ViewTabSnippets extends React.Component{
   }
 
   updateOnlineClassifier(sessionTemp){
-	console.log("UPDATE ONLINE CLASSIFIER");
     $.post(
     	'/updateOnlineClassifier',
     	{'session':  JSON.stringify(sessionTemp)},
@@ -294,7 +291,6 @@ class ViewTabSnippets extends React.Component{
         if(updatedPages[url]["tags"]){
             var temp = Object.keys(updatedPages[url]["tags"]).map(key => {
                       if(updatedPages[url]["tags"][key] !== null){
-                      //  console.log(updatedPages[url]["tags"][key]);
                         var itemTag = updatedPages[url]["tags"][key].toString();
                         if(itemTag==="Relevant" || itemTag==="Irrelevant"){
                           delete updatedPages[url]["tags"][key];
@@ -465,7 +461,7 @@ class ViewTabSnippets extends React.Component{
 
     }
 
-    this.props.tagFromSnippets(tag, inputURL );
+    this.props.tagFromSnippets(tag, inputURL,true );
   }
 
   getTag(k){
@@ -490,8 +486,7 @@ class ViewTabSnippets extends React.Component{
   var currentPages = this.state.pages;
   if(currentPages[url]["tags"] !== undefined){
     currentPages[url]["tags"].splice(currentPages[url]["tags"].indexOf(key),1);
-    console.log(key + ", "+url);
-    this.props.tagFromSnippets(key, url);
+    this.props.tagFromSnippets(key, url,false);
   }
   this.setState({pages:currentPages});
 	this.removeAddTagElasticSearch(current,key, false);
@@ -587,8 +582,6 @@ class ViewTabSnippets extends React.Component{
     }
 
   addCustomTag(inputURL, val) {
-    console.log("addCustomTag");
-    console.log(val);
     if(this.state.checkedSelectAllPages){
       this.temp_inputURL_TagAllPages=inputURL;
       this.temp_value_TagAllPages = val;
@@ -600,7 +593,7 @@ class ViewTabSnippets extends React.Component{
 
     if(val.constructor !== Array) val = [val];
     if(((val || [])[0] || {}).value) {
-      this.props.tagFromSnippets(val[0].value, inputURL[0]);
+      this.props.tagFromSnippets(val[0].value, inputURL[0], false);
     }
 
     }
@@ -646,7 +639,6 @@ class ViewTabSnippets extends React.Component{
   //Select all pages in all paginations
   updatingCheckSelectAllPages(){
     this.setState({checkedSelectAllPages: !this.state.checkedSelectAllPages });
-    console.log(this.state.checkedSelectAllPages);
     this.forceUpdate();
   }
 

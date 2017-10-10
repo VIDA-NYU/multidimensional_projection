@@ -77,7 +77,7 @@ class Body extends Component {
    this.handleUpdateInput = this.handleUpdateInput.bind(this);
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
-   this.colorDefault= [ '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
+   this.colorDefault= [ '#ff7f0e', '#2ca02c', '#17becf', '#b27eac', '#9467bd', '#8c564b', '#e377c2', '#98bd22', '#bcbd22' ];
    this.colorTags= [ '#9E9E9E', '#0D47A1', '#C62828', '#FFFFFF'];
      this.fontSize='13px';
    this.indexColor = -1;
@@ -104,7 +104,8 @@ class Body extends Component {
   return urls;
  }
 
- setColorPoints(value, dimNames, originalData){
+ setColorPoints(value, dimNames, temp_originalData){
+   var originalData =JSON.parse(JSON.stringify(temp_originalData));
    var colorToCustomTags = scaleOrdinal(this.colorDefault);
    let colors = [];
    for (let i = 0; i < originalData[dimNames[0]].length; ++i){
@@ -357,44 +358,42 @@ componentWillReceiveProps(props){
   getKeyByValue(object, value) {
     return Object.keys(object).find(key => object[key] === value);
   }
+
   //Labeling pages from an snippet.
-  tagFromSnippets(tag, index_url){
-    //var tag = (typeTag.toLowerCase()==='Relevant')? 'Relevant':(typeTag.toLowerCase()==='Irrelevant')?'Irrelevant' : 'Neutral';
-    var index = index_url; //this.getKeyByValue(this.state.originalData['urls'], url );
+  tagFromSnippets(tag, index_url, reload){
+    var index = index_url;
     let updateData = this.state.originalData;
+    var aux_updateData =JSON.parse(JSON.stringify(updateData));
     var selectedPoints = [];
     var index_int = updateData['urls'].indexOf(index);
 
-    var array_tags = updateData['labels'][index_int];
+    var array_tags = aux_updateData['labels'][index_int];
     array_tags = array_tags.map(function(x){ return x.toString().toLowerCase(); });
-    if(tag.toLowerCase() === 'neutral'){
-      updateData['labels'][index_int]=['Neutral'];
-    }
-    else{
-      //console.log(array_tags);
-      //console.log(tag.toLowerCase());
-      if(array_tags.includes(tag.toString().toLowerCase())){
-        //console.log(array_tags.indexOf(tag.toString().toLowerCase()));
-        array_tags = array_tags.splice(array_tags.indexOf(tag.toString().toLowerCase()), 1);
-      //console.log(array_tags);
-      updateData['labels'][index_int]=array_tags;
+    if(reload){
+      if(tag.toLowerCase() === 'neutral'){
+        updateData['labels'][index_int]=['Neutral'];
       }
       else{
-        //console.log(tag);
-        updateData['labels'][index_int].push(tag);
+        if(array_tags.includes(tag.toString().toLowerCase())){
+          var lowCase = array_tags.indexOf(tag.toString().toLowerCase());
+          updateData['labels'][index_int].splice(lowCase, 1);
+        }
+        else{
+          if(tag.toLowerCase() === 'relevant' || tag.toLowerCase() === 'irrelevant'){
+            if(array_tags.indexOf('relevant')!==-1){
+              updateData['labels'][index_int].splice(array_tags.indexOf('relevant'), 1);
+            }
+            if(array_tags.indexOf('irrelevant')!==-1){
+              updateData['labels'][index_int].splice(array_tags.indexOf('irrelevant'), 1);
+            }
+          }
+          updateData['labels'][index_int].push(tag);
+        }
       }
     }
-    //updateData['labels'][index_int] = tag;
-
-    //updateTags in elasticSearch
-    /*var urls = [];
-    urls.push(index);
-    if (previus_tag.toLowerCase() != 'neutral' && previus_tag.toLowerCase() != tag.toLowerCase()){
-	    this.setPagesTag(urls, previus_tag, false);
-    }
-	  this.setPagesTag(urls, tag, true);*/
     this.setState({originalData: updateData});
-    this.updateColorsTags(this.state.value); }
+    this.updateColorsTags(this.state.value);
+  }
 
   //Labeling pages as a Neutral.
   countTotalLabeledPages(){
