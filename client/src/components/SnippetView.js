@@ -464,6 +464,8 @@ class ViewTabSnippets extends React.Component{
       this.removeAddTagElasticSearch(urls, tag, applyTagFlag );//Remove tag
 
     }
+
+    this.props.tagFromSnippets(tag, inputURL );
   }
 
   getTag(k){
@@ -488,10 +490,14 @@ class ViewTabSnippets extends React.Component{
   var currentPages = this.state.pages;
   if(currentPages[url]["tags"] !== undefined){
     currentPages[url]["tags"].splice(currentPages[url]["tags"].indexOf(key),1);
+    console.log(key + ", "+url);
+    this.props.tagFromSnippets(key, url);
   }
   this.setState({pages:currentPages});
 	this.removeAddTagElasticSearch(current,key, false);
   this.forceUpdate();
+
+
     }
 
   clickEvent(urlLink){
@@ -591,6 +597,12 @@ class ViewTabSnippets extends React.Component{
     else {
       this.addCustomTag_permission(inputURL, val);
     }
+
+    if(val.constructor !== Array) val = [val];
+    if(((val || [])[0] || {}).value) {
+      this.props.tagFromSnippets(val[0].value, inputURL[0]);
+    }
+
     }
 
 
