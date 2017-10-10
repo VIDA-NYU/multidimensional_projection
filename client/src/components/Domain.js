@@ -73,6 +73,7 @@ class Domain extends Component {
           data['Model Result'] = [];
           for (let i = 0; i < data['labels'].length; ++i){
               data['Model Result'][i] = "neutral";
+              data['labels'][i]= data['labels'][i].split(',');
               //colors.push(scaleColor(data['tags'][0]));
               let aux = {};
               for (let j = 0; j < dimNames.length-2; ++j){//except urls and labels

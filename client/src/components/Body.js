@@ -77,9 +77,10 @@ class Body extends Component {
    this.handleUpdateInput = this.handleUpdateInput.bind(this);
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
-   this.colorDefault= [ '#0D47A1', '#C62828', '#9E9E9E', '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
+   this.colorDefault= [ '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
    this.colorTags= [ '#9E9E9E', '#0D47A1', '#C62828', '#FFFFFF'];
      this.fontSize='13px';
+   this.indexColor = -1;
 
 
  };
@@ -103,15 +104,32 @@ class Body extends Component {
   return urls;
  }
 
+ setColorPoints(value, dimNames, originalData){
+   var colorToCustomTags = scaleOrdinal(this.colorDefault);
+   let colors = [];
+   for (let i = 0; i < originalData[dimNames[0]].length; ++i){
+      var colorTag='';
+      if(dimNames[value]==='labels' || dimNames[value]==='Model Result' ){
+        var array_tags = originalData[dimNames[value]][i];
+        this.indexColor=-1;
+        array_tags = array_tags.map(function(x){ return x.toString().toLowerCase(); });
+        array_tags.map(function(x){ if(x!=='neutral' && x!=='relevant' && x!=='irrelevant'){ this.indexColor=array_tags.indexOf(x);} }.bind(this));
+        colorTag = (this.indexColor!=-1)? colorToCustomTags(array_tags[this.indexColor]):(array_tags.includes('relevant'))? this.colorTags[1]: (array_tags.includes('irrelevant'))? this.colorTags[2]:(array_tags.includes('neutral'))? this.colorTags[0]:'';
+        this.indexColor=-1;
+      }
+      else {
+        var typeTag = originalData[dimNames[value]][i];
+        colorTag = (this.indexColor!=-1)? colorToCustomTags(typeTag):'';
+      }
+      colors.push(colorTag);
+   }
+   return colors;
+ }
+
  //Update colors based on tag or modelResult.
  updateColorsTags(value){
    let dimNames = Object.keys(this.state.originalData);
-   let colors = [];
-   for (let i = 0; i < this.state.originalData[dimNames[0]].length; ++i){
-      var typeTag = this.state.originalData[dimNames[value]][i];
-       var colorTag=(typeTag.toString().toLowerCase()=='neutral')? this.colorTags[0]: (typeTag.toString().toLowerCase()=='relevant')? this.colorTags[1]: (typeTag.toString().toLowerCase()=='irrelevant')? this.colorTags[2]: '';
-       colors.push(colorTag);
-   }
+   let colors = this.setColorPoints(value, dimNames, this.state.originalData);
    this.setState({value: value, colors:colors});
    this.forceUpdate();
  }
@@ -136,8 +154,7 @@ class Body extends Component {
     	if(event=='Model Result'){
     	    this.predictUnlabeled(this.state.sessionBody);
     	}
-    	if(event=='labels' || event=='Model Result') this.updateColorsTags(this.state.dimNames.indexOf(event));
-    	else this.updateColors(this.state.dimNames.indexOf(event));
+    	this.updateColorsTags(this.state.dimNames.indexOf(event));
   }
 
   updateSigmoidScale(s){
@@ -173,11 +190,7 @@ componentWillReceiveProps(props){
   	if(props.originalData !== this.state.originalData){
         let colors = [];
         let dimNames = Object.keys(props.originalData);
-        for (let i = 0; i < props.originalData[dimNames[0]].length; ++i){
-           var typeTag = props.originalData[dimNames[this.state.value]][i];
-            var colorTag=(typeTag.toLowerCase()=='neutral')? this.colorTags[0]: (typeTag.toLowerCase()=='relevant')? this.colorTags[1]: (typeTag.toLowerCase()=='irrelevant')? this.colorTags[2]: '';
-            colors.push(colorTag);
-        }
+        colors = this.setColorPoints(this.state.value, dimNames, props.originalData);
         this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, flat:props.flat, dimNames: props.dimNames, });
 
     }
@@ -317,8 +330,9 @@ componentWillReceiveProps(props){
       var selectedPointsTags = [];
       for (let i = 0; i < this.state.selectedPoints.length; ++i){
           if(this.state.selectedPoints[i]){
-            selectedPointsTags.push(updateData['labels'][i]);
-            updateData['labels'][i] = tag;
+            selectedPointsTags.push(updateData['labels'][i].join());
+            //updateData['labels'][i] = tag;
+            updateData['labels'][i].push(tag);
 	          selectedPoints.push(i);
 	        }
       }
@@ -344,23 +358,43 @@ componentWillReceiveProps(props){
     return Object.keys(object).find(key => object[key] === value);
   }
   //Labeling pages from an snippet.
-  tagFromSnippets(tag, previus_tag, index_url){
+  tagFromSnippets(tag, index_url){
     //var tag = (typeTag.toLowerCase()==='Relevant')? 'Relevant':(typeTag.toLowerCase()==='Irrelevant')?'Irrelevant' : 'Neutral';
     var index = index_url; //this.getKeyByValue(this.state.originalData['urls'], url );
     let updateData = this.state.originalData;
     var selectedPoints = [];
     var index_int = updateData['urls'].indexOf(index);
-    updateData['labels'][index_int] = tag;
+
+    var array_tags = updateData['labels'][index_int];
+    array_tags = array_tags.map(function(x){ return x.toString().toLowerCase(); });
+    if(tag.toLowerCase() === 'neutral'){
+      updateData['labels'][index_int]=['Neutral'];
+    }
+    else{
+      //console.log(array_tags);
+      //console.log(tag.toLowerCase());
+      if(array_tags.includes(tag.toString().toLowerCase())){
+        //console.log(array_tags.indexOf(tag.toString().toLowerCase()));
+        array_tags = array_tags.splice(array_tags.indexOf(tag.toString().toLowerCase()), 1);
+      //console.log(array_tags);
+      updateData['labels'][index_int]=array_tags;
+      }
+      else{
+        //console.log(tag);
+        updateData['labels'][index_int].push(tag);
+      }
+    }
+    //updateData['labels'][index_int] = tag;
+
     //updateTags in elasticSearch
-    var urls = [];
+    /*var urls = [];
     urls.push(index);
     if (previus_tag.toLowerCase() != 'neutral' && previus_tag.toLowerCase() != tag.toLowerCase()){
 	    this.setPagesTag(urls, previus_tag, false);
     }
-	  this.setPagesTag(urls, tag, true);
+	  this.setPagesTag(urls, tag, true);*/
     this.setState({originalData: updateData});
-    this.updateColorsTags(this.state.value);
-  }
+    this.updateColorsTags(this.state.value); }
 
   //Labeling pages as a Neutral.
   countTotalLabeledPages(){
@@ -371,6 +405,7 @@ componentWillReceiveProps(props){
     }
     return cont;
   }
+
   comeBack(){
     let keyword ='';
     this.props.filterKeyword(keyword);
@@ -403,7 +438,7 @@ componentWillReceiveProps(props){
       for (let i = 0; i < originalData['urls'].length; ++i){
         if(selectedPoints[i]){
           pages[originalData['urls'][i]] = {'idRadViz':i, 'image_url':originalData['image_url'][i], 'order':0, 'snippet':originalData['snippet'][i], 'timestamp':'', 'title':originalData['title'][i],
-          'tags': originalData['labels'][i].split(',')};
+          'tags': originalData['labels'][i]};
         }
       }
     }
@@ -508,7 +543,7 @@ componentWillReceiveProps(props){
               <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray',marginRight:'-50px'}}>
                 <p style={{color:'silver', marginLeft:'30px'}}>Selected pages: {nroSelectedUrls}</p>
               </div>
-              <SnippetView pages={pagesObjectFormat} session={this.state.sessionBody}  internalUpdating={false} />
+              <SnippetView pages={pagesObjectFormat} session={this.state.sessionBody}  internalUpdating={false} tagFromSnippets={this.tagFromSnippets.bind(this)} />
             </Row>
           </Col>
           </Grid>
