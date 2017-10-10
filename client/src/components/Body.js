@@ -540,7 +540,7 @@ componentWillReceiveProps(props){
             </Row>
             <Row className='Menus-child'>
               <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray',marginRight:'-50px'}}>
-                <p style={{color:'silver', marginLeft:'30px'}}>Selected pages: {nroSelectedUrls}</p>
+                <p style={{color:'silver', marginLeft:'10px'}}>Selected pages: <span style={{color:'black'}}>{nroSelectedUrls}</span></p>
               </div>
               <SnippetView pages={pagesObjectFormat} session={this.state.sessionBody}  internalUpdating={false} tagFromSnippets={this.tagFromSnippets.bind(this)} />
             </Row>
