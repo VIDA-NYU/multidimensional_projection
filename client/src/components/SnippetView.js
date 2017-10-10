@@ -862,8 +862,8 @@ class ViewTabSnippets extends React.Component{
       subContainerClassName={"pages pagination"}
       activeClassName={"active"} /> */}
       <div style={{display: "flex", alignItems: "center", float:"right", fontSize: "12px", fontWeight: "500", paddingRight: "20px", marginTop: "-10px", marginRight:"-5px"}}>
-      <div style={{display: "inline", fontSize: "16px", marginRight: "10px"}}>
-      <RaisedButton label="Tag all" disabled={true} labelStyle={{textTransform: "capitalize", color: "#757575", fontSize:this.props.fontSize_TagAllButton }} style={{minWidth:this.props.minWidth_TagAllButton}} />
+      <div style={{display: "inline", fontSize: "12px", marginRight: "30px", marginLeft: '-20px' }}>
+      <div style={{textAlign: 'center', verticalAlign: 'middle', lineHeight: '30px', marginRight: 0, marginLeft:0 }} className="arrow">Tag All</div>
       </div>
       <div style={{float:'right',width:this.props.width_TagAllCustomTag, marginRight: "5px"}}>
       <Select.Creatable
