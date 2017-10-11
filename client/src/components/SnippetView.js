@@ -364,6 +364,7 @@ class ViewTabSnippets extends React.Component{
       }
 
     }
+    this.props.tagFromSnippets(tag, arrayInputURL, true); //arrayInputURL is an array
   }
 
   //Handling click event on the tag button. When it is clicked it should update tag of the page in elasticsearch.
@@ -461,7 +462,7 @@ class ViewTabSnippets extends React.Component{
 
     }
 
-    this.props.tagFromSnippets(tag, inputURL,true );
+    this.props.tagFromSnippets(tag, [inputURL],true );
   }
 
   getTag(k){
@@ -486,7 +487,7 @@ class ViewTabSnippets extends React.Component{
   var currentPages = this.state.pages;
   if(currentPages[url]["tags"] !== undefined){
     currentPages[url]["tags"].splice(currentPages[url]["tags"].indexOf(key),1);
-    this.props.tagFromSnippets(key, url,false);
+    this.props.tagFromSnippets(key, [url],false);
   }
   this.setState({pages:currentPages});
 	this.removeAddTagElasticSearch(current,key, false);
@@ -591,11 +592,11 @@ class ViewTabSnippets extends React.Component{
       this.addCustomTag_permission(inputURL, val);
     }
 
+    //Sending tag and urls to radViz projection
     if(val.constructor !== Array) val = [val];
     if(((val || [])[0] || {}).value) {
-      this.props.tagFromSnippets(val[0].value, inputURL[0], false);
+      this.props.tagFromSnippets(val[0].value, inputURL, false); //inputURL is an array
     }
-
     }
 
 

@@ -359,8 +359,15 @@ componentWillReceiveProps(props){
     return Object.keys(object).find(key => object[key] === value);
   }
 
-  //Labeling pages from an snippet.
-  tagFromSnippets(tag, index_url, reload){
+  //Labeling pages in RadViz from snippets.
+  tagFromSnippets(tag, arrayInputURL, reload){
+    for (var i = 0; i < arrayInputURL.length; i++) {
+      this.tagSnippets(tag, arrayInputURL[i], reload);
+    }
+  }
+
+  //Labeling a page from a snippet.
+  tagSnippets(tag, index_url, reload){
     var index = index_url;
     let updateData = this.state.originalData;
     var aux_updateData =JSON.parse(JSON.stringify(updateData));
