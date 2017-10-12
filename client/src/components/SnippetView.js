@@ -471,7 +471,7 @@ class ViewTabSnippets extends React.Component{
     return uniqueTag;
 }
  renderCustomTag(data){
-    return ( <Chip style={{margin:4}}
+    return ( <Chip style={{marginTop:4, marginRight:3}} labelStyle={{marginTop:'-3px', height:29}} deleteIconStyle={{width:22, height:22, marginTop:2}}
         key={data.key}
         onRequestDelete={() => this.handleRequestDelete(data.url,data.label)}
       >
@@ -739,15 +739,6 @@ class ViewTabSnippets extends React.Component{
                 </div>
                 <div style={{display: "flex", flexDirection: "column", alignItems: "flex-end"}}>
                   <div style={{display: "flex", marginBottom: "10px" }}>
-                    <div style={{fontSize: "12px", fontWeight: "500", width: '70px'}}>
-                      <Select.Creatable
-                      placeholder="Add Tag"
-                      multi={false}
-                      options={this.availableTags}
-                      onChange={this.addCustomTag.bind(this, [url_info[0]])}
-                      ignoreCase={true}
-                      style={{height:30}}/>
-                    </div>
                     <div>
                       <ButtonGroup style={{height: this.props.height_TagButtonGroup}}>
                         <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip">Relevant</Tooltip>}>
@@ -767,12 +758,24 @@ class ViewTabSnippets extends React.Component{
                         </OverlayTrigger>
                       </ButtonGroup>
                     </div>
-          </div>
+
+                    </div>
+                    <br/>
+                    <div style={{fontSize: "12px", fontWeight: "500", width: '120px', marginTop:"-30px", marginBottom:7}}>
+                      <Select.Creatable
+                      placeholder="Add Tag"
+                      multi={false}
+                      options={this.availableTags}
+                      onChange={this.addCustomTag.bind(this, [url_info[0]])}
+                      ignoreCase={true}
+                      style={{height:30}}/>
+                    </div>
+
           <div>
-            <Button onClick={this.crawlNextLevel("Backward", [url_info[0]])} style={{width: "80px", height: "37px", fontSize: "10px", marginRight: "4px"}} >
+            <Button onClick={this.crawlNextLevel("Backward", [url_info[0]])} style={{width: "60px", height: "37px", fontSize: "9px", padding:0}} >
             BACKWARD<br/>LINKS
             </Button>
-            <Button onClick={this.crawlNextLevel("Forward", [url_info[0]])} style={{width: "75px", height: "37px", fontSize: "10px"}}>
+            <Button onClick={this.crawlNextLevel("Forward", [url_info[0]])} style={{width: "59px", height: "37px", fontSize: "9px", padding:0}}>
             FORWARD<br/>LINKS
             </Button>
           </div>
@@ -784,7 +787,7 @@ class ViewTabSnippets extends React.Component{
           </div>
           </div>
           <br/>
-          <Divider />
+          <Divider style={{marginTop:'-1px', marginBottom:'-15px'}}/>
         </div>
       </ListItem>;
     });
@@ -899,7 +902,8 @@ class ViewTabSnippets extends React.Component{
       </div>
 
       <div >
-      <List>
+      <Divider style={{marginTop:20, marginLeft:10, marginRight:10, marginBottom:0}}/>
+      <List style={{overflowY: 'scroll', height:450}}>
       {urlsList}
       <Divider inset={true} />
       </List>
@@ -944,11 +948,11 @@ ViewTabSnippets.defaultProps = {
   width_TagAllBFLinkButton:70,
   fontSize_TagAllBFLinkButton:9,
 
-  height_TagButtonGroup: "80%",
-  height_TagButton: "80%",
-  width_TagIconButton:20, height_TagIconButton: 20, marginBottom_TagIconButton:"0px",
+  height_TagButtonGroup: "90%",
+  height_TagButton: "90%",
+  width_TagIconButton:20, height_TagIconButton: 20, marginBottom_TagIconButton:"-1px",
   width_TagButton:35,
-  width_divSnippet: "41%",
+  width_divSnippet: "59%",
   marginLeft_divSnippet:"-8px",
   width_areaSnippet: "448px"
 

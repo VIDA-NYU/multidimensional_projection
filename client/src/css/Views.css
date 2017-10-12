@@ -1,5 +1,5 @@
 .url-link {
-  font-size: 14px;
+  font-size: 13px;
   color: #006621;
   margin-bottom: 4px;
   text-overflow: ellipsis;
@@ -10,7 +10,7 @@
 
 .url-title-link {
   height: 20px;
-  font-size: 18px;
+  font-size: 17px;
   color: #1a0dab;
   text-overflow: ellipsis;
   overflow: hidden;
