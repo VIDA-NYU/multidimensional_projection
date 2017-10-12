@@ -79,6 +79,7 @@ class Body extends Component {
    this.showingUrls = this.showingUrls.bind(this);
    this.colorDefault= [ '#ff7f0e', '#2ca02c', '#17becf', '#b27eac', '#9467bd', '#8c564b', '#e377c2', '#98bd22', '#bcbd22' ];
    this.colorTags= [ '#9E9E9E', '#0D47A1', '#C62828', '#FFFFFF'];
+   this.tagsNames ={};
      this.fontSize='13px';
    this.indexColor = -1;
 
@@ -114,7 +115,17 @@ class Body extends Component {
         var array_tags = originalData[dimNames[value]][i];
         this.indexColor=-1;
         array_tags = array_tags.map(function(x){ return x.toString().toLowerCase(); });
-        array_tags.map(function(x){ if(x!=='neutral' && x!=='relevant' && x!=='irrelevant'){ this.indexColor=array_tags.indexOf(x);} }.bind(this));
+        array_tags.map(function(x){
+          if(x!=='neutral' && x!=='relevant' && x!=='irrelevant'){
+            this.indexColor=array_tags.indexOf(x);
+            if(!this.tagsNames.hasOwnProperty(x)){ this.tagsNames[x] = colorToCustomTags(array_tags[this.indexColor])};
+          }
+          else {
+            if(!this.tagsNames.hasOwnProperty(x)){
+              this.tagsNames[x] = (x==='relevant')? this.colorTags[1]: (x==='irrelevant')? this.colorTags[2]:this.colorTags[0];
+            }
+          }
+         }.bind(this));
         colorTag = (this.indexColor!=-1)? colorToCustomTags(array_tags[this.indexColor]):(array_tags.includes('relevant'))? this.colorTags[1]: (array_tags.includes('irrelevant'))? this.colorTags[2]:(array_tags.includes('neutral'))? this.colorTags[0]:'';
         this.indexColor=-1;
       }
@@ -493,6 +504,9 @@ componentWillReceiveProps(props){
       var selectedPoints_aux = this.state.selectedPoints;
       var originalData_aux = this.state.originalData;
       var pagesObjectFormat = this.setPagesToObjectFormat(selectedPoints_aux, originalData_aux);
+      var legend = Object.keys(this.tagsNames).map((k, index)=>{
+        return <li style={{color:this.tagsNames[k], textTransform: 'capitalize', fontWeight: 'bold', float: 'left', margin:15}}> {k} </li>
+      });
 
       return(
         <div>
@@ -535,6 +549,7 @@ componentWillReceiveProps(props){
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}/>
+            <ul style={{listStyleType: 'inside'}}>{legend}</ul>
             </Row>
           </Col>
 
