@@ -11,15 +11,15 @@ class SigmoidGraph extends Component {
 	}
 
 	render(){
-		let path = ""
+		let path = ''
 		for (let x = -2; x <= 2; x += 0.01){
-			path = path + this.scaleX(x) + "," + this.scaleY(this.sigmoid(x)) + " ";
+			path = path + this.scaleX(x) + ',' + this.scaleY(this.sigmoid(x)) + ' ';
 		}
 
 		return (
-			<svg style={{width:this.props.width, height:this.props.height, borderColor:"#9E9E9E", borderLeft:'1px solid', borderBottom:'1px solid',}}>
+			<svg style={{width:this.props.width, height:this.props.height, borderColor:'#9E9E9E', borderLeft:'1px solid', borderBottom:'1px solid',}}>
 			<polyline points={path} style={{fill:'none',stroke:'00aaff',strokeWidth:3}}/>
-			<g className="axis" ref="axis" transform={100}></g>
+			<g className='axis' ref='axis' transform={100}></g>
 			</svg>
 			)
 	}
