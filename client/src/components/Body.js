@@ -454,7 +454,6 @@ componentWillReceiveProps(props){
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
     {
-      console.log("Body RadViz");
       var dimensions=[];
       var values=[];
       this.state.dimNames.forEach(function (attribute,idx) {
@@ -513,7 +512,7 @@ componentWillReceiveProps(props){
             </ToolbarGroup>
           </Toolbar>
             </div>
-            <div style={{position: 'absolute', left: '-5%', marginTop:'10px' ,marginRight:'-20px' }}>
+            {/*}<div style={{position: 'absolute', left: '-5%', marginTop:'10px' ,marginRight:'-20px' }}>
             <ButtonGroup>
               <OverlayTrigger placement='bottom' overlay={<Tooltip id='tooltip'>Relevant</Tooltip>}>
                 <Button >
@@ -531,7 +530,7 @@ componentWillReceiveProps(props){
                 </Button>
               </OverlayTrigger>
             </ButtonGroup>
-            </div>
+            </div>*/}
             {linkBackOriginalData}
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
@@ -541,7 +540,7 @@ componentWillReceiveProps(props){
 
           <Col  ls={2} md={2} style={{background:'white', marginLeft:'60px', borderLeft: '2px solid', borderColor:'lightgray'}}>
             <Row className='Menus-child' >
-            <div style={{width:'448px', borderTop:'solid', borderRight: '2px solid', borderColor:'lightgray'}}>
+            <div style={{width:'448px', borderTop:'solid', paddingTop:10, paddingLeft:20, borderRight: '2px solid', borderColor:'lightgray'}}>
             <WordCloud dimNames={this.state.dimNames} selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
             </div>
             </Row>
