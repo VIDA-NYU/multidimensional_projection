@@ -326,7 +326,7 @@ class RadViz extends Component {
         if(anchorAngles_Obj[key]<0) { anchorAngles_Obj[key]=(anchorAngles_Obj[key]+3.141592653589793)+3.141592653589793;}
       });
 
-      var keysSorted = Object.keys(anchorAngles_Obj).sort(function(a,b){return anchorAngles_Obj[a]-anchorAngles_Obj[b]})
+      var keysSorted = Object.keys(anchorAngles_Obj).sort(function(a,b){return anchorAngles_Obj[a]-anchorAngles_Obj[b];});
 
       var temp = this.state.anchorAngles.slice();
       for (let i = 0; i < this.state.nDims; ++i){
@@ -350,19 +350,19 @@ class RadViz extends Component {
 
           anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
 
-          key={i} style={{cursor:'hand', stroke:(this.state.selected[i]?'black':'black'), fill:(selectedAnchors[this.state.dimNames[i]]?'#4c997f':'black'), strokeWidth:(selectedAnchors[this.state.dimNames[i]]?2:'none'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
+          key={i} style={{cursor:'hand', stroke:(selectedAnchors[this.state.dimNames[i]]?'black':'none'), fill:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?'black':'#9c9c9c'), strokeWidth:(selectedAnchors[this.state.dimNames[i]]?1:'none'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
 
           let normalizedAngle = this.normalizeAngle(this.state.anchorAngles[i] + this.state.offsetAnchors);
-
+          let sizeText = (selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?'12':'11';
           if (Math.abs(normalizedAngle) < Math.PI/2){
             anchorText.push(
               <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-              <text textAnchor='start' x={0} y={0} onMouseDown={this.startDragAnchor(i)}  transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+              <text textAnchor='start' x={0} y={0} onMouseDown={this.startDragAnchor(i)}  fontSize={sizeText} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
               </g>);
             }else{
               anchorText.push(
                 <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                <text textAnchor='end' x={0} y={7} onMouseDown={this.startDragAnchor(i)} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+                <text textAnchor='end' x={0} y={7} onMouseDown={this.startDragAnchor(i)} fontSize={sizeText} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
                 </g>);
               }
             }
@@ -373,7 +373,7 @@ class RadViz extends Component {
             <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
             onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect} onDoubleClick = {this.unselectAllData} onClick={this.unselectAllData}  onKeyDown={this.handleKeyDown}>
             <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
-            style={{stroke:'lightgray',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
+            style={{stroke:'#ececec',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
             {sampleDots}
             {this.svgPoly(this.selectionPoly)}
             {anchorText}
