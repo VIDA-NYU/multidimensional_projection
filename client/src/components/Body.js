@@ -35,6 +35,7 @@ import SnippetView from './SnippetView';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import RadViz from './RadViz';
 
+
 const styles = {
   block: {
     maxWidth: 250,
@@ -118,7 +119,7 @@ class Body extends Component {
         array_tags.map(function(x){
           if(x!=='neutral' && x!=='relevant' && x!=='irrelevant'){
             this.indexColor=array_tags.indexOf(x);
-            if(!this.tagsNames.hasOwnProperty(x)){ this.tagsNames[x] = colorToCustomTags(array_tags[this.indexColor])};
+            if(!this.tagsNames.hasOwnProperty(x)){ this.tagsNames[x] = colorToCustomTags(array_tags[this.indexColor]);};
           }
           else {
             if(!this.tagsNames.hasOwnProperty(x)){
@@ -505,7 +506,7 @@ componentWillReceiveProps(props){
       var originalData_aux = this.state.originalData;
       var pagesObjectFormat = this.setPagesToObjectFormat(selectedPoints_aux, originalData_aux);
       var legend = Object.keys(this.tagsNames).map((k, index)=>{
-        return <li style={{color:this.tagsNames[k], textTransform: 'capitalize', fontWeight: 'bold', float: 'left', margin:15}}> {k} </li>
+        return <li style={{color:this.tagsNames[k], textTransform: 'capitalize', fontWeight: 'bold', float: 'left', margin:15}}> {k} </li>;
       });
 
       return(

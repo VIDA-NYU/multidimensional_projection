@@ -22,7 +22,7 @@ class WordCloud extends Component {
        }
     }
     if((!(nextProps.selectedPoints.includes(true)) && !(this.state.selectedPoints.includes(true))) && nextProps.originalData === this.state.originalDataW)
-      return false;
+      {return false;}
     return true;
   }
 
