@@ -3,7 +3,7 @@ import {Tabs, Tab} from 'material-ui/Tabs';
 import SwipeableViews from 'react-swipeable-views';
 import Checkbox from 'material-ui/Checkbox';
 
-import {csv} from 'd3-request'
+import {csv} from 'd3-request';
 
 import Highlighter from 'react-highlight-words';
 
@@ -13,11 +13,7 @@ import Avatar from 'material-ui/Avatar';
 import ActionAssignment from 'material-ui/svg-icons/action/assignment';
 import CircularProgress from 'material-ui/CircularProgress';
 import Chip from 'material-ui/Chip';
-import Qicon from '../images/qicon.png';
-import Ticon from '../images/ticon.png';
-import Dicon from '../images/dicon.png';
-import NoFoundImg from '../images/images_not_available.png';
-import Searchicon from '../images/search_icon.png';
+import NoFoundImg from './images_not_available.png';
 import RelevantFace from 'material-ui/svg-icons/action/thumb-up';
 import IrrelevantFace from 'material-ui/svg-icons/action/thumb-down';
 import NeutralFace from 'material-ui/svg-icons/action/thumbs-up-down';
@@ -28,7 +24,7 @@ import RaisedButton from 'material-ui/RaisedButton';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
 //import RadViz from './RadViz.js';
-import '../css/Views.css';
+//import './Views.css';
 
 //const recentsIcon = <RelevantFace />;
 //const favoritesIcon = <IrrelevantFace />;
@@ -144,8 +140,8 @@ class ViewTabSnippets extends React.Component{
       if (event.keyCode === 91 || event.keyCode === 93 || event.keyCode ===17) {//91 and 93 are command keys.
         this.currentUrls = [];
         this.check_click_down=false;
-        if(this.state.click_flag && this.multipleSelectionPages.length>0)
-          this.handleOpenMultipleSelection();
+        if(this.state.click_flag && this.multipleSelectionPages.length>0){
+          this.handleOpenMultipleSelection();}
         this.forceUpdate();
         this.currentUrls = this.multipleSelectionPages;
         this.customTagPages = this.multipleSelectionPages;
@@ -185,8 +181,8 @@ class ViewTabSnippets extends React.Component{
     var currentString = '';
     var anyFilter = false;
     this.state.session['selected_tags'].split(',').forEach(function(tag) {
-      if(tag !== currentTag && tag !== '')
-      currentString = currentString + tag + ',';
+      if(tag !== currentTag && tag !== ''){
+      currentString = currentString + tag + ',';}
     });
     if(currentString !== '') return currentString.substring(0, currentString.length-1);
     return currentString;
@@ -320,8 +316,8 @@ class ViewTabSnippets extends React.Component{
           totalTagRemoved++;
           delete updatedPages[url];
           this.props.updateTotalUrlsPerPage(this.state.lengthTotalPages - totalTagRemoved);
-          if(Object.keys(updatedPages).length===0)
-            this.updateUrlsIntoPage(this.state.currentPagination);
+          if(Object.keys(updatedPages).length===0){
+            this.updateUrlsIntoPage(this.state.currentPagination);}
         }
     }
     this.setState({ pages:updatedPages, lengthTotalPages: this.state.lengthTotalPages - totalTagRemoved});
@@ -357,8 +353,8 @@ class ViewTabSnippets extends React.Component{
       var updatedPages = this.removeTags(arrayInputURL, tag);
     }
     if(this.state.checkedSelectAllPages){
-      if(tag==='Neutral')
-      this.setAllPagesTag_ElasticSearch(arrayInputURL, tag, false );
+      if(tag==='Neutral'){
+      this.setAllPagesTag_ElasticSearch(arrayInputURL, tag, false );}
       else {
         this.setAllPagesTag_ElasticSearch(arrayInputURL, tag, true );
       }
@@ -445,8 +441,8 @@ class ViewTabSnippets extends React.Component{
         this.setState({ pages:updatedPages, lengthTotalPages: this.state.lengthTotalPages - 1});
         delete updatedPages[url];
         this.props.updateTotalUrlsPerPage(this.state.lengthTotalPages - 1);
-        if(Object.keys(updatedPages).length===0)
-          this.updateUrlsIntoPage(this.state.currentPagination);
+        if(Object.keys(updatedPages).length===0){
+          this.updateUrlsIntoPage(this.state.currentPagination);}
       }
 
       //  setTimeout(function(){ $(nameIdButton).css('background-color','silver'); }, 500);
@@ -455,8 +451,8 @@ class ViewTabSnippets extends React.Component{
 
     }
     else{
-      if(updatedPages[url]['tags'].indexOf(tag) !== -1)
-        updatedPages[url]['tags'].splice(updatedPages[url]['tags'].indexOf(tag), 1);
+      if(updatedPages[url]['tags'].indexOf(tag) !== -1){
+        updatedPages[url]['tags'].splice(updatedPages[url]['tags'].indexOf(tag), 1);}
       this.setState({ pages:updatedPages});
       this.removeAddTagElasticSearch(urls, tag, applyTagFlag );//Remove tag
 
@@ -466,8 +462,8 @@ class ViewTabSnippets extends React.Component{
   }
 
   getTag(k){
-    if((this.state.pages[k]['tags'][Object.keys(this.state.pages[k]['tags']).length-1]) !== undefined)
-    var uniqueTag = (Object.keys(this.state.pages[k]['tags']).length > 0) ? (this.state.pages[k]['tags']).toString():(this.state.pages[k]['tags'][Object.keys(this.state.pages[k]['tags']).length-1]).toString();
+    if((this.state.pages[k]['tags'][Object.keys(this.state.pages[k]['tags']).length-1]) !== undefined){
+    var uniqueTag = (Object.keys(this.state.pages[k]['tags']).length > 0) ? (this.state.pages[k]['tags']).toString():(this.state.pages[k]['tags'][Object.keys(this.state.pages[k]['tags']).length-1]).toString();}
     return uniqueTag;
 }
  renderCustomTag(data){
@@ -481,7 +477,7 @@ class ViewTabSnippets extends React.Component{
 }
 
 
- handleRequestDelete = (url,key) => {
+ handleRequestDelete(url,key){
   var current = [];
   current.push(url);
   var currentPages = this.state.pages;
@@ -511,11 +507,11 @@ class ViewTabSnippets extends React.Component{
 
     });
   }
-  handleOpenMultipleSelection = () => {
+  handleOpenMultipleSelection(){
     this.setState({openMultipleSelection: true});
   };
 
-  handleCloseMultipleSelection = () => {
+  handleCloseMultipleSelection(){
     this.setState({openMultipleSelection: false, change_color_urls:[], click_flag:false});
     this.check_click_down=false;
     this.forceUpdate();
@@ -527,16 +523,16 @@ class ViewTabSnippets extends React.Component{
     this.forceUpdate();
   };
   //Handling open/close 'load url' Dialog
-  handleConfirmTagAllPages = () => {
-    if(this.temp_value_TagAllPages !=='')
-      this.addCustomTag_permission(this.temp_inputURL_TagAllPages, this.temp_value_TagAllPages);
+  handleConfirmTagAllPages(){
+    if(this.temp_value_TagAllPages !==''){
+      this.addCustomTag_permission(this.temp_inputURL_TagAllPages, this.temp_value_TagAllPages);}
     else {
       this.onTagAllPages_permission(this.temp_inputTag_TagAllPages);
     }
     this.setState({openDialogTagAllPages: false});
     this.forceUpdate();
   };
-  handleCloseDialogTagAllPages  = () => {
+  handleCloseDialogTagAllPages(){
     this.temp_inputURL_TagAllPages=[];
     this.temp_value_TagAllPages = '';
     this.temp_inputTag_TagAllPages='';
@@ -545,8 +541,8 @@ class ViewTabSnippets extends React.Component{
   };
 
   addCustomTag_permission(inputURL, val) {
-    if(val.constructor !== Array)
-      val = [val];
+    if(val.constructor !== Array){
+      val = [val];}
     var check = false;
     if(((val || [])[0] || {}).value) {
       if(['Neutral', 'Irrelevant', 'Relevant'].indexOf(val[0].value) !== -1 ) {
@@ -600,26 +596,28 @@ class ViewTabSnippets extends React.Component{
     }
 
 
-  buildQueryString = (session) =>
-    [
+  buildQueryString(session){
+    return [
       stopWordFilter(session.filter || ''),
       (session.selected_queries || '')
       .split(',')
       .filter(string => string.indexOf('BackLink_') === -1 && string.indexOf('ForwardLink_') === -1)
       .map(string => stopWordFilter(string)).join(',')
-    ].filter(string => string !== '').join(',')
+    ].filter(string => string !== '').join(',');
+  }
 
-  augmentURL = (url) =>
-    url +
+  augmentURL(url){
+    return url +
     (
       this.state.allSearchQueries !== ''
       ?
       (url.indexOf('?') === -1 ? '?' : '&') + 'highlighter=' + this.state.allSearchQueries
       :
       ''
-    )
+    );
+      }
 
-  crawlNextLevel = (type, urls) => (event) => {
+  crawlNextLevel(type, urls){
     $.post(
       '/get' + type + 'Links',
       {
@@ -633,9 +631,10 @@ class ViewTabSnippets extends React.Component{
       console.log('POST FAILED for ' + type + ' crawl with ERROR ' + error);
     });
 
-    if(this.state.click_flag)
-      this.handleCloseMultipleSelection();
+    if(this.state.click_flag){
+      this.handleCloseMultipleSelection();}
   }
+
 
   //Select all pages in all paginations
   updatingCheckSelectAllPages(){
@@ -654,11 +653,11 @@ class ViewTabSnippets extends React.Component{
     this.currentUrls=[];
     var relev_total = 0; var irrelev_total = 0; var neut_total = 0;
     var sorted_urlsList =  Object.keys(this.state.pages).map((k, index)=>{
-      return [k, this.state.pages[k]]
+      return [k, this.state.pages[k]];
     });
 
     sorted_urlsList.sort(function(first, second) {
-      return Number(first[1]['order']) - Number(second[1]['order'])
+      return Number(first[1]['order']) - Number(second[1]['order']);
     });
     var urlsList = sorted_urlsList.map((url_info, index)=>{
       var chip=[];
@@ -674,9 +673,9 @@ class ViewTabSnippets extends React.Component{
         if(uniqueTag==='Irrelevant')irrelev_total++;
         if(uniqueTag==='Neutral')neut_total++;
         var data = url_info[1]['tags'].filter(function(tag){
-          return tag !== 'Relevant' && tag !== 'Irrelevant' && tag !== 'Neutral'
+          return tag !== 'Relevant' && tag !== 'Irrelevant' && tag !== 'Neutral';
         }).map((tag, index)=>{
-          return {'key':index, 'label':tag, 'url':url_info[0]}
+          return {'key':index, 'label':tag, 'url':url_info[0]};
         });
         chip =data.map(this.renderCustomTag.bind(this));
       } else {
@@ -727,10 +726,22 @@ class ViewTabSnippets extends React.Component{
                   <img src={imageUrl} onError={(ev) => { ev.target.src = NoFoundImg;}} style={{width:'45px',height:'45px', marginRight:'3px',}}/>
                 </div>
                 <div style={{width: this.props.width_divSnippet}}>
-                  <a target='_blank' href={this.augmentURL(url_info[0])} className='url-title-link' >
+                  <a target='_blank' href={this.augmentURL(url_info[0])} style={{height: 20,
+                  fontSize: 17,
+                  color: '#1a0dab',
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  display: 'block'}} >
                     <Highlighter searchWords={this.state.allSearchQueries.split(',')} textToHighlight={tittleUrl}/>
                   </a>
-                  <a target='_blank' href={this.augmentURL(url_info[0])} className='url-link'>
+                  <a target='_blank' href={this.augmentURL(url_info[0])} style={{  fontSize: 13,
+                    color: '#006621',
+                    marginBottom: 4,
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    display: 'block'}}>
                     {urlLink}
                   </a>
                   <p style={{fontSize:'13px', color:'#545454'}}>
@@ -772,10 +783,10 @@ class ViewTabSnippets extends React.Component{
                     </div>
 
           <div>
-            <Button onClick={this.crawlNextLevel('Backward', [url_info[0]])} style={{width: '60px', height: '37px', fontSize: '9px', padding:0}} >
+            <Button onClick={this.crawlNextLevel.bind(this,'Backward', [url_info[0]])} style={{width: '60px', height: '37px', fontSize: '9px', padding:0}} >
             BACKWARD<br/>LINKS
             </Button>
-            <Button onClick={this.crawlNextLevel('Forward', [url_info[0]])} style={{width: '59px', height: '37px', fontSize: '9px', padding:0}}>
+            <Button onClick={this.crawlNextLevel.bind(this,'Forward', [url_info[0]])} style={{width: '59px', height: '37px', fontSize: '9px', padding:0}}>
             FORWARD<br/>LINKS
             </Button>
           </div>
@@ -817,14 +828,14 @@ class ViewTabSnippets extends React.Component{
       <div style={{width: '30%', display: 'flex', justifyContent: 'space-around'}}>
       <Button
       style={{width: '90px', height: '36px', fontSize: '10px', fontColor: '#FFFFFF', backgroundColor: '#BDBDBD', marginRight: '4px', paddingTop: '3px'}}
-      onClick={this.crawlNextLevel('Backward', null)}
+      onClick={this.crawlNextLevel.bind(this,'Backward', null)}
       >
       BACKWARD<br/>LINKS
       </Button>
 
       <Button
       style={{width: '90px', height: '36px', fontSize: '10px', fontColor: '#FFFFFF', backgroundColor: '#BDBDBD', paddingTop: '3px'}}
-      onClick={this.crawlNextLevel('Forward', null)}
+      onClick={this.crawlNextLevel.bind(this,'Forward', null)}
       >
       FORWARD<br/>LINKS
       </Button>
@@ -867,7 +878,23 @@ class ViewTabSnippets extends React.Component{
       activeClassName={'active'} /> */}
       <div style={{display: 'flex', alignItems: 'center', float:'right', fontSize: '12px', fontWeight: '500', paddingRight: '20px', marginTop: '-10px', marginRight:'-5px'}}>
       <div style={{display: 'inline', fontSize: '12px', marginRight: '30px', marginLeft: '-20px' }}>
-      <div style={{textAlign: 'center', verticalAlign: 'middle', lineHeight: '30px', marginRight: 0, marginLeft:0 }} className='arrow'>Tag All</div>
+      <div style={{textAlign: 'center', verticalAlign: 'middle', lineHeight: '30px', marginRight: 0, marginLeft:0,   display: 'inline-block',
+        height: 30,
+        position: 'relative',
+        lineHeight: '2.5em',
+        paddingLeft: 9,
+        paddingRight: 3,
+        background: '#f0efef',
+        color: '#383636' }}>
+        <div style={{content: '',
+        borderLeft: '20px solid #f0efef',
+        position: 'absolute',
+        borderBottom: '15px solid transparent',
+        borderTop: '15px solid transparent',
+        height: 0,
+        width: 0,
+        marginRight: '-20px',
+        right: 0}}></div>Tag All</div>
       </div>
       <div style={{float:'right',width:this.props.width_TagAllCustomTag, marginRight: '5px'}}>
       <Select.Creatable
@@ -883,11 +910,11 @@ class ViewTabSnippets extends React.Component{
         <RaisedButton labelPosition='before'  backgroundColor={'#BDBDBD'} style={{marginRight:4,minWidth: this.props.minWidth_TagAllTagButton}} labelStyle={{textTransform: 'capitalize'}} icon={<NeutralFace  color={'#FAFAFA'}/>} onClick={this.onTagAllPages.bind(this,'Neutral')}/>
 
         <Button style={{width: this.props.width_TagAllBFLinkButton, height: '38px', fontSize: this.props.fontSize_TagAllBFLinkButton, fontColor: '#FFFFFF', backgroundColor: '#BDBDBD', marginRight: '4px'}}
-        onClick={this.crawlNextLevel('Backward', this.state.currentUrls)}>
+        onClick={this.crawlNextLevel.bind(this,'Backward', this.state.currentUrls)}>
         BACKWARD<br/>LINKS
         </Button>
         <Button style={{width: this.props.width_TagAllBFLinkButton, height: '38px', fontSize: this.props.fontSize_TagAllBFLinkButton, fontColor: '#FFFFFF', backgroundColor: '#BDBDBD'}}
-        onClick={this.crawlNextLevel('Forward', this.state.currentUrls)}>
+        onClick={this.crawlNextLevel.bind(this,'Forward', this.state.currentUrls)}>
         FORWARD<br/>LINKS
         </Button>
       </div>
