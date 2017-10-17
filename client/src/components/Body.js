@@ -465,6 +465,9 @@ componentWillReceiveProps(props){
   reloadFilters(){
     this.props.reloadFilters();
   };
+  updateOnlineAccuracy(accuracy){
+    this.props.updateOnlineAccuracy(accuracy);
+  };
 
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
@@ -564,10 +567,8 @@ componentWillReceiveProps(props){
             </div>
             </Row>
             <Row className='Menus-child'>
-              <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray',marginRight:'-50px'}}>
-                <p style={{color:'silver', marginLeft:'10px'}}>Selected pages: <span style={{color:'black'}}>{nroSelectedUrls}</span></p>
-              </div>
-              <SnippetView pages={pagesObjectFormat} session={this.state.sessionBody}  internalUpdating={false} tagFromSnippets={this.tagFromSnippets.bind(this)} reloadFilters={this.reloadFilters.bind(this)} />
+
+              <SnippetView pages={pagesObjectFormat} session={this.state.sessionBody}  internalUpdating={false} tagFromSnippets={this.tagFromSnippets.bind(this)} reloadFilters={this.reloadFilters.bind(this)} updateOnlineAccuracy={this.updateOnlineAccuracy.bind(this)} nroSelectedUrls={nroSelectedUrls}/>
             </Row>
           </Col>
           </Grid>

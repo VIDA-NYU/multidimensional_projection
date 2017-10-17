@@ -82,11 +82,13 @@ class ViewTabSnippets extends React.Component{
       click_flag: false,
       change_color_urls:[],
       checkedSelectAllPages: false,
-      openDialogTagAllPages:false
+      openDialogTagAllPages:false,
+      nroSelectedUrls:0
 
     };
     this.state.allSearchQueries = this.buildQueryString(this.props.session);
     this.updatingCheckSelectAllPages = this.updatingCheckSelectAllPages.bind(this);
+    this.handleCloseMultipleSelection = this.handleCloseMultipleSelection.bind(this);
     this.perPage=12; //default 12
     this.currentUrls=[];
     this.customTagValue='';
@@ -122,7 +124,7 @@ class ViewTabSnippets extends React.Component{
   componentWillMount(){
     this.getAvailableTags();
     this.setState({
-        session:this.props.session, sessionString: JSON.stringify(this.props.session), pages:this.props.pages, currentPagination:0, offset:0, lengthPages:Object.keys(this.props.pages).length, lengthTotalPages:this.props.lengthTotalPages,
+        session:this.props.session, sessionString: JSON.stringify(this.props.session), pages:this.props.pages, currentPagination:0, offset:0, lengthPages:Object.keys(this.props.pages).length, lengthTotalPages:this.props.lengthTotalPages, nroSelectedUrls:this.props.nroSelectedUrls
         //session:this.props.session, sessionString: JSON.stringify(this.props.session), pages:this.props.pages, currentPagination:this.props.currentPagination, offset:this.props.offset, lengthPages:this.props.lengthPages, lengthTotalPages:this.props.lengthTotalPages,
     });
     this.updateOnlineClassifier(this.props.session);
@@ -162,8 +164,10 @@ class ViewTabSnippets extends React.Component{
         lengthTotalPages: nextProps.lengthTotalPages,
         currentPagination: nextProps.currentPagination,
         offset: nextProps.offset,
-        allSearchQueries: this.buildQueryString(nextProps.session)
+        allSearchQueries: this.buildQueryString(nextProps.session),
+        nroSelectedUrls:nextProps.nroSelectedUrls
       });
+      this.updateOnlineClassifier(nextProps.session);
   //  }
     return;
 
@@ -188,27 +192,32 @@ class ViewTabSnippets extends React.Component{
     return currentString;
   }
 
-  updateOnlineClassifier(sessionTemp){
+  updateOnlineClassifier(tempSession){
+    var sessionTemp = JSON.parse(JSON.stringify(tempSession));
+    sessionTemp['from']=0;
+    sessionTemp['pagesCap']='100';
     $.post(
     	'/updateOnlineClassifier',
     	{'session':  JSON.stringify(sessionTemp)},
     	function(accuracy) {
         if(accuracy>0 && this.disableCrawlerButton){
           this.disableCrawlerButton=false;
-          this.props.availableCrawlerButton(false); // disable
+          //this.props.availableCrawlerButton(false); // disable
         }
         if(accuracy===0){
           this.disableCrawlerButton=true;
-          this.props.availableCrawlerButton(true); // disable
+          //this.props.availableCrawlerButton(true); // disable
         }
         //Updates the showed accuracy on the interface only if the different between the new and the previous accuracy is enough significant.
         if(accuracy >=this.state.accuracyOnlineLearning+2 || accuracy <=this.state.accuracyOnlineLearning-2){
           //updateing filters modelTags
-          this.props.reloadFilters();
           this.setState({
               accuracyOnlineLearning:accuracy,
           });
+          this.forceUpdate();
+          this.props.reloadFilters();
 	        this.updateOnlineAccuracy(accuracy);
+
         }
 
     	}.bind(this)
@@ -859,8 +868,12 @@ class ViewTabSnippets extends React.Component{
     ];
 
     return (
+      <div>
+      <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray',marginRight:'-50px', paddingTop: 5}}>
+        <p style={{float:"left", color: "#757575", fontSize: "13px", fontWeight: "500", marginLeft:'10px',}}> Selected pages: <span style={{color:'black'}}>{this.state.nroSelectedUrls}</span> </p>
+        <p style={{float:"right", color: "#757575", fontSize: "13px", fontWeight: "500", marginRight: "11px",}}>  Domain Model Accuracy: {this.state.accuracyOnlineLearning} % </p>
+      </div>
       <div  style={{width:this.props.width_areaSnippet}}>
-      <p style={{color: '#FFFFFF',}}>-</p>
       <div style={{  marginLeft:'23px'}} >
       {/*<ReactPaginate
       previousLabel={'previous'}
@@ -876,7 +889,7 @@ class ViewTabSnippets extends React.Component{
       containerClassName={'pagination'}
       subContainerClassName={'pages pagination'}
       activeClassName={'active'} /> */}
-      <div style={{display: 'flex', alignItems: 'center', float:'right', fontSize: '12px', fontWeight: '500', paddingRight: '20px', marginTop: '-10px', marginRight:'-5px'}}>
+      <div style={{display: 'flex', alignItems: 'center', float:'right', fontSize: '12px', fontWeight: '500', paddingRight: '20px', marginTop: '-7px', marginRight:'-5px'}}>
       <div style={{display: 'inline', fontSize: '12px', marginRight: '30px', marginLeft: '-20px' }}>
       <div style={{textAlign: 'center', verticalAlign: 'middle', lineHeight: '30px', marginRight: 0, marginLeft:0,   display: 'inline-block',
         height: 30,
@@ -918,7 +931,7 @@ class ViewTabSnippets extends React.Component{
         FORWARD<br/>LINKS
         </Button>
       </div>
-      <div style={{marginLeft:'0px', marginTop:'-25px', width:300, height:20}} />
+      <div style={{marginLeft:'0px', marginTop:'30px', width:300, height:20}} />
       {/*<Checkbox
       label={'Select ALL results in '+ceil_currentPageCount + ' paginations'}
       checked={this.state.checkedSelectAllPages}
@@ -962,6 +975,7 @@ class ViewTabSnippets extends React.Component{
       >
       Are you sure that you want to tag ALL {this.state.lengthTotalPages} results in {ceil_currentPageCount} paginations?.
       </Dialog>
+      </div>
       </div>
     );
   }
