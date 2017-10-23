@@ -62,6 +62,8 @@ class Body extends Component {
      urls:undefined,
      searchText:'',
      selectedSearchText:[],
+     searchText_FindAnchor:'',
+     selectedSearchText_FindAnchor:[],
      dimNames:[],
      'sigmoidScale':1,
      'sigmoidTranslate':0,
@@ -69,13 +71,14 @@ class Body extends Component {
      sessionBody: this.props.session,
      checkSigmoid:false,
      checkProjection:false,
-     searchText: '',
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
+   this.updateOnSelection_FindAnchor = this.updateOnSelection_FindAnchor.bind(this);
    this.updateSigmoidScale = this.updateSigmoidScale.bind(this);
    this.updateSigmoidTranslate = this.updateSigmoidTranslate.bind(this);
    this.handleUpdateInput = this.handleUpdateInput.bind(this);
+   this.handleUpdateInput_FindAnchor = this.handleUpdateInput_FindAnchor.bind(this);
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
    this.colorDefault= [ '#ff7f0e', '#2ca02c', '#17becf', '#b27eac', '#9467bd', '#8c564b', '#e377c2', '#98bd22', '#bcbd22' ];
@@ -169,6 +172,14 @@ class Body extends Component {
     	}
     	this.updateColorsTags(this.state.dimNames.indexOf(event));
   }
+//Handling change of dimensions into 'Find Keyword' DropDown.
+  updateOnSelection_FindAnchor(event, index, value){
+      this.setState({
+        searchText_FindAnchor: this.state.dimNames[index],
+      });
+      this.forceUpdate();
+   }
+
 
   updateSigmoidScale(s){
       this.setState({'sigmoidScale':s});
@@ -441,6 +452,11 @@ componentWillReceiveProps(props){
         searchText: searchText,
       });
     };
+  handleUpdateInput_FindAnchor(searchText_FindAnchor){
+      this.setState({
+        searchText_FindAnchor: searchText_FindAnchor,
+      });
+    };
 
     handleNewRequest(){
       this.setState({
@@ -474,10 +490,12 @@ componentWillReceiveProps(props){
     {
       var dimensions=[];
       var values=[];
+      var values_FindAnchor=[];
       this.state.dimNames.forEach(function (attribute,idx) {
           var dim = {id: idx,name: attribute,attribute: attribute,available: true,group: false,pos: 0,weight: 1}; //addDimension( id : number, name_circle: small name, name_attribute: complete name)
           dimensions.push(dim);
           values.push(attribute);
+          values_FindAnchor.push(attribute);
       });
       let selectedUrls = []; selectedUrls.push(<p></p>);
       let nroSelectedUrls = 0;
@@ -506,6 +524,17 @@ componentWillReceiveProps(props){
           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
           openOnFocus={true}
           />;
+      let find_anchor =
+           <AutoComplete
+           floatingLabelText='Find Keyword'
+           textFieldStyle={{width:'70%'}}
+           searchText={this.state.searchText_FindAnchor}
+           onUpdateInput={this.handleUpdateInput_FindAnchor}
+           onNewRequest={this.updateOnSelection_FindAnchor}
+           dataSource={values_FindAnchor}
+           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
+           openOnFocus={true}
+           />;
 
       //Setting pages to object format:
       var selectedPoints_aux = this.state.selectedPoints;
@@ -529,7 +558,8 @@ componentWillReceiveProps(props){
               {sigmoid}
             </ToolbarGroup>
             <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px'}}>
-              {projection_labels}
+              {/*{projection_labels}*/}
+              {find_anchor}
             </ToolbarGroup>
           </Toolbar>
             </div>
@@ -555,7 +585,7 @@ componentWillReceiveProps(props){
             {linkBackOriginalData}
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
-            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}/>
+            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]} searchText_FindAnchor={this.state.searchText_FindAnchor}/>
             <ul style={{listStyleType: 'inside'}}>{legend}</ul>
             </Row>
           </Col>
