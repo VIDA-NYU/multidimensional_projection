@@ -79,6 +79,7 @@ class Domain extends Component {
                   aux[dimNames[j]] = parseFloat(data[dimNames[j]][i]);
               }
               numericalData.push(aux);
+
           }
           dimNames.push('Model Result');
           $.post(

@@ -7,7 +7,7 @@ class RadViz extends Component {
 
     constructor(props){
         super(props);
-        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], "data": undefined,'nDims': 0 };
+        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], "data": undefined,'nDims': 0,'pagesCap':this.props.pagesCap,};
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.arrangeanchors = this.arrangeanchors.bind(this);
@@ -131,7 +131,12 @@ class RadViz extends Component {
     radvizMapping(data, anchors){
       	this.currentMapping = [];
           let ret = [];
-          for (let i = 0; i < data.length; ++i){
+          var length = data.length;
+          console.log(this.props.pagesCap)
+          if(this.props.pagesCap!= undefined && this.props.pagesCap < length && this.props.pagesCap > 0 && this.props.pagesCap<501){
+            length = this.props.pagesCap;
+          }
+          for (let i = 0; i < length; ++i){
             let p = [0,0];
             for (let j = 0; j < anchors.length;++j){
                 let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);

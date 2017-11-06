@@ -34,6 +34,9 @@ import WordCloud from './WordCloud';
 import Snippets from './Snippets';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import RadViz from './RadViz';
+import RaisedButton from 'material-ui/RaisedButton';
+import Popover from 'material-ui/Popover';
+import Menu from 'material-ui/Menu';
 const styles = {
   block: {
     maxWidth: 250,
@@ -67,7 +70,9 @@ class Body extends Component {
      sessionBody: this.createSession(this.props.currentDomain),
      checkSigmoid:false,
      checkProjection:false,
-     searchText: '',
+     searchPage:'',
+     open:false,
+     pagesCap:0,
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
@@ -84,6 +89,7 @@ class Body extends Component {
 
  showingData(event, value){
   this.setState({showedData:value,});
+  console.log(this.state.showedData)
  }
 
  setSelectedPoints(selected){
@@ -384,13 +390,25 @@ componentWillReceiveProps(props){
         searchText: searchText,
       });
     };
-
+    handlepageInput(pagevalue){
+      this.setState({
+      pagesCap: pagevalue
+      })
+      console.log(this.state.pagesCap)
+    }
     handleNewRequest(){
       this.setState({
         searchText: '',
       });
     };
 
+
+
+ handleRequestClose = () => {
+   this.setState({
+     open: false,
+   });
+ };
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
     {
@@ -401,6 +419,23 @@ componentWillReceiveProps(props){
           dimensions.push(dim);
           values.push(attribute);
       });
+      var length = this.state.data.length
+      var pages=[];
+      if(length<100){
+        pages.push(length)
+      }
+      else{
+        for(var i=1;i<length/100;i++){
+          pages.push((i*100).toString())
+
+        }
+      }
+
+  //    pages.push("50");
+  //    pages.push("100");
+  //    pages.push("200");
+  //    pages.push("500");
+
       let selectedUrls = []; selectedUrls.push(<p></p>);
       let nroSelectedUrls = 0;
       if(this.state.selectedPoints.includes(true)) {selectedUrls = this.showingUrls(); nroSelectedUrls =selectedUrls.length; }
@@ -428,6 +463,38 @@ componentWillReceiveProps(props){
           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
           openOnFocus={true}
           />;
+      let pagesFeild=
+      <AutoComplete
+      floatingLabelText='Pages'
+      searchText={this.state.searchText}
+      textFieldStyle={{width:'20%'}}
+      onUpdateInput={this.handlepageInput.bind(this)}
+      onNewRequest={this.handleNewRequest.bind(this)}
+      filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
+      dataSource={pages}
+      openOnFocus={true}
+      />;
+    /*  <div>
+      <RaisedButton
+       onClick={this.handleTouchTap}
+       label="Pages"
+       style={{width:'20px'}}
+     />
+     <Popover
+       open={this.state.open}
+       anchorEl={this.state.anchorEl}
+       anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+       targetOrigin={{horizontal: 'left', vertical: 'top'}}
+       onRequestClose={this.handleRequestClose}
+     >
+       <Menu onItemTouchTap={this.onItemTouchTap.bind(this)}>
+         <MenuItem primaryText="50" value={50} />
+         <MenuItem primaryText="100" value={100} />
+         <MenuItem primaryText="200" value={200}/>
+         <MenuItem primaryText="500" value={500} />
+       </Menu>
+     </Popover>
+     </div>;*/
       return(
         <div>
         <Grid>
@@ -443,6 +510,9 @@ componentWillReceiveProps(props){
             </ToolbarGroup>
             <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px'}}>
               {projection_labels}
+            </ToolbarGroup>
+            <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px'}}>
+              {pagesFeild}
             </ToolbarGroup>
           </Toolbar>
             </div>
@@ -466,7 +536,7 @@ componentWillReceiveProps(props){
             </ButtonGroup>
             </div>
             {linkBackOriginalData}
-            <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
+            <RadViz data={this.state.data} colors={this.state.colors} pagesCap={this.state.pagesCap} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}/>
             </Row>
