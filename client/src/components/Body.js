@@ -463,8 +463,6 @@ componentWillReceiveProps(props){
       this.setState({
       pagesCap: pagevalue
       })
-
-      console.log(this.state.pagesCap)
     }
   handleUpdateInput_FindAnchor(searchText_FindAnchor){
       this.setState({
@@ -472,11 +470,7 @@ componentWillReceiveProps(props){
       });
     };
 
-    handleNewRequest(){
-      this.setState({
-        searchText: '',
-      });
-    };
+
 
 
 
@@ -561,8 +555,7 @@ componentWillReceiveProps(props){
           floatingLabelText='Pages'
           searchText={this.state.searchText}
           textFieldStyle={{width:'20%'}}
-          onUpdateInput={this.handlepageInput.bind(this)}
-          onNewRequest={this.handleNewRequest.bind(this)}
+          onNewRequest={this.handlepageInput.bind(this)}
           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
           dataSource={pages}
           openOnFocus={true}
