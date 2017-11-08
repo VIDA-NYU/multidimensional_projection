@@ -133,7 +133,6 @@ class RadViz extends Component {
       	this.currentMapping = [];
           let ret = [];
           var length = data.length;
-          console.log(this.props.pagesCap)
           if(this.props.pagesCap!= undefined && this.props.pagesCap < length && this.props.pagesCap > 0 && this.props.pagesCap<501){
             length = this.props.pagesCap;
           }
@@ -163,7 +162,11 @@ class RadViz extends Component {
     setSelectedAnchors(data){
           let selectedAnchors = [];
           for (let j = 0; j < this.state.dimNames.length;++j){
-            for (let i = 0; i < data.length; ++i){
+            var length = data.length;
+            if(this.props.pagesCap!= undefined && this.props.pagesCap < length && this.props.pagesCap > 0 && this.props.pagesCap<501){
+              length = this.props.pagesCap;
+            }
+            for (let i = 0; i < length; ++i){
                 if(data[i][j]>0 && this.state.selected[i] ){
                   selectedAnchors[this.state.dimNames[j]]=true; break;
                 }
@@ -177,7 +180,11 @@ class RadViz extends Component {
     	if (this.state.draggingSelection){
             if (this.selectionPoly.length > 0){
         		let selected = [];
-        		for (let i = 0; i < this.props.data.length; ++i){
+            var length = this.props.data.length;
+            if(this.props.pagesCap!= undefined && this.props.pagesCap < length && this.props.pagesCap > 0 && this.props.pagesCap<501){
+              length = this.props.pagesCap;
+            }
+        		for (let i = 0; i < length; ++i){
               var tempSelected = this.pointInPolygon(this.currentMapping[i], this.selectionPoly);
               if(this.props.projection == 'Model Result'){
                 if(this.props.modelResult[i]!=='trainData'){
@@ -291,7 +298,11 @@ class RadViz extends Component {
 
     unselectAllData(e){
       let selected = [];
-      for (let i = 0; i < this.props.data.length; ++i){
+      var length = this.props.data.length;
+      if(this.props.pagesCap!= undefined && this.props.pagesCap < length && this.props.pagesCap > 0 && this.props.pagesCap<501){
+        length = this.props.pagesCap;
+      }
+      for (let i = 0; i < length; ++i){
         selected.push(false);
       }
       this.setState({'draggingSelection':false, 'selected':selected});
