@@ -7,7 +7,7 @@ class RadViz extends Component {
 
     constructor(props){
         super(props);
-        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':''};
+        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0 };
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
@@ -18,8 +18,10 @@ class RadViz extends Component {
         this.pointInPolygon = this.pointInPolygon.bind(this);
         this.startDragAnchorGroup = this.startDragAnchorGroup.bind(this);
         this.sortDimensions = this.sortDimensions.bind(this);
+        this.setSelectedAnchors = this.setSelectedAnchors.bind(this);
         this.startanchorAngles = 0;
         this.currentUpdatedAngle=0;
+        this.selectedAnchors=[];
     }
     componentWillMount(){
       window.addEventListener('keydown', this.handleKeyDown);//esc key to unselect all data.
@@ -88,7 +90,7 @@ class RadViz extends Component {
           this.scaleX = scaleLinear().domain([-1,1]).range([props.marginX/2, props.width-props.marginX/2]);
           this.scaleY = scaleLinear().domain([-1,1]).range([props.marginY/2, props.height - props.marginY/2]);
           let newState = {'normalizedData':normalizedData, 'dimNames':dimNames, 'nDims':nDims,
-                          'denominators':denominators, 'offsetAnchors':0, 'sigmoid_scale':props.sigmoid_scale, 'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor};
+                          'denominators':denominators, 'offsetAnchors':0, 'sigmoid_scale':props.sigmoid_scale, 'sigmoid_translate':props.sigmoid_translate};
 
           if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
           if(!(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0))){
@@ -165,6 +167,22 @@ class RadViz extends Component {
                 else selectedAnchors[this.state.dimNames[j]]=false;
             }
           }
+          //console.log(selectedAnchors);
+          this.selectedAnchors=selectedAnchors;
+          return selectedAnchors;
+    }
+    setSelectedAnchorsAux(data, selected){
+          let selectedAnchors = [];
+          for (let j = 0; j < this.state.dimNames.length;++j){
+            for (let i = 0; i < data.length; ++i){
+                if(data[i][j]>0 && selected[i] ){
+                  selectedAnchors[this.state.dimNames[j]]=true; break;
+                }
+                else selectedAnchors[this.state.dimNames[j]]=false;
+            }
+          }
+          //console.log(selectedAnchors);
+          this.selectedAnchors=selectedAnchors;
           return selectedAnchors;
     }
 
@@ -189,6 +207,8 @@ class RadViz extends Component {
         		this.setState({'draggingSelection':false, 'selected':selected});
         		this.props.callbackSelection(selected);
             this.props.setSelectedPoints(selected);
+            var selectedAnchors = this.setSelectedAnchorsAux(this.state.normalizedData, selected);
+            this.props.setSelectedAnchorsRadViz(selectedAnchors);
             }
 
     	}
@@ -291,6 +311,7 @@ class RadViz extends Component {
       }
       this.setState({'draggingSelection':false, 'selected':selected});
       this.props.setSelectedPoints(selected);
+      //this.props.setSelectedAnchorsRadViz([]);
     }
     handleKeyDown(e){
       if (e.keyCode === 27){
@@ -354,17 +375,15 @@ class RadViz extends Component {
 
           let normalizedAngle = this.normalizeAngle(this.state.anchorAngles[i] + this.state.offsetAnchors);
           let sizeText = (selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?'12':'11';
-          var colorText = (this.state.dimNames[i].toLowerCase() === this.state.searchText_FindAnchor.toLowerCase())?'#FFFF00':'#000000'; //(selectedAnchors[this.state.dimNames[i]]?'black':'black')
-          var strokeText = (this.state.dimNames[i].toLowerCase() === this.state.searchText_FindAnchor.toLowerCase())?'#0000ff':'None';
           if (Math.abs(normalizedAngle) < Math.PI/2){
             anchorText.push(
               <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-              <text textAnchor='start' x={0} y={0} onMouseDown={this.startDragAnchor(i)}  fontSize={sizeText} fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+              <text textAnchor='start' x={0} y={0} onMouseDown={this.startDragAnchor(i)}  fontSize={sizeText} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
               </g>);
             }else{
               anchorText.push(
                 <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                <text textAnchor='end' x={0} y={7} onMouseDown={this.startDragAnchor(i)} fontSize={sizeText}   fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+                <text textAnchor='end' x={0} y={7} onMouseDown={this.startDragAnchor(i)} fontSize={sizeText} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:(selectedAnchors[this.state.dimNames[i]]?'black':'black'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
                 </g>);
               }
             }
