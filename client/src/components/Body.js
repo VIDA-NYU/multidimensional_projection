@@ -31,12 +31,11 @@ import IconButton from 'material-ui/IconButton';
 import { ButtonGroup, Button, OverlayTrigger, Tooltip} from 'react-bootstrap';
 import SigmoidGraph from './SigmoidGraph';
 import WordCloud from './WordCloud';
-import Snippets from './Snippets';
+import SnippetView from './SnippetView';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import RadViz from './RadViz';
-import RaisedButton from 'material-ui/RaisedButton';
-import Popover from 'material-ui/Popover';
-import Menu from 'material-ui/Menu';
+
+
 const styles = {
   block: {
     maxWidth: 250,
@@ -63,11 +62,13 @@ class Body extends Component {
      urls:undefined,
      searchText:'',
      selectedSearchText:[],
+     searchText_FindAnchor:'',
+     selectedSearchText_FindAnchor:[],
      dimNames:[],
      'sigmoidScale':1,
      'sigmoidTranslate':0,
      accuracy: '0',
-     sessionBody: this.createSession(this.props.currentDomain),
+     sessionBody: this.props.session,
      checkSigmoid:false,
      checkProjection:false,
      searchPage:'',
@@ -76,13 +77,18 @@ class Body extends Component {
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
+   this.updateOnSelection_FindAnchor = this.updateOnSelection_FindAnchor.bind(this);
    this.updateSigmoidScale = this.updateSigmoidScale.bind(this);
    this.updateSigmoidTranslate = this.updateSigmoidTranslate.bind(this);
+   this.handleUpdateInput = this.handleUpdateInput.bind(this);
+   this.handleUpdateInput_FindAnchor = this.handleUpdateInput_FindAnchor.bind(this);
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
-   this.colorDefault= [ '#0D47A1', '#C62828', '#9E9E9E', '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
+   this.colorDefault= [ '#ff7f0e', '#2ca02c', '#17becf', '#b27eac', '#9467bd', '#8c564b', '#e377c2', '#98bd22', '#bcbd22' ];
    this.colorTags= [ '#9E9E9E', '#0D47A1', '#C62828', '#FFFFFF'];
+   this.tagsNames ={};
      this.fontSize='13px';
+   this.indexColor = -1;
 
 
  };
@@ -93,7 +99,8 @@ class Body extends Component {
  }
 
  setSelectedPoints(selected){
-    if(this.state.searchText.replace(/\s/g,'') === ''){var selectedSearchText = []; this.setState({selectedPoints:selected, selectedSearchText: selectedSearchText,});}
+    if(this.state.searchText.replace(/\s/g,'') === ''){var selectedSearchText = []; this.setState({selectedPoints:selected, selectedSearchText: selectedSearchText,});
+  }
     else this.setState({selectedPoints:selected, selectedSearchText: selected,});
  }
  showingUrls(){
@@ -106,15 +113,43 @@ class Body extends Component {
   return urls;
  }
 
+ setColorPoints(value, dimNames, temp_originalData){
+   var originalData =JSON.parse(JSON.stringify(temp_originalData));
+   var colorToCustomTags = scaleOrdinal(this.colorDefault);
+   let colors = [];
+   for (let i = 0; i < originalData[dimNames[0]].length; ++i){
+      var colorTag='';
+      if(dimNames[value]==='labels' || dimNames[value]==='Model Result' ){
+        var array_tags = originalData[dimNames[value]][i];
+        this.indexColor=-1;
+        array_tags = array_tags.map(function(x){ return x.toString().toLowerCase(); });
+        array_tags.map(function(x){
+          if(x!=='neutral' && x!=='relevant' && x!=='irrelevant'){
+            this.indexColor=array_tags.indexOf(x);
+            if(!this.tagsNames.hasOwnProperty(x)){ this.tagsNames[x] = colorToCustomTags(array_tags[this.indexColor]);};
+          }
+          else {
+            if(!this.tagsNames.hasOwnProperty(x)){
+              this.tagsNames[x] = (x==='relevant')? this.colorTags[1]: (x==='irrelevant')? this.colorTags[2]:this.colorTags[0];
+            }
+          }
+         }.bind(this));
+        colorTag = (this.indexColor!=-1)? colorToCustomTags(array_tags[this.indexColor]):(array_tags.includes('relevant'))? this.colorTags[1]: (array_tags.includes('irrelevant'))? this.colorTags[2]:(array_tags.includes('neutral'))? this.colorTags[0]:'';
+        this.indexColor=-1;
+      }
+      else {
+        var typeTag = originalData[dimNames[value]][i];
+        colorTag = (this.indexColor!=-1)? colorToCustomTags(typeTag):'';
+      }
+      colors.push(colorTag);
+   }
+   return colors;
+ }
+
  //Update colors based on tag or modelResult.
  updateColorsTags(value){
    let dimNames = Object.keys(this.state.originalData);
-   let colors = [];
-   for (let i = 0; i < this.state.originalData[dimNames[0]].length; ++i){
-      var typeTag = this.state.originalData[dimNames[value]][i];
-       var colorTag=(typeTag.toString().toLowerCase()=='neutral')? this.colorTags[0]: (typeTag.toString().toLowerCase()=='relevant')? this.colorTags[1]: (typeTag.toString().toLowerCase()=='irrelevant')? this.colorTags[2]: '';
-       colors.push(colorTag);
-   }
+   let colors = this.setColorPoints(value, dimNames, this.state.originalData);
    this.setState({value: value, colors:colors});
    this.forceUpdate();
  }
@@ -131,7 +166,7 @@ class Body extends Component {
        var colorTag=(typeTag.toString().toLowerCase()=='neutral')? this.colorTags[0]: (typeTag.toString().toLowerCase()=='relevant')? this.colorTags[1]: (typeTag.toString().toLowerCase()=='irrelevant')? this.colorTags[2]: '';
        colors.push(colorTag);
    }
-   this.setState({value:value, colors:colors})
+   this.setState({value:value, colors:colors});
  }
 
  //Handling change of dimensions into DropDown.
@@ -139,16 +174,23 @@ class Body extends Component {
     	if(event=='Model Result'){
     	    this.predictUnlabeled(this.state.sessionBody);
     	}
-    	if(event=='labels' || event=='Model Result') this.updateColorsTags(this.state.dimNames.indexOf(event));
-    	else this.updateColors(this.state.dimNames.indexOf(event));
+    	this.updateColorsTags(this.state.dimNames.indexOf(event));
   }
+//Handling change of dimensions into 'Find Keyword' DropDown.
+  updateOnSelection_FindAnchor(event, index, value){
+      this.setState({
+        searchText_FindAnchor: this.state.dimNames[index],
+      });
+      this.forceUpdate();
+   }
+
 
   updateSigmoidScale(s){
-      this.setState({'sigmoidScale':s})
+      this.setState({'sigmoidScale':s});
   }
 
   updateSigmoidTranslate(s){
-      this.setState({'sigmoidTranslate':s})
+      this.setState({'sigmoidTranslate':s});
   }
 
     handleNewRequest(searchText){
@@ -176,11 +218,7 @@ componentWillReceiveProps(props){
   	if(props.originalData !== this.state.originalData){
         let colors = [];
         let dimNames = Object.keys(props.originalData);
-        for (let i = 0; i < props.originalData[dimNames[0]].length; ++i){
-           var typeTag = props.originalData[dimNames[this.state.value]][i];
-            var colorTag=(typeTag.toLowerCase()=='neutral')? this.colorTags[0]: (typeTag.toLowerCase()=='relevant')? this.colorTags[1]: (typeTag.toLowerCase()=='irrelevant')? this.colorTags[2]: '';
-            colors.push(colorTag);
-        }
+        colors = this.setColorPoints(this.state.value, dimNames, props.originalData);
         this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, flat:props.flat, dimNames: props.dimNames, });
 
     }
@@ -197,8 +235,9 @@ componentWillReceiveProps(props){
     	    {'session':  JSON.stringify(this.state.sessionBody)},
     	    function(accuracy) {
     		      this.setState({accuracy: accuracy});
-              if(this.state.dimNames[this.state.value]=='Model Result')
-                {this.predictUnlabeled();}
+              if(this.state.dimNames[this.state.value]=='Model Result'){
+                this.predictUnlabeled();
+              }
     	    }.bind(this)
     	);
   }
@@ -319,8 +358,9 @@ componentWillReceiveProps(props){
       var selectedPointsTags = [];
       for (let i = 0; i < this.state.selectedPoints.length; ++i){
           if(this.state.selectedPoints[i]){
-            selectedPointsTags.push(updateData['labels'][i]);
-            updateData['labels'][i] = tag;
+            selectedPointsTags.push(updateData['labels'][i].join());
+            //updateData['labels'][i] = tag;
+            updateData['labels'][i].push(tag);
 	          selectedPoints.push(i);
 	        }
       }
@@ -345,21 +385,46 @@ componentWillReceiveProps(props){
   getKeyByValue(object, value) {
     return Object.keys(object).find(key => object[key] === value);
   }
-  //Labeling pages from an snippet.
-  tagFromSnippets(tag, previus_tag, index_url){
-    //var tag = (typeTag.toLowerCase()==='Relevant')? 'Relevant':(typeTag.toLowerCase()==='Irrelevant')?'Irrelevant' : 'Neutral';
-    var index = index_url; //this.getKeyByValue(this.state.originalData['urls'], url );
+
+  //Labeling pages in RadViz from snippets.
+  tagFromSnippets(tag, arrayInputURL, reload){
+    for (var i = 0; i < arrayInputURL.length; i++) {
+      this.tagSnippets(tag, arrayInputURL[i], reload);
+    }
+  }
+
+  //Labeling a page from a snippet.
+  tagSnippets(tag, index_url, reload){
+    var index = index_url;
     let updateData = this.state.originalData;
+    var aux_updateData =JSON.parse(JSON.stringify(updateData));
     var selectedPoints = [];
     var index_int = updateData['urls'].indexOf(index);
-    updateData['labels'][index_int] = tag;
-    //updateTags in elasticSearch
-    var urls = [];
-    urls.push(index);
-    if (previus_tag.toLowerCase() != 'neutral' && previus_tag.toLowerCase() != tag.toLowerCase()){
-	    this.setPagesTag(urls, previus_tag, false);
+
+    var array_tags = aux_updateData['labels'][index_int];
+    array_tags = array_tags.map(function(x){ return x.toString().toLowerCase(); });
+    if(reload){
+      if(tag.toLowerCase() === 'neutral'){
+        updateData['labels'][index_int]=['Neutral'];
+      }
+      else{
+        if(array_tags.includes(tag.toString().toLowerCase())){
+          var lowCase = array_tags.indexOf(tag.toString().toLowerCase());
+          updateData['labels'][index_int].splice(lowCase, 1);
+        }
+        else{
+          if(tag.toLowerCase() === 'relevant' || tag.toLowerCase() === 'irrelevant'){
+            if(array_tags.indexOf('relevant')!==-1){
+              updateData['labels'][index_int].splice(array_tags.indexOf('relevant'), 1);
+            }
+            if(array_tags.indexOf('irrelevant')!==-1){
+              updateData['labels'][index_int].splice(array_tags.indexOf('irrelevant'), 1);
+            }
+          }
+          updateData['labels'][index_int].push(tag);
+        }
+      }
     }
-	  this.setPagesTag(urls, tag, true);
     this.setState({originalData: updateData});
     this.updateColorsTags(this.state.value);
   }
@@ -369,10 +434,11 @@ componentWillReceiveProps(props){
     let cont =0;
     for (let i = 0; i < this.state.originalData['labels'].length; ++i){
         if(this.state.originalData['labels'][i].toLowerCase()=='relevant' || this.state.originalData['labels'][i].toLowerCase()=='irrelevant')
-          {  cont++;}
+            {cont++;}
     }
     return cont;
   }
+
   comeBack(){
     let keyword ='';
     this.props.filterKeyword(keyword);
@@ -396,6 +462,12 @@ componentWillReceiveProps(props){
       })
       console.log(this.state.pagesCap)
     }
+  handleUpdateInput_FindAnchor(searchText_FindAnchor){
+      this.setState({
+        searchText_FindAnchor: searchText_FindAnchor,
+      });
+    };
+
     handleNewRequest(){
       this.setState({
         searchText: '',
@@ -403,21 +475,37 @@ componentWillReceiveProps(props){
     };
 
 
+  //Set pages to object format. It is necessary because SnippetView component, which shows pages as snippets, was already working with this format in DDT. SnippetView component are being re-used with some little changes.
+  setPagesToObjectFormat(selectedPoints, originalData){
+    var pages = {};
+    if(selectedPoints.length>0){
+      for (let i = 0; i < originalData['urls'].length; ++i){
+        if(selectedPoints[i]){
+          pages[originalData['urls'][i]] = {'idRadViz':i, 'image_url':originalData['image_url'][i], 'order':0, 'snippet':originalData['snippet'][i], 'timestamp':'', 'title':originalData['title'][i],
+          'tags': originalData['labels'][i]};
+        }
+      }
+    }
+    return pages;
+  }
+  reloadFilters(){
+    this.props.reloadFilters();
+  };
+  updateOnlineAccuracy(accuracy){
+    this.props.updateOnlineAccuracy(accuracy);
+  };
 
- handleRequestClose = () => {
-   this.setState({
-     open: false,
-   });
- };
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
     {
       var dimensions=[];
       var values=[];
+      var values_FindAnchor=[];
       this.state.dimNames.forEach(function (attribute,idx) {
           var dim = {id: idx,name: attribute,attribute: attribute,available: true,group: false,pos: 0,weight: 1}; //addDimension( id : number, name_circle: small name, name_attribute: complete name)
           dimensions.push(dim);
           values.push(attribute);
+          values_FindAnchor.push(attribute);
       });
       var length = this.state.data.length
       var pages=[];
@@ -463,38 +551,37 @@ componentWillReceiveProps(props){
           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
           openOnFocus={true}
           />;
-      let pagesFeild=
-      <AutoComplete
-      floatingLabelText='Pages'
-      searchText={this.state.searchText}
-      textFieldStyle={{width:'20%'}}
-      onUpdateInput={this.handlepageInput.bind(this)}
-      onNewRequest={this.handleNewRequest.bind(this)}
-      filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
-      dataSource={pages}
-      openOnFocus={true}
-      />;
-    /*  <div>
-      <RaisedButton
-       onClick={this.handleTouchTap}
-       label="Pages"
-       style={{width:'20px'}}
-     />
-     <Popover
-       open={this.state.open}
-       anchorEl={this.state.anchorEl}
-       anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-       targetOrigin={{horizontal: 'left', vertical: 'top'}}
-       onRequestClose={this.handleRequestClose}
-     >
-       <Menu onItemTouchTap={this.onItemTouchTap.bind(this)}>
-         <MenuItem primaryText="50" value={50} />
-         <MenuItem primaryText="100" value={100} />
-         <MenuItem primaryText="200" value={200}/>
-         <MenuItem primaryText="500" value={500} />
-       </Menu>
-     </Popover>
-     </div>;*/
+     let pagesFeild=
+          <AutoComplete
+          floatingLabelText='Pages'
+          searchText={this.state.searchText}
+          textFieldStyle={{width:'20%'}}
+          onUpdateInput={this.handlepageInput.bind(this)}
+          onNewRequest={this.handleNewRequest.bind(this)}
+          filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
+          dataSource={pages}
+          openOnFocus={true}
+          />;
+      let find_anchor =
+           <AutoComplete
+           floatingLabelText='Find Keyword'
+           textFieldStyle={{width:'70%'}}
+           searchText={this.state.searchText_FindAnchor}
+           onUpdateInput={this.handleUpdateInput_FindAnchor}
+           onNewRequest={this.updateOnSelection_FindAnchor}
+           dataSource={values_FindAnchor}
+           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
+           openOnFocus={true}
+           />;
+
+      //Setting pages to object format:
+      var selectedPoints_aux = this.state.selectedPoints;
+      var originalData_aux = this.state.originalData;
+      var pagesObjectFormat = this.setPagesToObjectFormat(selectedPoints_aux, originalData_aux);
+      var legend = Object.keys(this.tagsNames).map((k, index)=>{
+        return <li style={{color:this.tagsNames[k], textTransform: 'capitalize', fontWeight: 'bold', float: 'left', margin:15}}> {k} </li>;
+      });
+
       return(
         <div>
         <Grid>
@@ -509,14 +596,15 @@ componentWillReceiveProps(props){
               {sigmoid}
             </ToolbarGroup>
             <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px'}}>
-              {projection_labels}
+              {/*{projection_labels}*/}
+              {find_anchor}
             </ToolbarGroup>
             <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px'}}>
               {pagesFeild}
             </ToolbarGroup>
           </Toolbar>
             </div>
-            <div style={{position: 'absolute', left: '-5%', marginTop:'10px' ,marginRight:'-20px' }}>
+            {/*}<div style={{position: 'absolute', left: '-5%', marginTop:'10px' ,marginRight:'-20px' }}>
             <ButtonGroup>
               <OverlayTrigger placement='bottom' overlay={<Tooltip id='tooltip'>Relevant</Tooltip>}>
                 <Button >
@@ -534,68 +622,27 @@ componentWillReceiveProps(props){
                 </Button>
               </OverlayTrigger>
             </ButtonGroup>
-            </div>
+            </div>*/}
             {linkBackOriginalData}
             <RadViz data={this.state.data} colors={this.state.colors} pagesCap={this.state.pagesCap} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
-            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}/>
+            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]} searchText_FindAnchor={this.state.searchText_FindAnchor}/>
+            <ul style={{listStyleType: 'inside'}}>{legend}</ul>
             </Row>
           </Col>
 
           <Col  ls={2} md={2} style={{background:'white', marginLeft:'60px', borderLeft: '2px solid', borderColor:'lightgray'}}>
             <Row className='Menus-child' >
-            <div style={{width:'448px', borderTop:'solid', borderRight: '2px solid', borderColor:'lightgray'}}>
+            <div style={{width:'448px', borderTop:'solid', paddingTop:10, paddingLeft:20, borderRight: '2px solid', borderColor:'lightgray'}}>
             <WordCloud dimNames={this.state.dimNames} selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
             </div>
             </Row>
             <Row className='Menus-child'>
-              <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray',marginRight:'-50px'}}>
-                <p style={{color:'silver', marginLeft:'30px'}}>Selected pages: {nroSelectedUrls}</p>
-              </div>
-              <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData} tagFromSnippets={this.tagFromSnippets.bind(this)}/>
+
+              <SnippetView pages={pagesObjectFormat} session={this.state.sessionBody}  internalUpdating={false} tagFromSnippets={this.tagFromSnippets.bind(this)} reloadFilters={this.reloadFilters.bind(this)} updateOnlineAccuracy={this.updateOnlineAccuracy.bind(this)} nroSelectedUrls={nroSelectedUrls}/>
             </Row>
           </Col>
           </Grid>
-    {/*      <Grid>
-          <Row ls={1} md={1} style={{ marginTop:'10px', border: '2px solid', borderColor:'lightgray', width:'700px'}}>
-               <List style={{display:'flex'}}>
-               <Col>
-                 <Subheader style={{fontSize:'16px', fontWeight:'bold', color:'black'}}>Sigmoid</Subheader>
-                 <List style={{display:'flex'}}>
-                 <ListItem>
-                   <p style={{fontSize:this.fontSize,}} >Translation:</p> <Slider min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
-                 </ListItem>
-                 <ListItem>
-                   <p style={{fontSize:this.fontSize,}}>Scale:</p> <Slider min={0} max={100} step={1} defaultValue={1} onChange={this.updateSigmoidScale}/>
-                 </ListItem>
-                 <ListItem>
-                  <SigmoidGraph sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}/>
-                 </ListItem>
-                 </List>
-                </Col>
-                <Col>
-                 <Subheader style={{fontSize:'16px', fontWeight:'bold', color:'black'}}>Interaction</Subheader>
-                 <ListItem>
-                   <RadioButtonGroup name='shipSpeed' defaultSelected={0} onChange={this.showingData}>
-                    <RadioButton value={0} label='Show all' labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
-                    <RadioButton value={1} label='Hide selected' labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
-                    <RadioButton value={2} label='Hide unselected' labelStyle={styles.radioButton} style={{marginBottom:'-10px'}}/>
-                  </RadioButtonGroup>
-                 </ListItem>
-                 </Col>
-                 <Col>
-                 <Subheader style={{fontSize:'16px', fontWeight:'bold', color:'black',marginLeft:'-10px'}}>Projection</Subheader>
-                   <DropDownMenu style={{marginTop:'-20px', fontSize:this.fontSize, }} value={this.state.value} onChange={this.updateOnSelection}>
-                   {Object.keys(dimensions).map((k, index)=>{
-                        var attibute = dimensions[k].attribute;
-                        return <MenuItem value={index} primaryText={attibute} style={{fontSize:this.fontSize,}} />
-                   })}
-                  </DropDownMenu>
-                  </Col>
-
-               </List>
-          </Row>
-        </Grid>*/}
         </div>
 
       );
@@ -606,4 +653,6 @@ componentWillReceiveProps(props){
   }
 }
 // width:320,
+//  <Snippets selectedPoints={this.state.selectedPoints} originalData={this.state.originalData} tagFromSnippets={this.tagFromSnippets.bind(this)}/>
+
 export default Body;

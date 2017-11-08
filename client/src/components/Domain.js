@@ -24,6 +24,7 @@ class Domain extends Component {
       filterTerm:"",
       index:this.props.location.query.index,
       open:false,
+      session:this.createSession(this.props.location.query.idDomain)
     };
     this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828"];
   };
@@ -70,9 +71,9 @@ class Domain extends Component {
           let scaleColor = scaleOrdinal(this.colorTags);
           let colors = [];
           data['Model Result'] = [];
-
           for (let i = 0; i < data['labels'].length; ++i){
               data['Model Result'][i] = "neutral";
+              data['labels'][i]= data['labels'][i].split(',');
               //colors.push(scaleColor(data['tags'][0]));
               let aux = {};
               for (let j = 0; j < dimNames.length-2; ++j){//except urls and labels
@@ -148,7 +149,7 @@ class Domain extends Component {
         No pages found.
         </Dialog>
         <Header currentIdDomain={this.props.location.query.idDomain} currentNameDomain={this.props.location.query.nameDomain} dimNames={this.state.dimNames} filterTerm={this.state.filterTerm} filterKeyword={this.filterKeyword.bind(this)} />
-  	  <Body currentDomain={this.state.idDomain} searchText={this.state.searchText} originalData={this.state.originalData} data={this.state.data} colors={this.state.colors} flat={this.state.flat} dimNames={this.state.dimNames} filterTerm={this.state.filterTerm}  filterKeyword={this.filterKeyword.bind(this)}/>
+  	    <Body session={this.state.session} currentDomain={this.state.idDomain} searchText={this.state.searchText} originalData={this.state.originalData} data={this.state.data} colors={this.state.colors} flat={this.state.flat} dimNames={this.state.dimNames} filterTerm={this.state.filterTerm}  filterKeyword={this.filterKeyword.bind(this)}/>
       </div>
     );
   }
