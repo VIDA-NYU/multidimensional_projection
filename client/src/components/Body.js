@@ -34,7 +34,7 @@ import WordCloud from './WordCloud';
 import SnippetView from './SnippetView';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import RadViz from './RadViz';
-
+import RaisedButton from 'material-ui/RaisedButton';
 
 const styles = {
   block: {
@@ -62,8 +62,6 @@ class Body extends Component {
      urls:undefined,
      searchText:'',
      selectedSearchText:[],
-     searchText_FindAnchor:'',
-     selectedSearchText_FindAnchor:[],
      dimNames:[],
      'sigmoidScale':1,
      'sigmoidTranslate':0,
@@ -71,14 +69,15 @@ class Body extends Component {
      sessionBody: this.props.session,
      checkSigmoid:false,
      checkProjection:false,
+     searchText: '',
+     subdata:undefined,
+     selectedAnchors:[false],
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
-   this.updateOnSelection_FindAnchor = this.updateOnSelection_FindAnchor.bind(this);
    this.updateSigmoidScale = this.updateSigmoidScale.bind(this);
    this.updateSigmoidTranslate = this.updateSigmoidTranslate.bind(this);
    this.handleUpdateInput = this.handleUpdateInput.bind(this);
-   this.handleUpdateInput_FindAnchor = this.handleUpdateInput_FindAnchor.bind(this);
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
    this.colorDefault= [ '#ff7f0e', '#2ca02c', '#17becf', '#b27eac', '#9467bd', '#8c564b', '#e377c2', '#98bd22', '#bcbd22' ];
@@ -99,6 +98,11 @@ class Body extends Component {
   }
     else this.setState({selectedPoints:selected, selectedSearchText: selected,});
  }
+
+ setSelectedAnchorsRadViz(selected){
+   this.setState({selectedAnchors:selected});
+ }
+
  showingUrls(){
    let urls = [];
    for (let i = 0; i < this.state.originalData['urls'].length; ++i){
@@ -172,14 +176,6 @@ class Body extends Component {
     	}
     	this.updateColorsTags(this.state.dimNames.indexOf(event));
   }
-//Handling change of dimensions into 'Find Keyword' DropDown.
-  updateOnSelection_FindAnchor(event, index, value){
-      this.setState({
-        searchText_FindAnchor: this.state.dimNames[index],
-      });
-      this.forceUpdate();
-   }
-
 
   updateSigmoidScale(s){
       this.setState({'sigmoidScale':s});
@@ -205,7 +201,7 @@ class Body extends Component {
 
 
   componentWillMount(){
-	     this.setState({originalData: this.props.originalData, data:this.props.data, colors:this.props.colors, flat:this.props.flat, dimNames: this.props.dimNames});
+	     this.setState({originalData: this.props.originalData, data:this.props.data, subdata:this.props.data, colors:this.props.colors, flat:this.props.flat, dimNames: this.props.dimNames});
        //this.updateColorsTags(this.state.value);
        this.runModel();
   }
@@ -215,7 +211,7 @@ componentWillReceiveProps(props){
         let colors = [];
         let dimNames = Object.keys(props.originalData);
         colors = this.setColorPoints(this.state.value, dimNames, props.originalData);
-        this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, flat:props.flat, dimNames: props.dimNames, });
+        this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, subdata:props.data, flat:props.flat, dimNames: props.dimNames, });
 
     }
   	if(this.state.dimNames.indexOf(props.searchText) !==-1){
@@ -452,11 +448,6 @@ componentWillReceiveProps(props){
         searchText: searchText,
       });
     };
-  handleUpdateInput_FindAnchor(searchText_FindAnchor){
-      this.setState({
-        searchText_FindAnchor: searchText_FindAnchor,
-      });
-    };
 
     handleNewRequest(){
       this.setState({
@@ -485,17 +476,38 @@ componentWillReceiveProps(props){
     this.props.updateOnlineAccuracy(accuracy);
   };
 
+  multiScaleRadViz(){
+    let numericalSubDataTSP = [];
+    //console.log(this.state.data);
+    //console.log(this.state.selectedPoints);
+    //console.log(this.state.selectedAnchors);
+    for (let i = 0; i < this.state.data.length; ++i){
+        let aux = {};
+        Object.keys(this.state.data[i]).forEach(function(key) {
+          if(this.state.selectedPoints[i]){
+            if(this.state.selectedAnchors[key]){
+              //console.log("entro");
+              aux[key] = this.state.data[i][key];
+            }
+          }
+        }.bind(this));
+        if(Object.keys(aux).length>0)
+          numericalSubDataTSP.push(aux);
+    }
+    //console.log(numericalSubDataTSP);
+    this.setState({subdata:numericalSubDataTSP});
+    this.forceUpdate();
+  }
+
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
     {
       var dimensions=[];
       var values=[];
-      var values_FindAnchor=[];
       this.state.dimNames.forEach(function (attribute,idx) {
           var dim = {id: idx,name: attribute,attribute: attribute,available: true,group: false,pos: 0,weight: 1}; //addDimension( id : number, name_circle: small name, name_attribute: complete name)
           dimensions.push(dim);
           values.push(attribute);
-          values_FindAnchor.push(attribute);
       });
       let selectedUrls = []; selectedUrls.push(<p></p>);
       let nroSelectedUrls = 0;
@@ -524,17 +536,6 @@ componentWillReceiveProps(props){
           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
           openOnFocus={true}
           />;
-      let find_anchor =
-           <AutoComplete
-           floatingLabelText='Find Keyword'
-           textFieldStyle={{width:'70%'}}
-           searchText={this.state.searchText_FindAnchor}
-           onUpdateInput={this.handleUpdateInput_FindAnchor}
-           onNewRequest={this.updateOnSelection_FindAnchor}
-           dataSource={values_FindAnchor}
-           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
-           openOnFocus={true}
-           />;
 
       //Setting pages to object format:
       var selectedPoints_aux = this.state.selectedPoints;
@@ -544,6 +545,7 @@ componentWillReceiveProps(props){
         return <li style={{color:this.tagsNames[k], textTransform: 'capitalize', fontWeight: 'bold', float: 'left', margin:15}}> {k} </li>;
       });
 
+      let buttonScaleData = <RaisedButton label="Multi Scale" onClick={this.multiScaleRadViz.bind(this)}/>
       return(
         <div>
         <Grid>
@@ -557,9 +559,11 @@ componentWillReceiveProps(props){
             <ToolbarGroup >
               {sigmoid}
             </ToolbarGroup>
-            <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px'}}>
-              {/*{projection_labels}*/}
-              {find_anchor}
+            <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px', width:130}}>
+              {projection_labels}
+            </ToolbarGroup>
+            <ToolbarGroup style={{marginLeft:'10px',}}>
+            {buttonScaleData}
             </ToolbarGroup>
           </Toolbar>
             </div>
@@ -585,8 +589,13 @@ componentWillReceiveProps(props){
             {linkBackOriginalData}
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
-            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]} searchText_FindAnchor={this.state.searchText_FindAnchor}/>
+            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]} setSelectedAnchorsRadViz={this.setSelectedAnchorsRadViz.bind(this)}/>
             <ul style={{listStyleType: 'inside'}}>{legend}</ul>
+
+            <RadViz data={this.state.subdata} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
+            showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
+            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}/>
+
             </Row>
           </Col>
 
