@@ -91,6 +91,7 @@ class Body extends Component {
    this.indexColor = -1;
 
 
+
  };
 
  showingData(event, value){
@@ -212,6 +213,7 @@ class Body extends Component {
 	     this.setState({originalData: this.props.originalData, data:this.props.data, colors:this.props.colors, flat:this.props.flat, dimNames: this.props.dimNames});
        //this.updateColorsTags(this.state.value);
        this.runModel();
+
   }
 
 componentWillReceiveProps(props){
@@ -457,9 +459,11 @@ componentWillReceiveProps(props){
       });
     };
     handlepageInput(pagevalue){
+
       this.setState({
       pagesCap: pagevalue
       })
+
       console.log(this.state.pagesCap)
     }
   handleUpdateInput_FindAnchor(searchText_FindAnchor){
@@ -473,6 +477,7 @@ componentWillReceiveProps(props){
         searchText: '',
       });
     };
+
 
 
   //Set pages to object format. It is necessary because SnippetView component, which shows pages as snippets, was already working with this format in DDT. SnippetView component are being re-used with some little changes.

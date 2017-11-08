@@ -157,12 +157,6 @@ class RadViz extends Component {
             }
 
           }
-        }
-        else{
-          ret = this.setColorPoints(i, ret, p[0], p[1]);
-        }
-
-      }
       return ret;
     }
 
