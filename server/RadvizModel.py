@@ -155,6 +155,15 @@ class RadvizModel(DomainModel):
 
         return self.getvectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data)
 
+    def getAllSamples_inCluster_RemoveCommonFeatures(self, nro_cluster, y_Pred, raw_data, labels):
+        max_features = 70
+        [features_in_clusters, clusters_RawData, label_by_clusters, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
+
+        intersection = reduce(np.intersect1d, (features_in_clusters)).tolist() #getting common keywords between all clusters
+        features_uniques_temp = np.unique(features_in_clusters).tolist()
+        features_uniques = np.setdiff1d(features_uniques_temp,intersection).tolist()#removing common keywords between all clusters
+
+        return self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data)
 
 
     def getRadvizPoints(self, session, filterByTerm):
