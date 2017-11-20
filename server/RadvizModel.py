@@ -78,7 +78,57 @@ class RadvizModel(DomainModel):
             X_sum.append(np.ceil(temp))
         return [temp_data,labels_cluster, X_sum]
 
-    
+    def getClusterInfo(self, nro_cluster, y_Pred, raw_data, labels, max_features):
+        y_clusterData = range(nro_cluster)
+        clusters_RawData = []
+        label_by_clusters =[]
+        X_sum = []
+        subset_raw_data = []
+        features_in_clusters =[]
+        clusters_TFData = []
+        for i in range(nro_cluster):
+            cluster = []
+            idsData_cluster = self.clusterIndicesNumpy(i,y_Pred)
+            for j in idsData_cluster:
+                cluster.append( raw_data[j] )
+            clusters_RawData.append(cluster)
+            random_id = random.randint(0,len(idsData_cluster)-1)
+            subset_raw_data.append(raw_data[idsData_cluster[3]]) #3
+            label_by_clusters.append(labels[idsData_cluster[3]]) #3
+
+            tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=max_features)
+            [X, features] = tf_v.vectorize(clusters_RawData[i])
+            clusters_TFData.append(X.todense())
+            features_in_clusters.append(features)
+            temp = np.squeeze(np.asarray(np.sum(X.todense(), axis=0)))
+            X_sum.append(np.ceil(temp))
+        return [features_in_clusters, clusters_RawData, label_by_clusters, clusters_TFData, X_sum, subset_raw_data ]
+        #features_in_clusters : list of features for each cluster.
+        #clusters_RawData : array of arrays. [[raw_data_for_cluster1][raw_data_for_cluster2][raw_data_for_cluster3] ...]
+        #label_by_clusters : label for each cluster.
+        #clusters_TFData : array of arrays. [[raw_data_for_cluster1][raw_data_for_cluster2][raw_data_for_cluster3] ...]
+        #X_sum : the clusters_TFData (tf vectors) of each cluster was reduced to just one vector (the columns were summed). At the end only one vector is generated for each cluster.
+        #subset_raw_data: sub dataset (raw data) from each cluster. A random sample was took from each cluster.
+
+    def getMedoidSamples_inCluster(self, nro_cluster, y_Pred, raw_data, labels):
+
+        max_features = 60
+        [features_in_clusters, clusters_RawData, label_by_clusters, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
+
+        features_uniques = np.unique(features_in_clusters).tolist()
+
+        new_X_sum = []
+        for i in range(nro_cluster):
+            new_X = np.zeros(len(features_uniques))
+            for j in range(len(features_in_clusters[i])): #loop over the cluster's features
+                try:
+                    index_feat = features_uniques.index(features_in_clusters[i][j])
+                    new_X[index_feat]=X_sum[i][j]
+                except ValueError:
+                    print "error"
+            new_X_sum.append(np.asarray(new_X))
+        return [subset_raw_data,label_by_clusters, new_X_sum, features_uniques]
+
 
     def getRadvizPoints(self, session, filterByTerm):
         es_info = self._esInfo(session['domainId'])
