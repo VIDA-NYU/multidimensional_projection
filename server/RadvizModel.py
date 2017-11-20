@@ -129,6 +129,33 @@ class RadvizModel(DomainModel):
             new_X_sum.append(np.asarray(new_X))
         return [subset_raw_data,label_by_clusters, new_X_sum, features_uniques]
 
+    def getVectors_for_allSamples(self, nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data):
+        new_X_sum = []
+        labels_total = []
+        for i in range(nro_cluster):
+            X_from_cluster = clusters_TFData[i]
+            for k in range(len(clusters_TFData[i])):
+                new_X = np.zeros(len(features_uniques))
+                tempList = np.squeeze(np.asarray(X_from_cluster[k]))
+                for j in range(len(features_in_clusters[i])): #loop over the cluster's features
+                    try:
+                        index_feat = features_uniques.index(features_in_clusters[i][j])
+                        new_X[index_feat]=tempList[j]
+                    except ValueError:
+                        print "error"
+                new_X_sum.append(np.asarray(new_X))
+                labels_total.append(label_by_clusters[i])
+        return [subset_raw_data,labels_total, new_X_sum, features_uniques]
+
+    def getAllSamples_inCluster(self, nro_cluster, y_Pred, raw_data, labels):
+        max_features = 60
+        [features_in_clusters, clusters_RawData, label_by_clusters, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
+
+        features_uniques = np.unique(features_in_clusters).tolist()
+
+        return self.getvectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data)
+
+
 
     def getRadvizPoints(self, session, filterByTerm):
         es_info = self._esInfo(session['domainId'])
