@@ -53,7 +53,7 @@ class Body extends Component {
    super(props);
    this.state={
      flat:0,
-     value: 200, // the 'labels' field as the default projection
+     value: 173, // the 'labels' field as the default projection 173
      data:undefined,
      colors:undefined,
      originalData:this.props.originalData,
@@ -62,6 +62,8 @@ class Body extends Component {
      urls:undefined,
      searchText:'',
      selectedSearchText:[],
+     searchText_FindAnchor:'',
+     selectedSearchText_FindAnchor:[],
      dimNames:[],
      'sigmoidScale':1,
      'sigmoidTranslate':0,
@@ -75,9 +77,11 @@ class Body extends Component {
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
+   this.updateOnSelection_FindAnchor = this.updateOnSelection_FindAnchor.bind(this);
    this.updateSigmoidScale = this.updateSigmoidScale.bind(this);
    this.updateSigmoidTranslate = this.updateSigmoidTranslate.bind(this);
    this.handleUpdateInput = this.handleUpdateInput.bind(this);
+   this.handleUpdateInput_FindAnchor = this.handleUpdateInput_FindAnchor.bind(this);
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
    this.colorDefault= [ '#ff7f0e', '#2ca02c', '#17becf', '#b27eac', '#9467bd', '#8c564b', '#e377c2', '#98bd22', '#bcbd22' ];
@@ -177,6 +181,14 @@ class Body extends Component {
     	this.updateColorsTags(this.state.dimNames.indexOf(event));
   }
 
+  //Handling change of dimensions into 'Find Keyword' DropDown.
+  updateOnSelection_FindAnchor(event, index, value){
+     this.setState({
+       searchText_FindAnchor: this.state.dimNames[index],
+     });
+     this.forceUpdate();
+  }
+
   updateSigmoidScale(s){
       this.setState({'sigmoidScale':s});
   }
@@ -201,7 +213,8 @@ class Body extends Component {
 
 
   componentWillMount(){
-	     this.setState({originalData: this.props.originalData, data:this.props.data, subdata:this.props.data, colors:this.props.colors, flat:this.props.flat, dimNames: this.props.dimNames});
+    console.log(this.props.dimNames.length);
+	     this.setState({originalData: this.props.originalData, data:this.props.data, subdata:this.props.data, colors:this.props.colors, flat:this.props.flat, dimNames: this.props.dimNames, value: this.props.dimNames.length});
        //this.updateColorsTags(this.state.value);
        this.runModel();
   }
@@ -210,8 +223,11 @@ componentWillReceiveProps(props){
   	if(props.originalData !== this.state.originalData){
         let colors = [];
         let dimNames = Object.keys(props.originalData);
-        colors = this.setColorPoints(this.state.value, dimNames, props.originalData);
-        this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, subdata:props.data, flat:props.flat, dimNames: props.dimNames, });
+        //colors = this.setColorPoints(this.state.value, dimNames, props.originalData);
+        //this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, subdata:props.data, flat:props.flat, dimNames: props.dimNames, });
+        //props.dimNames.length-6 : -6 because we are excluding url, label,title,snippet,image_url, modelResult. we are just using dimensions
+        colors = this.setColorPoints(props.dimNames.length-6, dimNames, props.originalData);
+        this.setState({value: props.dimNames.length-6, colors:colors, originalData: props.originalData, data:props.data, subdata:props.data, flat:props.flat, dimNames: props.dimNames, });
 
     }
   	if(this.state.dimNames.indexOf(props.searchText) !==-1){
@@ -448,6 +464,11 @@ componentWillReceiveProps(props){
         searchText: searchText,
       });
     };
+  handleUpdateInput_FindAnchor(searchText_FindAnchor){
+    this.setState({
+      searchText_FindAnchor: searchText_FindAnchor,
+    });
+  };
 
     handleNewRequest(){
       this.setState({
@@ -504,10 +525,12 @@ componentWillReceiveProps(props){
     {
       var dimensions=[];
       var values=[];
+      var values_FindAnchor=[];
       this.state.dimNames.forEach(function (attribute,idx) {
           var dim = {id: idx,name: attribute,attribute: attribute,available: true,group: false,pos: 0,weight: 1}; //addDimension( id : number, name_circle: small name, name_attribute: complete name)
           dimensions.push(dim);
           values.push(attribute);
+          values_FindAnchor.push(attribute);
       });
       let selectedUrls = []; selectedUrls.push(<p></p>);
       let nroSelectedUrls = 0;
@@ -525,7 +548,7 @@ componentWillReceiveProps(props){
        <RadioButton value={1} label='Hide selected' labelStyle={styles.radioButton} style={{marginLeft:'-50px'}} />
        <RadioButton value={2} label='Hide unselected' labelStyle={styles.radioButton} style={{marginLeft:'-30px'}} />
      </RadioButtonGroup></div>;
-     let projection_labels =
+     /*let projection_labels =
           <AutoComplete
           floatingLabelText='Projection'
           textFieldStyle={{width:'70%'}}
@@ -535,7 +558,18 @@ componentWillReceiveProps(props){
           dataSource={values}
           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
           openOnFocus={true}
-          />;
+          />;*/
+      let find_anchor =
+            <AutoComplete
+            floatingLabelText='Find Keyword'
+            textFieldStyle={{width:'70%'}}
+            searchText={this.state.searchText_FindAnchor}
+            onUpdateInput={this.handleUpdateInput_FindAnchor}
+            onNewRequest={this.updateOnSelection_FindAnchor}
+            dataSource={values_FindAnchor}
+            filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
+            openOnFocus={true}
+            />;
 
       //Setting pages to object format:
       var selectedPoints_aux = this.state.selectedPoints;
@@ -560,7 +594,8 @@ componentWillReceiveProps(props){
               {sigmoid}
             </ToolbarGroup>
             <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px', width:130}}>
-              {projection_labels}
+              {/*{projection_labels}*/}
+              {find_anchor}
             </ToolbarGroup>
             <ToolbarGroup style={{marginLeft:'10px',}}>
             {buttonScaleData}
@@ -589,12 +624,12 @@ componentWillReceiveProps(props){
             {linkBackOriginalData}
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
-            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]} setSelectedAnchorsRadViz={this.setSelectedAnchorsRadViz.bind(this)}/>
+            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]} setSelectedAnchorsRadViz={this.setSelectedAnchorsRadViz.bind(this)} searchText_FindAnchor={this.state.searchText_FindAnchor}/>
             <ul style={{listStyleType: 'inside'}}>{legend}</ul>
 
             <RadViz data={this.state.subdata} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
-            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}/>
+            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]} searchText_FindAnchor={this.state.searchText_FindAnchor}/>
 
             </Row>
           </Col>
