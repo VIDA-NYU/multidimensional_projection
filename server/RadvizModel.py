@@ -222,7 +222,7 @@ class RadvizModel(DomainModel):
         #snippets = ddteval_data["snippet"]
         #image_urls = ddteval_data["image_url"]
 
-        urls = stringArray
+        urls = np.asarray(range(len(stringArray))).astype(str).tolist() #generating ids
         labels = stringArray
         titles = stringArray
         snippets = stringArray
