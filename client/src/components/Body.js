@@ -73,7 +73,7 @@ class Body extends Component {
      checkProjection:false,
      searchPage:'',
      open:false,
-     pagesCap:0,
+     pagesCap:100,
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
@@ -89,6 +89,9 @@ class Body extends Component {
    this.tagsNames ={};
      this.fontSize='13px';
    this.indexColor = -1;
+   this.valueDropDown=100;
+   this.highestvalue=0;
+
 
 
 
@@ -172,6 +175,7 @@ class Body extends Component {
 
  //Handling change of dimensions into DropDown.
  updateOnSelection(event, index, value){
+   console.log(event);
     	if(event=='Model Result'){
     	    this.predictUnlabeled(this.state.sessionBody);
     	}
@@ -458,11 +462,13 @@ componentWillReceiveProps(props){
         searchText: searchText,
       });
     };
-    handlepageInput(pagevalue){
-
-      this.setState({
-      pagesCap: pagevalue
-      })
+    handlepageInput(event,key,pagevalue){
+      if(this.highestvalue<pagevalue){
+      this.props.pagesCap(pagevalue);
+      this.highestvalue = pagevalue;
+    }
+    this.valueDropDown = pagevalue;
+    this.forceUpdate();
     }
   handleUpdateInput_FindAnchor(searchText_FindAnchor){
       this.setState({
@@ -490,6 +496,7 @@ componentWillReceiveProps(props){
   reloadFilters(){
     this.props.reloadFilters();
   };
+
   updateOnlineAccuracy(accuracy){
     this.props.updateOnlineAccuracy(accuracy);
   };
@@ -506,9 +513,9 @@ componentWillReceiveProps(props){
           values.push(attribute);
           values_FindAnchor.push(attribute);
       });
-      var length = this.state.data.length
+      var length = this.props.lengthTotalPages;
       var pages=[];
-      if(length<100){
+  /*  if(length<100){
         pages.push(length)
       }
       else{
@@ -516,7 +523,11 @@ componentWillReceiveProps(props){
           pages.push((i*100).toString())
 
         }
-      }
+      }*/
+      for(var i=1;i<length/100;i++){
+          pages.push(<MenuItem value={i*100} key={i*100} primaryText={`${(i*100)}`} />)
+        }
+        pages.push(<MenuItem value={length} key={length} primaryText={`${length}`} />)
 
   //    pages.push("50");
   //    pages.push("100");
@@ -551,7 +562,10 @@ componentWillReceiveProps(props){
           openOnFocus={true}
           />;
      let pagesFeild=
-          <AutoComplete
+      <DropDownMenu maxHeight={300} value={this.valueDropDown} onChange={this.handlepageInput.bind(this)}>
+        {pages}
+      </DropDownMenu>
+    /*      <AutoComplete
           floatingLabelText='Pages'
           searchText={this.state.searchText}
           textFieldStyle={{width:'20%'}}
@@ -559,7 +573,7 @@ componentWillReceiveProps(props){
           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
           dataSource={pages}
           openOnFocus={true}
-          />;
+          />;*/
       let find_anchor =
            <AutoComplete
            floatingLabelText='Find Keyword'
@@ -597,9 +611,9 @@ componentWillReceiveProps(props){
               {/*{projection_labels}*/}
               {find_anchor}
             </ToolbarGroup>
-            <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px'}}>
-              {pagesFeild}
-            </ToolbarGroup>
+           <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px'}}>
+             {pagesFeild}
+          </ToolbarGroup>
           </Toolbar>
             </div>
             {/*}<div style={{position: 'absolute', left: '-5%', marginTop:'10px' ,marginRight:'-20px' }}>
@@ -622,7 +636,7 @@ componentWillReceiveProps(props){
             </ButtonGroup>
             </div>*/}
             {linkBackOriginalData}
-            <RadViz data={this.state.data} colors={this.state.colors} pagesCap={this.state.pagesCap} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
+            <RadViz data={this.state.data} colors={this.state.colors} pagesCap={this.valueDropDown} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]} searchText_FindAnchor={this.state.searchText_FindAnchor}/>
             <ul style={{listStyleType: 'inside'}}>{legend}</ul>

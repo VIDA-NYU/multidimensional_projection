@@ -33,13 +33,14 @@ class RadvizModel(DomainModel):
         es_info = self._esInfo(session['domainId'])
         index = es_info['activeDomainIndex']
         max_features = 200
-        ddteval_data = fetch_data(index, filterByTerm, es_doc_type=es_doc_type, es=es)
+        pagesCap = session['pagesCap']
+        ddteval_data = fetch_data(index,pagesCap, filterByTerm, es_doc_type=es_doc_type, es=es)
         data = ddteval_data["data"]
 
         labels = ddteval_data["labels"]
 
         urls = ddteval_data["urls"]
-
+        print("*****************",len(urls),"*************")
         tf_v = tf_vectorizer(convert_to_ascii=True, max_features=max_features)
         [X, features] = tf_v.vectorize(data)
 

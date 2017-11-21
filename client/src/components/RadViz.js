@@ -298,11 +298,11 @@ class RadViz extends Component {
 
     unselectAllData(e){
       let selected = [];
-      var length = this.props.data.length;
-      if(this.props.pagesCap!= undefined && this.props.pagesCap < length && this.props.pagesCap > 0 && this.props.pagesCap<501){
-        length = this.props.pagesCap;
-      }
-      for (let i = 0; i < length; ++i){
+  //    var length = this.props.data.length;
+  //    if(this.props.pagesCap!= undefined && this.props.pagesCap < length && this.props.pagesCap > 0 && this.props.pagesCap<501){
+  //      length = this.props.pagesCap;
+  //    }
+      for (let i = 0; i < this.props.data.length; ++i){
         selected.push(false);
       }
       this.setState({'draggingSelection':false, 'selected':selected});
@@ -352,6 +352,7 @@ class RadViz extends Component {
     }
 
     render() {
+      console.log("in RadViz");
       let sampleDots = [];
       let anchorDots = [];
       let anchorText = [];

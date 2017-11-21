@@ -5,7 +5,7 @@ from elasticsearch import Elasticsearch
 from pprint import pprint
 
 
-def fetch_data( index, filterByTerm, categories=[], remove_duplicate=True, convert_to_ascii=True, preprocess=False, es_doc_type="page", es=None):
+def fetch_data( index,pagesCap, filterByTerm, categories=[], remove_duplicate=True, convert_to_ascii=True, preprocess=False, es_doc_type="page", es=None):
 
     if es == None:
         es = Elasticsearch("http://localhost:9200")
@@ -27,7 +27,7 @@ def fetch_data( index, filterByTerm, categories=[], remove_duplicate=True, conve
             "match_all": {}
         },
         "fields": fields,
-        "size": 100000000
+        "size": pagesCap
     }
     if filterByTerm != "":
         query = "(text:" + filterByTerm + ")"

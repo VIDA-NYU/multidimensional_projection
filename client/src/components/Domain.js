@@ -24,7 +24,8 @@ class Domain extends Component {
       filterTerm:"",
       index:this.props.location.query.index,
       open:false,
-      session:this.createSession(this.props.location.query.idDomain)
+      session:this.createSession(this.props.location.query.idDomain),
+      lengthTotalPages:0
     };
     this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828"];
   };
@@ -58,9 +59,25 @@ class Domain extends Component {
 
     return session;
   }
+  getPages(session){
+  	var tempSession = session;
+    tempSession['pagesCap'] = "12";
+  	$.post(
+      '/getPages',
+      {'session': JSON.stringify(tempSession)},
+      function(pages) {
+        this.newPages=true;
+        this.setState({ lengthTotalPages:pages['data']['total']});
+        console.log(this.state.lengthTotalPages);
+        this.forceUpdate();
+      }.bind(this)
+    );
+  }
 
   loadDataFromElasticSearch(index,  filterTerm){
-    var session = this.createSession(this.props.location.query.idDomain);
+  //  console.log("in load");
+    var session = index;
+
     $.post(
         '/getRadvizPoints',
         {'session': JSON.stringify(session), filterByTerm: filterTerm},
@@ -107,7 +124,9 @@ class Domain extends Component {
   }
 
   componentWillMount(){
-    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm);
+    var session = this.createSession(this.props.location.query.idDomain);
+    this.loadDataFromElasticSearch(session, this.state.filterTerm);
+    this.getPages(session);
     this.setState({idDomain: this.props.location.query.idDomain});
   };
 
@@ -118,7 +137,14 @@ class Domain extends Component {
       this.setState({idDomain: this.props.location.query.idDomain});
 
   };
+  updatePagesCap(newNroPAges){
+    console.log(newNroPAges)
+    var session = JSON.parse(JSON.stringify(this.state.session));
+    session['pagesCap'] = newNroPAges;
+    this.loadDataFromElasticSearch(session, this.state.filterTerm);
+    this.setState({idDomain: this.props.location.query.idDomain});
 
+  }
   //Filter by terms (ex. ebola AND virus)
   filterKeyword(filterTerm){
     this.loadDataFromElasticSearch(this.state.index, filterTerm);
@@ -149,7 +175,7 @@ class Domain extends Component {
         No pages found.
         </Dialog>
         <Header currentIdDomain={this.props.location.query.idDomain} currentNameDomain={this.props.location.query.nameDomain} dimNames={this.state.dimNames} filterTerm={this.state.filterTerm} filterKeyword={this.filterKeyword.bind(this)} />
-  	    <Body session={this.state.session} currentDomain={this.state.idDomain} searchText={this.state.searchText} originalData={this.state.originalData} data={this.state.data} colors={this.state.colors} flat={this.state.flat} dimNames={this.state.dimNames} filterTerm={this.state.filterTerm}  filterKeyword={this.filterKeyword.bind(this)}/>
+  	    <Body pagesCap={this.updatePagesCap.bind(this)} lengthTotalPages={this.state.lengthTotalPages} session={this.state.session} currentDomain={this.state.idDomain} searchText={this.state.searchText} originalData={this.state.originalData} data={this.state.data} colors={this.state.colors} flat={this.state.flat} dimNames={this.state.dimNames} filterTerm={this.state.filterTerm}  filterKeyword={this.filterKeyword.bind(this)}/>
       </div>
     );
   }
