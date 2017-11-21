@@ -84,7 +84,8 @@ class Body extends Component {
    this.handleUpdateInput_FindAnchor = this.handleUpdateInput_FindAnchor.bind(this);
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
-   this.colorDefault= [ '#ff7f0e', '#2ca02c', '#17becf', '#b27eac', '#9467bd', '#8c564b', '#e377c2', '#98bd22', '#bcbd22' ];
+   //#ff7f0e:orange, #2ca02c:green, #17becf:light blue, #b27eac:purple
+   this.colorDefault= [ '#17becf','#b27eac', '#ff7f0e', '#2ca02c',  '#9467bd', '#8c564b', '#e377c2', '#98bd22', '#bcbd22' ];
    this.colorTags= [ '#9E9E9E', '#0D47A1', '#C62828', '#FFFFFF'];
    this.tagsNames ={};
      this.fontSize='13px';
@@ -225,9 +226,9 @@ componentWillReceiveProps(props){
         let dimNames = Object.keys(props.originalData);
         //colors = this.setColorPoints(this.state.value, dimNames, props.originalData);
         //this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, subdata:props.data, flat:props.flat, dimNames: props.dimNames, });
-        //props.dimNames.length-6 : -6 because we are excluding url, label,title,snippet,image_url, modelResult. we are just using dimensions
-        colors = this.setColorPoints(props.dimNames.length-6, dimNames, props.originalData);
-        this.setState({value: props.dimNames.length-6, colors:colors, originalData: props.originalData, data:props.data, subdata:props.data, flat:props.flat, dimNames: props.dimNames, });
+        //props.dimNames.length-7 : -7 because we are excluding url, label,title,snippet,image_url,pred_labels, modelResult. we are just using dimensions
+        colors = this.setColorPoints(props.dimNames.length-7, dimNames, props.originalData);
+        this.setState({value: props.dimNames.length-7, colors:colors, originalData: props.originalData, data:props.data, subdata:props.data, flat:props.flat, dimNames: props.dimNames, });
 
     }
   	if(this.state.dimNames.indexOf(props.searchText) !==-1){
