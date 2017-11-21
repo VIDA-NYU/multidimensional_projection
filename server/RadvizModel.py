@@ -82,6 +82,7 @@ class RadvizModel(DomainModel):
         y_clusterData = range(nro_cluster)
         clusters_RawData = []
         label_by_clusters =[]
+        original_labels=[]
         X_sum = []
         subset_raw_data = []
         features_in_clusters =[]
@@ -91,6 +92,7 @@ class RadvizModel(DomainModel):
             idsData_cluster = self.clusterIndicesNumpy(i,y_Pred)
             for j in idsData_cluster:
                 cluster.append( raw_data[j] )
+                original_labels.append(labels[j])
             clusters_RawData.append(cluster)
             random_id = random.randint(0,len(idsData_cluster)-1)
             subset_raw_data.append(raw_data[idsData_cluster[3]]) #3
@@ -102,7 +104,7 @@ class RadvizModel(DomainModel):
             features_in_clusters.append(features)
             temp = np.squeeze(np.asarray(np.sum(X.todense(), axis=0)))
             X_sum.append(np.ceil(temp))
-        return [features_in_clusters, clusters_RawData, label_by_clusters, clusters_TFData, X_sum, subset_raw_data ]
+        return [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ]
         #features_in_clusters : list of features for each cluster.
         #clusters_RawData : array of arrays. [[raw_data_for_cluster1][raw_data_for_cluster2][raw_data_for_cluster3] ...]
         #label_by_clusters : label for each cluster.
@@ -129,9 +131,9 @@ class RadvizModel(DomainModel):
             new_X_sum.append(np.asarray(new_X))
         return [subset_raw_data,label_by_clusters, new_X_sum, features_uniques]
 
-    def getVectors_for_allSamples(self, nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data):
+    def getVectors_for_allSamples(self, nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data):
         new_X_sum = []
-        labels_total = []
+        cluster_labels = []
         for i in range(nro_cluster):
             X_from_cluster = clusters_TFData[i]
             for k in range(len(clusters_TFData[i])):
@@ -144,26 +146,26 @@ class RadvizModel(DomainModel):
                     except ValueError:
                         print "error"
                 new_X_sum.append(np.asarray(new_X))
-                labels_total.append(label_by_clusters[i])
-        return [subset_raw_data,labels_total, new_X_sum, features_uniques]
+                cluster_labels.append(label_by_clusters[i])
+        return [subset_raw_data, cluster_labels, original_labels, new_X_sum, features_uniques]
 
     def getAllSamples_inCluster(self, nro_cluster, y_Pred, raw_data, labels):
         max_features = 60
-        [features_in_clusters, clusters_RawData, label_by_clusters, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
+        [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
 
         features_uniques = np.unique(features_in_clusters).tolist()
 
-        return self.getvectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data)
+        return self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data)
 
     def getAllSamples_inCluster_RemoveCommonFeatures(self, nro_cluster, y_Pred, raw_data, labels):
-        max_features = 70
-        [features_in_clusters, clusters_RawData, label_by_clusters, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
+        max_features = 60
+        [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
 
         intersection = reduce(np.intersect1d, (features_in_clusters)).tolist() #getting common keywords between all clusters
         features_uniques_temp = np.unique(features_in_clusters).tolist()
         features_uniques = np.setdiff1d(features_uniques_temp,intersection).tolist()#removing common keywords between all clusters
 
-        return self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data)
+        return self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data)
 
 
     def getRadvizPoints(self, session, filterByTerm):
@@ -179,22 +181,21 @@ class RadvizModel(DomainModel):
         data = newsgroups_train.data
         #print data
         stringLabels = map(str, newsgroups_train.target)
+
         stringArray = [w.replace('0', 'comp.os.ms-windows.misc') for w in stringLabels]
         stringArray = [w.replace('1', 'rec.sport.hockey') for w in stringArray]
         stringArray = [w.replace('2', 'sci.crypt') for w in stringArray]
         stringArray = [w.replace('3', 'talk.politics.mideast') for w in stringArray]
         labels = stringArray
-
         #labels = ddteval_data["labels"]
         #urls = ddteval_data["urls"]
 
-        nro_cluster = 3
+        nro_cluster = 4
         yPredKmeans = self.Kmeans(data, nro_cluster )
 
-        print "***************Sonia***************************"
         #[clusterData, labels_cluster, X_sum] = self.getRandomSample_inCluster( nro_cluster, yPredKmeans, data, labels)
-        [clusterData, labels_cluster, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels)
-        stringArray = labels_cluster
+        [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels)
+        stringArray = original_labels
         data = clusterData
 
         features = features_uniques
@@ -227,13 +228,14 @@ class RadvizModel(DomainModel):
         snippets = stringArray
         image_urls = stringArray
 
+
         self.radviz = Radviz(X, features, labels, urls)
 
         return_obj = {}
         for i in range(0, len(features)):
             return_obj[features[i]] = matrix_transpose[i,:].tolist()[0]
         #labels_urls = OrderedDict([("labels",labels), ("urls",urls), ("title", ddteval_data["title"]),("snippet",ddteval_data["snippet"]),("image_url",ddteval_data["image_url"])])
-        labels_urls = OrderedDict([("labels",labels), ("urls",urls), ("title", titles),("snippet",snippets),("image_url",image_urls)])
+        labels_urls = OrderedDict([("labels",labels), ("urls",urls), ("title", titles),("snippet",snippets),("image_url",image_urls), ("pred_labels",cluster_labels)])
         od = OrderedDict(list(OrderedDict(sorted(return_obj.items())).items()) + list(labels_urls.items()))
 
         return od
