@@ -74,6 +74,7 @@ class Body extends Component {
      searchText: '',
      subdata:undefined,
      selectedAnchors:[false],
+     radvizTypeProjection: 1 //traditional radviz
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
@@ -521,6 +522,8 @@ componentWillReceiveProps(props){
     this.forceUpdate();
   }
 
+  handleChangeProjection = (event, indexProjection, radvizTypeProjection) => this.setState({radvizTypeProjection});
+
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
     {
@@ -541,13 +544,13 @@ componentWillReceiveProps(props){
       if(this.props.filterTerm !==''){
         linkBackOriginalData = <FlatButton label='Original data' labelPosition='before' primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:'8px'}} />;
       }
-      let sigmoid = <div style={{display:'flex',marginLeft:'170px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
+      let sigmoid = <div style={{display:'flex',marginLeft:'-100px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
       Translation:<Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
       </ListItem></div>;
-      let interaction = <div style={{width:'140px'}}><RadioButtonGroup name='shipSpeed' defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
-       <RadioButton value={0} label='Show all' labelStyle={styles.radioButton} />
-       <RadioButton value={1} label='Hide selected' labelStyle={styles.radioButton} style={{marginLeft:'-50px'}} />
-       <RadioButton value={2} label='Hide unselected' labelStyle={styles.radioButton} style={{marginLeft:'-30px'}} />
+      let interaction = <div style={{width:'380px'}}><RadioButtonGroup name='shipSpeed' defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
+       <RadioButton value={0} label='Show all' labelStyle={styles.radioButton} style={{width:'110px', marginRight:'-30px'}}/>
+       <RadioButton value={1} label='Hide selected' labelStyle={styles.radioButton} style={{width:'130px', marginRight:'-30px' }} />
+       <RadioButton value={2} label='Hide unselected' labelStyle={styles.radioButton} style={{width:'140px', marginRight:'-30px'}} />
      </RadioButtonGroup></div>;
      /*let projection_labels =
           <AutoComplete
@@ -563,7 +566,7 @@ componentWillReceiveProps(props){
       let find_anchor =
             <AutoComplete
             floatingLabelText='Find Keyword'
-            textFieldStyle={{width:'70%'}}
+            textFieldStyle={{width:'120'}}
             searchText={this.state.searchText_FindAnchor}
             onUpdateInput={this.handleUpdateInput_FindAnchor}
             onNewRequest={this.updateOnSelection_FindAnchor}
@@ -580,28 +583,43 @@ componentWillReceiveProps(props){
         return <li style={{color:this.tagsNames[k], textTransform: 'capitalize', fontWeight: 'bold', float: 'left', margin:15}}> {k} </li>;
       });
 
-      let buttonScaleData = <RaisedButton label="Multi Scale" onClick={this.multiScaleRadViz.bind(this)}/>
+      let buttonScaleData = <RaisedButton
+                label="Multi Scale"
+                labelStyle={{textTransform: "capitalize", fontSize:14, fontWeight:"normal", marginLeft:2, marginRight:2}}
+                backgroundColor={this.props.backgroundColor}
+                //icon={<Search />}
+                style={{width:110, height:35, marginTop: 0, margin: 12, marginLeft:"-20px"}}
+                onClick={this.multiScaleRadViz.bind(this)}
+              />
+
       return(
         <div>
         <Grid>
           <Col  ls={7} md={7} style={{ background:'white',}}>
             <Row className='Menus-child'>
-            <div style={{ marginLeft:'-70px' ,marginRight:'-60px'}}>
+            <div style={{ marginLeft:'-130px' ,marginRight:'-60px'}}>
             <Toolbar style={{width:'100%',height:'70%'}}>
-            <ToolbarGroup firstChild={true}>
-              {interaction}
-            </ToolbarGroup>
-            <ToolbarGroup >
-              {sigmoid}
-            </ToolbarGroup>
-            <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px', width:130}}>
-              {/*{projection_labels}*/}
-              {find_anchor}
-            </ToolbarGroup>
-            <ToolbarGroup style={{marginLeft:'10px',}}>
-            {buttonScaleData}
-            </ToolbarGroup>
-          </Toolbar>
+              <ToolbarGroup firstChild={true}>
+                {interaction}
+              </ToolbarGroup>
+              <ToolbarGroup >
+                {sigmoid}
+              </ToolbarGroup>
+              <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px', width:130}}>
+                {/*{projection_labels}*/}
+                {find_anchor}
+              </ToolbarGroup>
+              <ToolbarGroup style={{marginLeft:'10px',}}>
+              {buttonScaleData}
+              </ToolbarGroup>
+              <DropDownMenu value={this.state.radvizTypeProjection} onChange={this.handleChangeProjection}>
+                 <MenuItem value={1} primaryText="Original_RadViz" />
+                 <MenuItem value={2} primaryText="N_TopKeywords" />
+                 <MenuItem value={3} primaryText="Remove_C_Keywords" />
+                 <MenuItem value={4} primaryText="Cluster_STNE" />
+                 <MenuItem value={5} primaryText="Cluster_PCA" />
+              </DropDownMenu>
+            </Toolbar>
             </div>
             {/*}<div style={{position: 'absolute', left: '-5%', marginTop:'10px' ,marginRight:'-20px' }}>
             <ButtonGroup>
@@ -625,17 +643,21 @@ componentWillReceiveProps(props){
             {linkBackOriginalData}
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
-            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]} setSelectedAnchorsRadViz={this.setSelectedAnchorsRadViz.bind(this)} searchText_FindAnchor={this.state.searchText_FindAnchor}/>
+            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
+            setSelectedAnchorsRadViz={this.setSelectedAnchorsRadViz.bind(this)} searchText_FindAnchor={this.state.searchText_FindAnchor}
+            radvizTypeProjection={this.state.radvizTypeProjection}/>
             <ul style={{listStyleType: 'inside'}}>{legend}</ul>
 
             <RadViz data={this.state.subdata} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
-            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]} searchText_FindAnchor={this.state.searchText_FindAnchor}/>
+            projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
+            searchText_FindAnchor={this.state.searchText_FindAnchor}
+            radvizTypeProjection={this.state.radvizTypeProjection}/>
 
             </Row>
           </Col>
 
-          <Col  ls={2} md={2} style={{background:'white', marginLeft:'60px', borderLeft: '2px solid', borderColor:'lightgray'}}>
+          <Col  ls={4} md={4} style={{background:'white', marginLeft:'60px', borderLeft: '2px solid', borderColor:'lightgray'}}>
             <Row className='Menus-child' >
             <div style={{width:'448px', borderTop:'solid', paddingTop:10, paddingLeft:20, borderRight: '2px solid', borderColor:'lightgray'}}>
             <WordCloud dimNames={this.state.dimNames} selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
