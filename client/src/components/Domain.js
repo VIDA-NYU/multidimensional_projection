@@ -70,10 +70,12 @@ class Domain extends Component {
           let dimNames = Object.keys(data);
           let scaleColor = scaleOrdinal(this.colorTags);
           let colors = [];
+          let cluster_labels = [];
           data['Model Result'] = [];
           for (let i = 0; i < data['labels'].length; ++i){
               data['Model Result'][i] = "neutral";
               data['labels'][i]= data['labels'][i].split(',');
+              if(!(cluster_labels.includes(data['pred_labels'][i]))) cluster_labels.push(data['pred_labels'][i]);
               //colors.push(scaleColor(data['tags'][0]));
               let aux = {};
               for (let j = 0; j < dimNames.length-2; ++j){//except urls and labels
@@ -88,6 +90,7 @@ class Domain extends Component {
             function(es) {
               let numericalDataTSP = [];
               var orderObj = JSON.parse(es);
+
               for (let i = 0; i < numericalData.length; ++i){
                   let aux = {};
                   for(var j in orderObj.cities){
