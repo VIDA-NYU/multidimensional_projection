@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import numeric from 'numeric';
 import {scaleLinear} from 'd3-scale';
 import $ from 'jquery';
+import TSNE from 'tsne-js';
+import PCA from 'ml-pca';
 
 class RadViz extends Component {
 
@@ -15,6 +17,7 @@ class RadViz extends Component {
         this.unselectAllData = this.unselectAllData.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.selectionPoly = [];
+        this.outputScaledPCA = [];
         this.pointInPolygon = this.pointInPolygon.bind(this);
         this.startDragAnchorGroup = this.startDragAnchorGroup.bind(this);
         this.sortDimensions = this.sortDimensions.bind(this);
@@ -128,6 +131,94 @@ class RadViz extends Component {
       if(this.props.showedData===2 && this.state.selected[i]){
           ret.push(<circle cx={this.scaleX(p0)} cy={this.scaleY(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
       }
+      return ret;
+    }
+
+    computeTSNE(data){
+      let model = new TSNE({
+          dim: 2,
+          perplexity: 45.0,
+          earlyExaggeration: 4.0,
+          learningRate: 100.0,
+          nIter: 50,
+          metric: 'euclidean'
+        });
+
+        // inputData is a nested array which can be converted into an ndarray
+        // alternatively, it can be an array of coordinates (second argument should be specified as 'sparse')
+        model.init({
+          data: data,
+          type: 'dense'
+        });
+        console.log("TSNE");
+        console.log(data);
+        // `error`,  `iter`: final error and iteration number
+        // note: computation-heavy action happens here
+        let [error, iter] = model.run();
+
+        // rerun without re-calculating pairwise distances, etc.
+        //let [error2, iter2] = model.rerun();
+
+        // `output` is unpacked ndarray (regular nested javascript array)
+        //let output = model.getOutput();
+
+        // `outputScaled` is `output` scaled to a range of [-1, 1]
+        let outputScaled = model.getOutputScaled();
+        console.log(outputScaled);
+        return outputScaled;
+    }
+    /*computeTSNE_server(data){
+      //apply onlineClassifier
+      $.post(
+          '/updateOnlineClassifier',
+          {'session':  JSON.stringify(this.state.sessionBody)},
+          function(accuracy) {
+              this.setState({accuracy: accuracy});
+              if(this.state.dimNames[this.state.value]=='Model Result'){
+                this.predictUnlabeled();
+              }
+          }.bind(this)
+      );
+
+    }*/
+
+    computePCA(data){
+      //apply onlineClassifier
+      if(this.outputScaledPCA.length===0){
+        let pca = new PCA(data);
+        this.outputScaledPCA = pca.predict(data);
+        console.log(this.outputScaledPCA);
+      }
+      return this.outputScaledPCA;
+
+    }
+
+    projectionTSNE(data, anchors){
+      this.currentMapping = [];
+      let ret = [];
+      let x_y = this.computePCA(data);
+
+      for (let i = 0; i < x_y.length; ++i){
+        let p = [0,0];
+        //for (let j = 0; j < 2;++j){
+          //let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
+          p[0] = x_y[i][0];
+          p[1] = x_y[i][1];
+        //}
+        if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
+        if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
+        this.currentMapping.push(p);
+        if(this.props.projection == 'Model Result'){
+          if(this.props.modelResult[i]!=='trainData'){
+            ret = this.setColorPoints(i, ret, p[0], p[1]);
+          }
+        }
+        else{
+          ret = this.setColorPoints(i, ret, p[0], p[1]);
+        }
+
+      }
+      console.log(ret);
       return ret;
     }
 
@@ -360,6 +451,7 @@ class RadViz extends Component {
       let sampleDots = [];
       let anchorDots = [];
       let anchorText = [];
+      let sampleTSNE = [];
       let selectedAnchors = [];
       if (this.props.data){
         let anchorXY = [];
@@ -390,16 +482,18 @@ class RadViz extends Component {
               }
             }
 
-            sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
+            //sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
+            sampleTSNE = this.projectionTSNE(this.state.normalizedData, anchorXY);
           }
           return (
             <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
             onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect} onDoubleClick = {this.unselectAllData} onClick={this.unselectAllData}  onKeyDown={this.handleKeyDown}>
             <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
             style={{stroke:'#ececec',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
-            {sampleDots}
+            {sampleTSNE}
             {this.svgPoly(this.selectionPoly)}
             {anchorText}
+
             {anchorDots}
             </svg>
           );
