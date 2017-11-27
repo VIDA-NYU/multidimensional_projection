@@ -31,7 +31,7 @@ class RadViz extends Component {
       this.preprocessingData(this.props);
     }
 
-    preprocessingData(props){
+    preprocessingData_(props){
       if (props.data ){
           let dimNames = Object.keys(props.data[0]);
           let nDims = dimNames.length;
@@ -107,6 +107,95 @@ class RadViz extends Component {
       }
     }
 
+    preprocessingData(props){
+      if (props.data ){
+          let dimNames = Object.keys(props.data[0]);
+          let nDims = dimNames.length;
+
+          // Normalizing columns to [0, 1]
+          let normalizedData = [];
+          let mins = [];
+          let maxs = [];
+
+          for (let j = 0; j < nDims; ++j){
+              mins.push(props.data[0][dimNames[j]]);
+              maxs.push(props.data[0][dimNames[j]]);
+          }
+
+          for (let i = 1; i < props.data.length; ++i){
+              for (let j = 0; j < nDims; ++j){
+                  if (props.data[i][dimNames[j]] < mins[j]){
+                      mins[j] = props.data[i][dimNames[j]];
+                  }
+                  if (props.data[i][dimNames[j]] > maxs[j]){
+                      maxs[j] = props.data[i][dimNames[j]];
+                  }
+              }
+          }
+
+          // computing the denominator of radviz (sums of entries). Also initializing selected array (dots that are selected)
+          let denominators = [];
+          let selected = [];
+          let normalizedClusterData ={};
+          let idsDataIntoClusters ={};
+          //let listCluster = [];
+          for (let i = 0; i < props.data.length; ++i){
+
+              if(!(props.originalData['pred_labels'][i] in normalizedClusterData)){
+                normalizedClusterData[props.originalData['pred_labels'][i]]=[];
+                idsDataIntoClusters[props.originalData['pred_labels'][i]]=[];
+              }
+              let aux = [];
+              selected.push(false);
+              denominators.push(0);
+              // normalizing data by columns => equal weights to all dimensions (words)
+              let max_entry_by_row = -1;
+              for (let j = 0; j < nDims; ++j){
+                  let val = (props.data[i][dimNames[j]] - mins[j])/(maxs[j] - mins[j]);
+                  aux.push(val);
+                  if (val > max_entry_by_row){
+                      max_entry_by_row = val;
+                  }
+              }
+              // normalizing data by rows => sigmoid computation (max entry in row must be equal to 1)
+              if (max_entry_by_row > 0){
+                  for (let j = 0; j < nDims; ++j){
+                      aux[j] /= max_entry_by_row;
+                      denominators[i] += aux[j] * this.sigmoid(aux[j], props.sigmoid_scale, props.sigmoid_translate);
+                  }
+              }
+              normalizedData.push(aux);
+              idsDataIntoClusters[props.originalData['pred_labels'][i]].push(i);
+              normalizedClusterData[props.originalData['pred_labels'][i]].push(aux);
+          }
+          this.normalizedClusterData = normalizedClusterData;
+          console.log(normalizedClusterData);
+          console.log(idsDataIntoClusters);
+
+          // Computing the anchors
+          let anchorAngles = [];
+
+          for (let i = 0; i < nDims; ++i){
+              anchorAngles.push(i * 2*Math.PI / nDims);
+          }
+
+          this.scaleX = scaleLinear().domain([-1,1]).range([props.marginX/2, props.width-props.marginX/2]);
+          this.scaleY = scaleLinear().domain([-1,1]).range([props.marginY/2, props.height - props.marginY/2]);
+          let newState = {'normalizedData':normalizedData, 'dimNames':dimNames, 'nDims':nDims,
+                          'denominators':denominators, 'offsetAnchors':0, 'sigmoid_scale':props.sigmoid_scale,
+                          'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor,
+                          'radvizTypeProjection': this.props.radvizTypeProjection,'normalizedClusterData':normalizedClusterData, 'idsDataIntoClusters':idsDataIntoClusters };
+
+          if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
+          if(!(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0))){
+            newState['selected'] = selected;
+          }
+          if(this.state.data !== props.data) {newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;}
+          this.setState(newState);
+
+      }
+    }
+
     componentWillUnmount(){
       window.removeEventListener('keydown', this.handleKeyDown);
     }
@@ -132,6 +221,22 @@ class RadViz extends Component {
       }
       if(this.props.showedData===2 && this.state.selected[i]){
           ret.push(<circle cx={this.scaleX(p0)} cy={this.scaleY(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
+      }
+      return ret;
+    }
+
+    setColorPointsInClusters(i, ret, p0, p1){
+      var scaleX_Cluster = scaleLinear().domain([-1,1]).range([this.props.marginX/4, this.props.width-this.props.marginX/4]);
+      var scaleY_Cluster = scaleLinear().domain([-1,1]).range([this.props.marginY/4, this.props.height - this.props.marginY/4]);
+      if(this.props.showedData===0){
+          ret.push(<circle cx={scaleX_Cluster(p0)} cy={scaleY_Cluster(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
+      }
+      if(this.props.showedData===1){
+        if(!this.state.selected[i])
+          {ret.push(<circle cx={scaleX_Cluster(p0)} cy={scaleY_Cluster(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);}
+      }
+      if(this.props.showedData===2 && this.state.selected[i]){
+          ret.push(<circle cx={scaleX_Cluster(p0)} cy={scaleY_Cluster(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
       }
       return ret;
     }
@@ -196,11 +301,14 @@ class RadViz extends Component {
     }
 
     projectionTSNE(data, anchors){
+      let clusterName = Object.keys(data)[2];
+      data = data[clusterName];
       this.currentMapping = [];
       let ret = [];
       let x_y = this.computePCA(data);
 
       for (let i = 0; i < x_y.length; ++i){
+
         let p = [0,0];
         //for (let j = 0; j < 2;++j){
           //let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
@@ -210,13 +318,14 @@ class RadViz extends Component {
         if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
         if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
         this.currentMapping.push(p);
+        var idInCluster = this.state.idsDataIntoClusters[clusterName][i];
         if(this.props.projection == 'Model Result'){
-          if(this.props.modelResult[i]!=='trainData'){
-            ret = this.setColorPoints(i, ret, p[0], p[1]);
+          if(this.props.modelResult[idInCluster]!=='trainData'){
+            ret = this.setColorPointsInClusters(idInCluster, ret, p[0], p[1]);
           }
         }
         else{
-          ret = this.setColorPoints(i, ret, p[0], p[1]);
+          ret = this.setColorPointsInClusters(idInCluster, ret, p[0], p[1]);
         }
 
       }
@@ -483,7 +592,7 @@ class RadViz extends Component {
                 </g>);
               }
             }
-            sampleDots = (this.state.radvizTypeProjection<=3 )?this.radvizMapping(this.state.normalizedData, anchorXY) : this.projectionTSNE(this.state.normalizedData, anchorXY);
+            sampleDots = (this.state.radvizTypeProjection<=3 )?this.radvizMapping(this.state.normalizedData, anchorXY) : this.projectionTSNE(this.state.normalizedClusterData, anchorXY);
             //sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
             //sampleTSNE = this.projectionTSNE(this.state.normalizedData, anchorXY);
           }
