@@ -17,7 +17,7 @@ class RadViz extends Component {
         this.unselectAllData = this.unselectAllData.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.selectionPoly = [];
-        this.outputScaledPCA = [];
+        this.outputScaledPCA = {};
         this.pointInPolygon = this.pointInPolygon.bind(this);
         this.startDragAnchorGroup = this.startDragAnchorGroup.bind(this);
         this.sortDimensions = this.sortDimensions.bind(this);
@@ -168,7 +168,7 @@ class RadViz extends Component {
               idsDataIntoClusters[props.originalData['pred_labels'][i]].push(i);
               normalizedClusterData[props.originalData['pred_labels'][i]].push(aux);
           }
-          this.normalizedClusterData = normalizedClusterData;
+          //this.normalizedClusterData = normalizedClusterData;
           console.log(normalizedClusterData);
           console.log(idsDataIntoClusters);
 
@@ -225,9 +225,39 @@ class RadViz extends Component {
       return ret;
     }
 
-    setColorPointsInClusters(i, ret, p0, p1){
-      var scaleX_Cluster = scaleLinear().domain([-1,1]).range([this.props.marginX/4, this.props.width-this.props.marginX/4]);
-      var scaleY_Cluster = scaleLinear().domain([-1,1]).range([this.props.marginY/4, this.props.height - this.props.marginY/4]);
+    setColorPointsInClusters(i, ret, p0, p1, k){
+    //  console.log(p0 + ", " + p1);
+      var marginX_up = 0;
+      var marginX_down = 0;
+      var marginY_up = 0;
+      var marginY_down = 0;
+      if(k==0){
+        marginX_up = this.props.marginX/2+20;
+        marginX_down = (marginX_up)+100;
+        marginY_up = this.props.marginY/2+20;
+        marginY_down = (marginY_up)+100;
+      }
+      if(k==1){
+        marginX_up = this.props.marginX/2+270;
+        marginX_down = (marginX_up)+100;
+        marginY_up = this.props.marginY/2+20;
+        marginY_down = (marginY_up)+100;
+      }
+      if(k==2){
+        marginX_up = this.props.marginX/2+20;
+        marginX_down = (marginX_up)+100;
+        marginY_up = this.props.marginY/2+270;
+        marginY_down = (marginY_up)+100;
+      }
+      if(k==3){
+        marginX_up = this.props.marginX/2+270;
+        marginX_down = (marginX_up)+100;
+        marginY_up = this.props.marginY/2+270;
+        marginY_down = (marginY_up)+100;
+      }
+      var scaleX_Cluster = scaleLinear().domain([-1,1]).range([marginX_up, marginX_down]);
+      var scaleY_Cluster = scaleLinear().domain([-1,1]).range([marginY_up, marginY_down]);
+    //  console.log(this.scaleX(p0) + ", " + this.scaleY(p1));
       if(this.props.showedData===0){
           ret.push(<circle cx={scaleX_Cluster(p0)} cy={scaleY_Cluster(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
       }
@@ -289,47 +319,49 @@ class RadViz extends Component {
 
     }*/
 
-    computePCA(data){
+    computePCA(data, clusterName){
       //apply onlineClassifier
-      if(this.outputScaledPCA.length===0){
+      if(!(Object.keys(this.outputScaledPCA).includes(clusterName))){
+        this.outputScaledPCA[clusterName] = [];
         let pca = new PCA(data);
-        this.outputScaledPCA = pca.predict(data);
-        console.log(this.outputScaledPCA);
+        var outputScaledPCA = [];
+        outputScaledPCA = pca.predict(data);
+        this.outputScaledPCA[clusterName] = outputScaledPCA;
+        return outputScaledPCA;
       }
-      return this.outputScaledPCA;
+      return this.outputScaledPCA[clusterName];
 
     }
 
-    projectionTSNE(data, anchors){
-      let clusterName = Object.keys(data)[2];
-      data = data[clusterName];
+    projectionTSNE(data_clusters, anchors){
       this.currentMapping = [];
       let ret = [];
-      let x_y = this.computePCA(data);
-
-      for (let i = 0; i < x_y.length; ++i){
-
-        let p = [0,0];
-        //for (let j = 0; j < 2;++j){
-          //let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
-          p[0] = x_y[i][0];
-          p[1] = x_y[i][1];
-        //}
-        if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
-        if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
-        this.currentMapping.push(p);
-        var idInCluster = this.state.idsDataIntoClusters[clusterName][i];
-        if(this.props.projection == 'Model Result'){
-          if(this.props.modelResult[idInCluster]!=='trainData'){
-            ret = this.setColorPointsInClusters(idInCluster, ret, p[0], p[1]);
+      for(let k=0; k<Object.keys(data_clusters).length; k++){
+        var clusterName = Object.keys(data_clusters)[k];
+        var data = data_clusters[clusterName];
+        let x_y = this.computePCA(data, clusterName);
+        for (let i = 0; i < x_y.length; ++i){
+          let p = [0,0];
+          //for (let j = 0; j < 2;++j){
+            //let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
+            p[0] = x_y[i][0];
+            p[1] = x_y[i][1];
+          //}
+          if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
+          if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
+          this.currentMapping.push(p);
+          var idInCluster = this.state.idsDataIntoClusters[clusterName][i];
+          if(this.props.projection == 'Model Result'){
+            if(this.props.modelResult[idInCluster]!=='trainData'){
+              ret = this.setColorPointsInClusters(idInCluster, ret, p[0], p[1],k);
+            }
           }
-        }
-        else{
-          ret = this.setColorPointsInClusters(idInCluster, ret, p[0], p[1]);
-        }
+          else{
+            ret = this.setColorPointsInClusters(idInCluster, ret, p[0], p[1], k);
+          }
 
+        }
       }
-      console.log(ret);
       return ret;
     }
 
