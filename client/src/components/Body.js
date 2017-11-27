@@ -648,14 +648,14 @@ componentWillReceiveProps(props){
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
             setSelectedAnchorsRadViz={this.setSelectedAnchorsRadViz.bind(this)} searchText_FindAnchor={this.state.searchText_FindAnchor}
-            radvizTypeProjection={this.state.radvizTypeProjection}/>
-            <ul style={{listStyleType: 'inside'}}>{legend}</ul>
+            radvizTypeProjection={this.state.radvizTypeProjection} originalData={this.state.originalData}/>
+            <ul style={{listStyleType: 'inside'}}>{legend} </ul>
 
             <RadViz data={this.state.subdata} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
             searchText_FindAnchor={this.state.searchText_FindAnchor}
-            radvizTypeProjection={this.state.radvizTypeProjection}/>
+            radvizTypeProjection={this.state.radvizTypeProjection} originalData={this.state.originalData}/>
 
             </Row>
           </Col>
