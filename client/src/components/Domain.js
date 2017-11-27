@@ -79,7 +79,7 @@ class Domain extends Component {
               if(!(cluster_labels.includes(data['pred_labels'][i]))) cluster_labels.push(data['pred_labels'][i]);
               //colors.push(scaleColor(data['tags'][0]));
               let aux = {};
-              for (let j = 0; j < dimNames.length-2; ++j){//except urls and labels
+              for (let j = 0; j < dimNames.length-3; ++j){//except urls and labels and pred_labels
                   aux[dimNames[j]] = parseFloat(data[dimNames[j]][i]);
               }
               numericalData.push(aux);
