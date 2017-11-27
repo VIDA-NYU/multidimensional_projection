@@ -9,7 +9,7 @@ class RadViz extends Component {
 
     constructor(props){
         super(props);
-        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':''};
+        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':'', 'radvizTypeProjection': this.props.radvizTypeProjection};
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
@@ -93,7 +93,9 @@ class RadViz extends Component {
           this.scaleX = scaleLinear().domain([-1,1]).range([props.marginX/2, props.width-props.marginX/2]);
           this.scaleY = scaleLinear().domain([-1,1]).range([props.marginY/2, props.height - props.marginY/2]);
           let newState = {'normalizedData':normalizedData, 'dimNames':dimNames, 'nDims':nDims,
-                          'denominators':denominators, 'offsetAnchors':0, 'sigmoid_scale':props.sigmoid_scale, 'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor};
+                          'denominators':denominators, 'offsetAnchors':0, 'sigmoid_scale':props.sigmoid_scale,
+                          'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor,
+                          'radvizTypeProjection': this.props.radvizTypeProjection};
 
           if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
           if(!(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0))){
@@ -481,16 +483,16 @@ class RadViz extends Component {
                 </g>);
               }
             }
-
+            sampleDots = (this.state.radvizTypeProjection<=3 )?this.radvizMapping(this.state.normalizedData, anchorXY) : this.projectionTSNE(this.state.normalizedData, anchorXY);
             //sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
-            sampleTSNE = this.projectionTSNE(this.state.normalizedData, anchorXY);
+            //sampleTSNE = this.projectionTSNE(this.state.normalizedData, anchorXY);
           }
           return (
             <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
             onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect} onDoubleClick = {this.unselectAllData} onClick={this.unselectAllData}  onKeyDown={this.handleKeyDown}>
             <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
             style={{stroke:'#ececec',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
-            {sampleTSNE}
+            {sampleDots}
             {this.svgPoly(this.selectionPoly)}
             {anchorText}
 
