@@ -24,7 +24,8 @@ class Domain extends Component {
       filterTerm:"",
       index:this.props.location.query.index,
       open:false,
-      session:this.createSession(this.props.location.query.idDomain)
+      session:this.createSession(this.props.location.query.idDomain),
+      typeRadViz:1
     };
     this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828"];
   };
@@ -59,11 +60,11 @@ class Domain extends Component {
     return session;
   }
 
-  loadDataFromElasticSearch(index,  filterTerm){
+  loadDataFromElasticSearch(index,  filterTerm, typeRadViz){
     var session = this.createSession(this.props.location.query.idDomain);
     $.post(
         '/getRadvizPoints',
-        {'session': JSON.stringify(session), filterByTerm: filterTerm},
+        {'session': JSON.stringify(session), filterByTerm: filterTerm, typeRadViz: typeRadViz},
         function(es) {
           var data = JSON.parse(es);
           let numericalData = [];
@@ -109,7 +110,7 @@ class Domain extends Component {
   }
 
   componentWillMount(){
-    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm);
+    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, this.state.typeRadViz);
     this.setState({idDomain: this.props.location.query.idDomain});
   };
 
@@ -123,7 +124,7 @@ class Domain extends Component {
 
   //Filter by terms (ex. ebola AND virus)
   filterKeyword(filterTerm){
-    this.loadDataFromElasticSearch(this.state.index, filterTerm);
+    this.loadDataFromElasticSearch(this.state.index, filterTerm, this.state.typeRadViz);
   }
   handleOpen = () => {
     this.setState({open: true});
@@ -132,6 +133,12 @@ class Domain extends Component {
   handleClose = () => {
     this.setState({open: false});
   };
+
+  changeTypeRadViz(typeRadViz){
+    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, typeRadViz);
+    this.setState({typeRadViz: typeRadViz});
+  }
+
   render() {
     const actions = [
         <FlatButton
@@ -151,7 +158,9 @@ class Domain extends Component {
         No pages found.
         </Dialog>
         <Header currentIdDomain={this.props.location.query.idDomain} currentNameDomain={this.props.location.query.nameDomain} dimNames={this.state.dimNames} filterTerm={this.state.filterTerm} filterKeyword={this.filterKeyword.bind(this)} />
-  	    <Body session={this.state.session} currentDomain={this.state.idDomain} searchText={this.state.searchText} originalData={this.state.originalData} data={this.state.data} colors={this.state.colors} flat={this.state.flat} dimNames={this.state.dimNames} filterTerm={this.state.filterTerm}  filterKeyword={this.filterKeyword.bind(this)}/>
+  	    <Body session={this.state.session} currentDomain={this.state.idDomain} searchText={this.state.searchText} originalData={this.state.originalData} data={this.state.data} colors={this.state.colors} flat={this.state.flat}
+        dimNames={this.state.dimNames} filterTerm={this.state.filterTerm}  filterKeyword={this.filterKeyword.bind(this)}
+        changeTypeRadViz= {this.changeTypeRadViz.bind(this)}/>
       </div>
     );
   }

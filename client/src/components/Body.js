@@ -522,7 +522,10 @@ componentWillReceiveProps(props){
     this.forceUpdate();
   }
 
-  handleChangeProjection = (event, indexProjection, radvizTypeProjection) => this.setState({radvizTypeProjection});
+  handleChangeProjection(event, indexProjection, radvizTypeProjection){
+    this.setState({radvizTypeProjection})
+    this.props.changeTypeRadViz(radvizTypeProjection);
+  };
 
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
@@ -612,7 +615,7 @@ componentWillReceiveProps(props){
               <ToolbarGroup style={{marginLeft:'10px',}}>
               {buttonScaleData}
               </ToolbarGroup>
-              <DropDownMenu value={this.state.radvizTypeProjection} onChange={this.handleChangeProjection}>
+              <DropDownMenu value={this.state.radvizTypeProjection} onChange={this.handleChangeProjection.bind(this)}>
                  <MenuItem value={1} primaryText="Original_RadViz" />
                  <MenuItem value={2} primaryText="N_TopKeywords" />
                  <MenuItem value={3} primaryText="Remove_C_Keywords" />
