@@ -168,7 +168,7 @@ class RadvizModel(DomainModel):
         return self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data)
 
 
-    def getRadvizPoints(self, session, filterByTerm):
+    def getRadvizPoints(self, session, filterByTerm, typeRadViz):
         es_info = self._esInfo(session['domainId'])
         index = es_info['activeDomainIndex']
         max_features = 200
@@ -179,6 +179,8 @@ class RadvizModel(DomainModel):
 
         #data = ddteval_data["data"]
         data = newsgroups_train.data
+        X = []
+        features = []
         #print data
         stringLabels = map(str, newsgroups_train.target)
 
@@ -189,25 +191,49 @@ class RadvizModel(DomainModel):
         labels = stringArray
         #labels = ddteval_data["labels"]
         #urls = ddteval_data["urls"]
-
         nro_cluster = 4
         yPredKmeans = self.Kmeans(data, nro_cluster )
+        print typeRadViz
+        if typeRadViz == "1":
+            tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=max_features)
+            [X_, features_] = tf_v.vectorize(data)
+            X = X_
+            features = features_
+            cluster_labels = labels
+            stringArray = labels
+        elif typeRadViz == "2":
+            #[clusterData, labels_cluster, X_sum] = self.getRandomSample_inCluster( nro_cluster, yPredKmeans, data, labels)
+            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster( nro_cluster, yPredKmeans, data, labels)
+            stringArray = original_labels
+            data = clusterData
+            features = features_uniques
+            X = csr_matrix(X_sum)
+        elif typeRadViz == "3":
+            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels)
+            stringArray = original_labels
+            data = clusterData
+            features = features_uniques
+            X = csr_matrix(X_sum)
+        elif typeRadViz == "4":
+            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels)
+            stringArray = original_labels
+            data = clusterData
+            features = features_uniques
+            X = csr_matrix(X_sum)
+        elif typeRadViz == "5":
+            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels)
+            stringArray = original_labels
+            data = clusterData
+            features = features_uniques
+            X = csr_matrix(X_sum)
 
-        #[clusterData, labels_cluster, X_sum] = self.getRandomSample_inCluster( nro_cluster, yPredKmeans, data, labels)
-        [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels)
-        stringArray = original_labels
-        data = clusterData
-
-        features = features_uniques
-        #tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=max_features)
-        #[X, features] = tf_v.vectorize(data)
-        X = csr_matrix(X_sum)
+        else:
+            print "Nothing to do"
 
         matrix_transpose = np.transpose(X.todense())
 
         print "\n\n Number of 1-gram features = ", len(features)
         print "\n\n tf 1-gram matrix size = ", np.shape(X)
-
         # data = self.radviz.loadData_pkl("data/ht_data_200.pkl").todense()
 
         # data = np.transpose(data)
