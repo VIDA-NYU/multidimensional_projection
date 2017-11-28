@@ -259,14 +259,14 @@ class RadViz extends Component {
       var scaleY_Cluster = scaleLinear().domain([-1,1]).range([marginY_up, marginY_down]);
     //  console.log(this.scaleX(p0) + ", " + this.scaleY(p1));
       if(this.props.showedData===0){
-          ret.push(<circle cx={scaleX_Cluster(p0)} cy={scaleY_Cluster(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
+          ret.push(<circle cx={this.scaleX(p0)} cy={this.scaleY(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
       }
       if(this.props.showedData===1){
         if(!this.state.selected[i])
-          {ret.push(<circle cx={scaleX_Cluster(p0)} cy={scaleY_Cluster(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);}
+          {ret.push(<circle cx={this.scaleX(p0)} cy={this.scaleY(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);}
       }
       if(this.props.showedData===2 && this.state.selected[i]){
-          ret.push(<circle cx={scaleX_Cluster(p0)} cy={scaleY_Cluster(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
+          ret.push(<circle cx={this.scaleX(p0)} cy={this.scaleY(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
       }
       return ret;
     }
@@ -333,6 +333,17 @@ class RadViz extends Component {
 
     }
 
+    minmax_XY(x_y) {
+        var mn_X = 10000000, mx_X = 0, mn_Y = 10000000, mx_Y = 0;
+        for (let i = 0; i < x_y.length; ++i){
+            mn_X = Math.min(x_y[i][0], mn_X);
+            if (x_y[i][0] > mx_X) mx_X = x_y[i][0];
+            if (x_y[i][1] < mn_Y) mn_Y = x_y[i][1];
+            if (x_y[i][1] > mx_Y) mx_Y = x_y[i][1];
+        };
+        return [mn_X, mx_X, mn_Y, mx_Y];
+    };
+
     projectionTSNE(data_clusters, anchors){
       this.currentMapping = [];
       let ret = [];
@@ -340,6 +351,10 @@ class RadViz extends Component {
         var clusterName = Object.keys(data_clusters)[k];
         var data = data_clusters[clusterName];
         let x_y = this.computePCA(data, clusterName);
+
+        var mn_X = 0, mx_X = 0, mn_Y = 0, mx_Y = 0;
+        [mn_X, mx_X, mn_Y, mx_Y] = this.minmax_XY(x_y);
+
         for (let i = 0; i < x_y.length; ++i){
           let p = [0,0];
           //for (let j = 0; j < 2;++j){
@@ -349,15 +364,38 @@ class RadViz extends Component {
           //}
           if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
           if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
+
+          var a = -0.25; var b = 0.25;
+          p[0] = (b-a)*((p[0] - mn_X) / (mx_X - mn_X)) + (a); //Normalizing points from 'a' to 'b'
+          p[1] = (b-a)*((p[1] - mn_Y) / (mx_Y - mn_Y))+ (a); //Normalizing points from 'a' to 'b'
+          var x_p = 0.4;
+          var y_p = 0.5;
+          if(k==0){
+            p[0] = p[0]-x_p;
+            p[1] = p[1]+x_p;
+          }
+          if(k==1){
+            p[0] = p[0]+x_p;
+            p[1] = p[1]+x_p;
+          }
+          if(k==2){
+            p[0] = p[0]-x_p;
+            p[1] = p[1]-x_p;
+          }
+          if(k==3){
+            p[0] = p[0]+x_p;
+            p[1] = p[1]-x_p;
+          }
+
           this.currentMapping.push(p);
           var idInCluster = this.state.idsDataIntoClusters[clusterName][i];
           if(this.props.projection == 'Model Result'){
             if(this.props.modelResult[idInCluster]!=='trainData'){
-              ret = this.setColorPointsInClusters(idInCluster, ret, p[0], p[1],k);
+              ret = this.setColorPoints(idInCluster, ret, p[0], p[1]);
             }
           }
           else{
-            ret = this.setColorPointsInClusters(idInCluster, ret, p[0], p[1], k);
+            ret = this.setColorPoints(idInCluster, ret, p[0], p[1]);
           }
 
         }
