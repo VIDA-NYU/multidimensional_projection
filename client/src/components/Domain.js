@@ -25,7 +25,8 @@ class Domain extends Component {
       index:this.props.location.query.index,
       open:false,
       session:this.createSession(this.props.location.query.idDomain),
-      typeRadViz:1
+      typeRadViz:1,
+      nroCluster:4
     };
     this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828"];
   };
@@ -60,11 +61,11 @@ class Domain extends Component {
     return session;
   }
 
-  loadDataFromElasticSearch(index,  filterTerm, typeRadViz){
+  loadDataFromElasticSearch(index,  filterTerm, typeRadViz, nroCluster){
     var session = this.createSession(this.props.location.query.idDomain);
     $.post(
         '/getRadvizPoints',
-        {'session': JSON.stringify(session), filterByTerm: filterTerm, typeRadViz: typeRadViz},
+        {'session': JSON.stringify(session), filterByTerm: filterTerm, typeRadViz: typeRadViz, nroCluster: nroCluster},
         function(es) {
           var data = JSON.parse(es);
           let numericalData = [];
@@ -110,7 +111,7 @@ class Domain extends Component {
   }
 
   componentWillMount(){
-    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, this.state.typeRadViz);
+    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, this.state.typeRadViz, this.state.nroCluster);
     this.setState({idDomain: this.props.location.query.idDomain});
   };
 
@@ -124,7 +125,7 @@ class Domain extends Component {
 
   //Filter by terms (ex. ebola AND virus)
   filterKeyword(filterTerm){
-    this.loadDataFromElasticSearch(this.state.index, filterTerm, this.state.typeRadViz);
+    this.loadDataFromElasticSearch(this.state.index, filterTerm, this.state.typeRadViz, this.state.nroCluster);
   }
   handleOpen = () => {
     this.setState({open: true});
@@ -135,8 +136,12 @@ class Domain extends Component {
   };
 
   changeTypeRadViz(typeRadViz){
-    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, typeRadViz);
+    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, typeRadViz, this.state.nroCluster);
     this.setState({typeRadViz: typeRadViz});
+  }
+  changeNroCluster(nroCluster){
+    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, this.state.typeRadViz, nroCluster);
+    this.setState({nroCluster: nroCluster});
   }
 
   render() {
@@ -160,7 +165,7 @@ class Domain extends Component {
         <Header currentIdDomain={this.props.location.query.idDomain} currentNameDomain={this.props.location.query.nameDomain} dimNames={this.state.dimNames} filterTerm={this.state.filterTerm} filterKeyword={this.filterKeyword.bind(this)} />
   	    <Body session={this.state.session} currentDomain={this.state.idDomain} searchText={this.state.searchText} originalData={this.state.originalData} data={this.state.data} colors={this.state.colors} flat={this.state.flat}
         dimNames={this.state.dimNames} filterTerm={this.state.filterTerm}  filterKeyword={this.filterKeyword.bind(this)}
-        changeTypeRadViz= {this.changeTypeRadViz.bind(this)}/>
+        changeTypeRadViz= {this.changeTypeRadViz.bind(this)} changeNroCluster= {this.changeNroCluster.bind(this)}/>
       </div>
     );
   }
