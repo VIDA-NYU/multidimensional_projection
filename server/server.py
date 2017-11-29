@@ -35,6 +35,12 @@ class MDProjServer(Page):
     models = {"domain": self._radvizModel}
     super(MDProjServer, self).__init__(models, path)
 
+  # Extracts list of parameters: array is encoded as a long string with a delimiter.
+  @staticmethod
+  def extractListParam(param, opt_char = None):
+    delimiter = opt_char if opt_char != None else '|'
+    return param.split(delimiter) if len(param) > 0 else []
+
   # Access to seed crawler vis.
   @cherrypy.expose
   def mdprojvis(self):
@@ -59,6 +65,13 @@ class MDProjServer(Page):
   @cherrypy.expose
   def computeTSP(self):
     result = self._radvizModel.computeTSP()
+    return json.dumps(result)
+
+  @cherrypy.expose
+  def getNumericalData_MedoidCluster(self,features_tsp):
+    #session = json.loads(session)
+    features_tsp = self.extractListParam(features_tsp)
+    result = self._radvizModel.getNumericalData_MedoidCluster(features_tsp)
     return json.dumps(result)
 
 if __name__ == "__main__":

@@ -112,13 +112,13 @@ class RadvizModel(DomainModel):
         #X_sum : the clusters_TFData (tf vectors) of each cluster was reduced to just one vector (the columns were summed). At the end only one vector is generated for each cluster.
         #subset_raw_data: sub dataset (raw data) from each cluster. A random sample was took from each cluster.
 
-    def getMedoidSamples_inCluster(self, nro_cluster, y_Pred, raw_data, labels):
+    def getMedoidSamples_inCluster(self,nro_cluster, y_Pred, raw_data, labels):
 
         max_features = 60
-        [features_in_clusters, clusters_RawData, label_by_clusters, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
+        [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
 
         features_uniques = np.unique(features_in_clusters).tolist()
-
+        cluster_labels = []
         new_X_sum = []
         for i in range(nro_cluster):
             new_X = np.zeros(len(features_uniques))
@@ -129,7 +129,25 @@ class RadvizModel(DomainModel):
                 except ValueError:
                     print "error"
             new_X_sum.append(np.asarray(new_X))
-        return [subset_raw_data,label_by_clusters, new_X_sum, features_uniques]
+            cluster_labels.append(label_by_clusters[i])
+        return [subset_raw_data,cluster_labels, new_X_sum, features_uniques]
+
+    def getMedoidSamples_inCluster_NumData(self,features_in_clusters, features_uniques, label_by_clusters, X_sum ):
+
+        features_uniques = np.unique(features_uniques).tolist()
+        cluster_labels = []
+        new_X_sum = []
+        for i in range(nro_cluster):
+            new_X = np.zeros(len(features_uniques))
+            for j in range(len(features_in_clusters[i])): #loop over the cluster's features
+                try:
+                    index_feat = features_uniques.index(features_in_clusters[i][j])
+                    new_X[index_feat]=X_sum[i][j]
+                except ValueError:
+                    print "error"
+            new_X_sum.append(np.asarray(new_X))
+            cluster_labels.append(label_by_clusters[i])
+        return [cluster_labels, new_X_sum]
 
     def getVectors_for_allSamples(self, nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data):
         new_X_sum = []
@@ -167,6 +185,17 @@ class RadvizModel(DomainModel):
 
         return self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data)
 
+    def getAllSamples_inCluster_RemoveCommonFeatures_medoids(self, nro_cluster, y_Pred, raw_data, labels):
+        max_features = 60
+        [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
+
+        intersection = reduce(np.intersect1d, (features_in_clusters)).tolist() #getting common keywords between all clusters
+        features_uniques_temp = np.unique(features_in_clusters).tolist()
+        features_uniques = np.setdiff1d(features_uniques_temp,intersection).tolist()#removing common keywords between all clusters
+
+        [labels_medoid_cluster, X_medoid_Cluster] = self.getMedoidSamples_inCluster_NumData(features_in_clusters, features_uniques, label_by_clusters, X_sum )
+        [subset_raw_data, cluster_labels, original_labels, new_X_sum, features_uniques] =  self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data)
+        return [subset_raw_data, cluster_labels, original_labels, new_X_sum, features_uniques,    labels_medoid_cluster, X_medoid_Cluster]
 
     def getRadvizPoints(self, session, filterByTerm, typeRadViz):
         es_info = self._esInfo(session['domainId'])
@@ -194,6 +223,8 @@ class RadvizModel(DomainModel):
         nro_cluster = 4
         yPredKmeans = self.Kmeans(data, nro_cluster )
         print typeRadViz
+        labels_medoid_cluster = []
+        X_medoid_cluster = []
         if typeRadViz == "1":
             tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=max_features)
             [X_, features_] = tf_v.vectorize(data)
@@ -255,7 +286,7 @@ class RadvizModel(DomainModel):
         image_urls = stringArray
 
 
-        self.radviz = Radviz(X, features, labels, urls)
+        self.radviz = Radviz(X, features, labels, urls, labels_medoid_cluster, X_medoid_cluster)
 
         return_obj = {}
         for i in range(0, len(features)):
@@ -268,3 +299,6 @@ class RadvizModel(DomainModel):
 
     def computeTSP(self):
         return self.radviz.compute_tsp()
+
+    def getNumericalData_MedoidCluster(self, features_tsp):
+        return self.radviz.compute_MedoidCluster(features_tsp)
