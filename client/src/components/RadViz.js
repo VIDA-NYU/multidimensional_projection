@@ -99,13 +99,13 @@ class RadViz extends Component {
           let newState = {'normalizedData':normalizedData, 'dimNames':dimNames, 'nDims':nDims,
                           'denominators':denominators, 'offsetAnchors':0, 'sigmoid_scale':props.sigmoid_scale,
                           'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor,
-                          'radvizTypeProjection': this.props.radvizTypeProjection};
+                          'radvizTypeProjection': props.radvizTypeProjection};
 
           if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
           if(!(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0))){
             newState['selected'] = selected;
           }
-          if(this.state.data !== props.data) {newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;}
+          if(this.state.data !== props.data) {  newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;}
           this.setState(newState);
 
       }
@@ -192,13 +192,14 @@ class RadViz extends Component {
           let newState = {'normalizedData':normalizedData, 'dimNames':dimNames, 'nDims':nDims,
                           'denominators':denominators, 'offsetAnchors':0, 'sigmoid_scale':props.sigmoid_scale,
                           'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor,
-                          'radvizTypeProjection': this.props.radvizTypeProjection,'normalizedClusterData':normalizedClusterData, 'idsDataIntoClusters':idsDataIntoClusters, 'clusterData_TF':clusterData_TF };
+                          'radvizTypeProjection': props.radvizTypeProjection,'normalizedClusterData':normalizedClusterData, 'idsDataIntoClusters':idsDataIntoClusters, 'clusterData_TF':clusterData_TF };
 
           if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
           if(!(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0))){
             newState['selected'] = selected;
           }
-          if(this.state.data !== props.data) {newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;}
+          if(this.state.data !== props.data) { this.outputScaledPCA = {}; newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;}
+          newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;
           this.setState(newState);
 
       }
@@ -306,7 +307,6 @@ class RadViz extends Component {
 
         // `outputScaled` is `output` scaled to a range of [-1, 1]
         let outputScaled = model.getOutputScaled();
-        console.log(outputScaled);
         return outputScaled;
     }
     /*computeTSNE_server(data){
@@ -341,6 +341,9 @@ class RadViz extends Component {
 
     getSumMedoids(){
       var clusterData_TF = this.state.clusterData_TF;
+      this.denominator_medoidsCluster = [];
+      this.labels_medoidsCluster =[];
+      this.normalizedData_medoidsCluster =[];
       //let listCluster = [];
       // Normalizing columns to [0, 1]
       let normalizedData = [];
