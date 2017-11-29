@@ -636,8 +636,8 @@ componentWillReceiveProps(props){
                  <MenuItem value={1} primaryText="Original_RadViz" />
                  <MenuItem value={2} primaryText="N_TopKeywords" />
                  <MenuItem value={3} primaryText="Remove_C_Keywords" />
-                 <MenuItem value={4} primaryText="Cluster_STNE" />
-                 <MenuItem value={5} primaryText="Cluster_PCA" />
+                 <MenuItem value={4} primaryText="Cluster_PCA" />
+                 <MenuItem value={5} primaryText="SuperNodesRadViz" />
               </DropDownMenu>
               <DropDownMenu value={this.state.radvizNroCluster} onChange={this.handleChangeNroCluster.bind(this)}>
                  <MenuItem value={1} primaryText="1" />
