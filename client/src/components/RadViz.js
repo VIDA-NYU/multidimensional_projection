@@ -25,6 +25,10 @@ class RadViz extends Component {
         this.startanchorAngles = 0;
         this.currentUpdatedAngle=0;
         this.selectedAnchors=[];
+        this.denominator_medoidsCluster = [];
+        this.labels_medoidsCluster =[];
+        this.normalizedData_medoidsCluster =[];
+
     }
     componentWillMount(){
       window.addEventListener('keydown', this.handleKeyDown);//esc key to unselect all data.
@@ -138,14 +142,17 @@ class RadViz extends Component {
           let selected = [];
           let normalizedClusterData ={};
           let idsDataIntoClusters ={};
+          let clusterData_TF = {};
           //let listCluster = [];
           for (let i = 0; i < props.data.length; ++i){
 
               if(!(props.originalData['pred_labels'][i] in normalizedClusterData)){
                 normalizedClusterData[props.originalData['pred_labels'][i]]=[];
                 idsDataIntoClusters[props.originalData['pred_labels'][i]]=[];
+                clusterData_TF[props.originalData['pred_labels'][i]]=[];
               }
               let aux = [];
+              let aux_medoid_cluster = [];
               selected.push(false);
               denominators.push(0);
               // normalizing data by columns => equal weights to all dimensions (words)
@@ -153,6 +160,7 @@ class RadViz extends Component {
               for (let j = 0; j < nDims; ++j){
                   let val = (props.data[i][dimNames[j]] - mins[j])/(maxs[j] - mins[j]);
                   aux.push(val);
+                  aux_medoid_cluster.push(props.data[i][dimNames[j]]);
                   if (val > max_entry_by_row){
                       max_entry_by_row = val;
                   }
@@ -164,13 +172,12 @@ class RadViz extends Component {
                       denominators[i] += aux[j] * this.sigmoid(aux[j], props.sigmoid_scale, props.sigmoid_translate);
                   }
               }
+              clusterData_TF[props.originalData['pred_labels'][i]].push(aux_medoid_cluster);
               normalizedData.push(aux);
               idsDataIntoClusters[props.originalData['pred_labels'][i]].push(i);
               normalizedClusterData[props.originalData['pred_labels'][i]].push(aux);
           }
           //this.normalizedClusterData = normalizedClusterData;
-          console.log(normalizedClusterData);
-          console.log(idsDataIntoClusters);
 
           // Computing the anchors
           let anchorAngles = [];
@@ -179,12 +186,13 @@ class RadViz extends Component {
               anchorAngles.push(i * 2*Math.PI / nDims);
           }
 
+
           this.scaleX = scaleLinear().domain([-1,1]).range([props.marginX/2, props.width-props.marginX/2]);
           this.scaleY = scaleLinear().domain([-1,1]).range([props.marginY/2, props.height - props.marginY/2]);
           let newState = {'normalizedData':normalizedData, 'dimNames':dimNames, 'nDims':nDims,
                           'denominators':denominators, 'offsetAnchors':0, 'sigmoid_scale':props.sigmoid_scale,
                           'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor,
-                          'radvizTypeProjection': this.props.radvizTypeProjection,'normalizedClusterData':normalizedClusterData, 'idsDataIntoClusters':idsDataIntoClusters };
+                          'radvizTypeProjection': this.props.radvizTypeProjection,'normalizedClusterData':normalizedClusterData, 'idsDataIntoClusters':idsDataIntoClusters, 'clusterData_TF':clusterData_TF };
 
           if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
           if(!(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0))){
@@ -226,7 +234,6 @@ class RadViz extends Component {
     }
 
     setColorPointsInClusters(i, ret, p0, p1, k){
-    //  console.log(p0 + ", " + p1);
       var marginX_up = 0;
       var marginX_down = 0;
       var marginY_up = 0;
@@ -287,8 +294,6 @@ class RadViz extends Component {
           data: data,
           type: 'dense'
         });
-        console.log("TSNE");
-        console.log(data);
         // `error`,  `iter`: final error and iteration number
         // note: computation-heavy action happens here
         let [error, iter] = model.run();
@@ -327,10 +332,84 @@ class RadViz extends Component {
         var outputScaledPCA = [];
         outputScaledPCA = pca.predict(data);
         this.outputScaledPCA[clusterName] = outputScaledPCA;
+        this.getSumMedoids();
         return outputScaledPCA;
       }
       return this.outputScaledPCA[clusterName];
 
+    }
+
+    getSumMedoids(){
+      var clusterData_TF = this.state.clusterData_TF;
+      //let listCluster = [];
+      // Normalizing columns to [0, 1]
+      let normalizedData = [];
+      let mins = [];
+      let maxs = [];
+
+      var dimNames = this.state.dimNames;
+      var nDims= dimNames.length;
+      var label_cluster = [];
+      var medoids_clusterData_TF = [];
+      for(let k=0; k<Object.keys(clusterData_TF).length; k++){
+        var clusterName = Object.keys(clusterData_TF)[k];
+        var data = clusterData_TF[clusterName];
+        label_cluster.push(clusterName);
+        let aux = [];
+        for (let i = 0; i < nDims; ++i){
+            let val_medoid_sum =0;
+            for (let j = 0; j < data.length; ++j){
+                val_medoid_sum = val_medoid_sum + data[j][i];
+            }
+            aux.push(val_medoid_sum);
+        }
+        medoids_clusterData_TF.push(aux);
+      }
+
+      for (let j = 0; j < nDims; ++j){
+          mins.push(medoids_clusterData_TF[0][j]);
+          maxs.push(medoids_clusterData_TF[0][j]);
+      }
+      for (let i = 1; i < medoids_clusterData_TF.length; ++i){
+          for (let j = 0; j < nDims; ++j){
+              if (medoids_clusterData_TF[i][j] < mins[j]){
+                  mins[j] = medoids_clusterData_TF[i][j];
+              }
+              if (medoids_clusterData_TF[i][j] > maxs[j]){
+                  maxs[j] = medoids_clusterData_TF[i][j];
+              }
+          }
+      }
+
+      // computing the denominator of radviz (sums of entries). Also initializing selected array (dots that are selected)
+      let denominators = [];
+      let selected = [];
+      //let listCluster = [];
+      for (let i = 0; i < medoids_clusterData_TF.length; ++i){
+
+          let aux = [];
+          denominators.push(0);
+          // normalizing data by columns => equal weights to all dimensions (words)
+          let max_entry_by_row = -1;
+          for (let j = 0; j < nDims; ++j){
+              let val = (medoids_clusterData_TF[i][j] - mins[j])/(maxs[j] - mins[j]);
+              aux.push(val);
+              if (val > max_entry_by_row){
+                  max_entry_by_row = val;
+              }
+          }
+          // normalizing data by rows => sigmoid computation (max entry in row must be equal to 1)
+          if (max_entry_by_row > 0){
+              for (let j = 0; j < nDims; ++j){
+                  aux[j] /= max_entry_by_row;
+                  denominators[i] += aux[j] * this.sigmoid(aux[j], this.state.sigmoid_scale, this.state.sigmoid_translate);
+              }
+          }
+          normalizedData.push(aux);
+      }
+      this.denominator_medoidsCluster = denominators;
+      this.labels_medoidsCluster =label_cluster;
+      this.normalizedData_medoidsCluster =normalizedData;
     }
 
     minmax_XY(x_y) {
@@ -355,6 +434,16 @@ class RadViz extends Component {
         var mn_X = 0, mx_X = 0, mn_Y = 0, mx_Y = 0;
         [mn_X, mx_X, mn_Y, mx_Y] = this.minmax_XY(x_y);
 
+        var index_labelCluster = this.labels_medoidsCluster.indexOf(clusterName);
+        let p_medoid = [0,0];
+        for (let j = 0; j < anchors.length;++j){
+          let s = this.sigmoid(this.normalizedData_medoidsCluster[index_labelCluster][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
+          p_medoid[0] += anchors[j][0]*this.normalizedData_medoidsCluster[index_labelCluster][j]/this.denominator_medoidsCluster [index_labelCluster] * s;
+          p_medoid[1] += anchors[j][1]*this.normalizedData_medoidsCluster[index_labelCluster][j]/this.denominator_medoidsCluster [index_labelCluster] * s;
+        }
+        if(isNaN(p_medoid[0])) p_medoid[0]=0;//when all dimension values were zero.
+        if(isNaN(p_medoid[1])) p_medoid[1]=0;//When all dimension values were zero
+
         for (let i = 0; i < x_y.length; ++i){
           let p = [0,0];
           //for (let j = 0; j < 2;++j){
@@ -368,24 +457,10 @@ class RadViz extends Component {
           var a = -0.25; var b = 0.25;
           p[0] = (b-a)*((p[0] - mn_X) / (mx_X - mn_X)) + (a); //Normalizing points from 'a' to 'b'
           p[1] = (b-a)*((p[1] - mn_Y) / (mx_Y - mn_Y))+ (a); //Normalizing points from 'a' to 'b'
-          var x_p = 0.4;
-          var y_p = 0.5;
-          if(k==0){
-            p[0] = p[0]-x_p;
-            p[1] = p[1]+x_p;
-          }
-          if(k==1){
-            p[0] = p[0]+x_p;
-            p[1] = p[1]+x_p;
-          }
-          if(k==2){
-            p[0] = p[0]-x_p;
-            p[1] = p[1]-x_p;
-          }
-          if(k==3){
-            p[0] = p[0]+x_p;
-            p[1] = p[1]-x_p;
-          }
+          var x_p = p_medoid[0];
+          var y_p = p_medoid[1];
+          p[0] = p[0]+x_p;
+          p[1] = p[1]+y_p;
 
           this.currentMapping.push(p);
           var idInCluster = this.state.idsDataIntoClusters[clusterName][i];
