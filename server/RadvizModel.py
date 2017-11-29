@@ -223,8 +223,6 @@ class RadvizModel(DomainModel):
         nro_cluster = 4
         yPredKmeans = self.Kmeans(data, nro_cluster )
         print typeRadViz
-        labels_medoid_cluster = []
-        X_medoid_cluster = []
         if typeRadViz == "1":
             tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=max_features)
             [X_, features_] = tf_v.vectorize(data)
@@ -286,7 +284,7 @@ class RadvizModel(DomainModel):
         image_urls = stringArray
 
 
-        self.radviz = Radviz(X, features, labels, urls, labels_medoid_cluster, X_medoid_cluster)
+        self.radviz = Radviz(X, features, labels, urls)
 
         return_obj = {}
         for i in range(0, len(features)):
@@ -299,6 +297,3 @@ class RadvizModel(DomainModel):
 
     def computeTSP(self):
         return self.radviz.compute_tsp()
-
-    def getNumericalData_MedoidCluster(self, features_tsp):
-        return self.radviz.compute_MedoidCluster(features_tsp)
