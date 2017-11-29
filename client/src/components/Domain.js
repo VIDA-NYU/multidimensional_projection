@@ -101,6 +101,19 @@ class Domain extends Component {
               }
               this.setState({originalData: data, data:numericalDataTSP, colors:colors, flat:1, dimNames: dimNames, filterTerm: filterTerm});
               //this.props.setDimNames(dimNames);
+              $.post(
+                '/getNumericalData_MedoidCluster',
+                {"features_tsp": dimNames.join('|') },
+                function(es) {
+                  console.log('getNumericalData_MedoidCluster--------');
+                  var data = JSON.parse(es);
+                  let numericalData = [];
+                  let dimNames = Object.keys(data);
+                  console.log(data);
+                  console.log(dimNames);
+
+                  }.bind(this)
+                  );
             }.bind(this)
           );
         }.bind(this)
