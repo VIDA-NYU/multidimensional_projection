@@ -52,9 +52,9 @@ class MDProjServer(Page):
     return self.mdprojvis()
 
   @cherrypy.expose
-  def getRadvizPoints(self,session,filterByTerm, typeRadViz):
+  def getRadvizPoints(self,session,filterByTerm, typeRadViz, nroCluster):
     session = json.loads(session)
-    result = self._radvizModel.getRadvizPoints(session,filterByTerm, typeRadViz)
+    result = self._radvizModel.getRadvizPoints(session,filterByTerm, typeRadViz, nroCluster)
     return json.dumps(result)
 
   @cherrypy.expose
