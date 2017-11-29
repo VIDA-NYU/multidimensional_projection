@@ -56,6 +56,7 @@ class Body extends Component {
      value: 173, // the 'labels' field as the default projection 173
      data:undefined,
      colors:undefined,
+     colors_subRadviz:undefined,
      originalData:this.props.originalData,
      showedData:0,
      selectedPoints:[false],
@@ -101,9 +102,20 @@ class Body extends Component {
  }
 
  setSelectedPoints(selected){
-    if(this.state.searchText.replace(/\s/g,'') === ''){var selectedSearchText = []; this.setState({selectedPoints:selected, selectedSearchText: selectedSearchText,});
-  }
-    else this.setState({selectedPoints:selected, selectedSearchText: selected,});
+   //var counts = {};
+   //selected.forEach(function(x) { counts[x] = (counts[x] || 0)+1; });
+   var  newColors = [];
+   for(var i = 0 ; i<selected.length; i++){
+     if(selected[i]){
+       newColors.push(this.state.colors[i]);
+     }
+   }
+
+
+    if(this.state.searchText.replace(/\s/g,'') === ''){var selectedSearchText = []; this.setState({selectedPoints:selected, selectedSearchText: selectedSearchText, colors_subRadviz:newColors});
+    }
+    else this.setState({selectedPoints:selected, selectedSearchText: selected, colors_subRadviz:newColors});
+
  }
 
  setSelectedAnchorsRadViz(selected){
@@ -524,7 +536,7 @@ componentWillReceiveProps(props){
   }
 
   handleChangeProjection(event, indexProjection, radvizTypeProjection){
-    this.setState({radvizTypeProjection})
+    this.setState({radvizTypeProjection:radvizTypeProjection})
     this.props.changeTypeRadViz(radvizTypeProjection);
   };
   handleChangeNroCluster(event, indexProjection, radvizNroCluster){
@@ -668,11 +680,11 @@ componentWillReceiveProps(props){
             radvizTypeProjection={this.state.radvizTypeProjection} originalData={this.state.originalData}/>
             <ul style={{listStyleType: 'inside'}}>{legend} </ul>
 
-            <RadViz data={this.state.subdata} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
+            <RadViz data={this.state.subdata} colors={this.state.colors_subRadviz} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
             searchText_FindAnchor={this.state.searchText_FindAnchor}
-            radvizTypeProjection={this.state.radvizTypeProjection} originalData={this.state.originalData}/>
+            radvizTypeProjection={3} originalData={this.state.originalData}/>
 
             </Row>
           </Col>
