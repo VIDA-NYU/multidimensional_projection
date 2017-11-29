@@ -96,7 +96,8 @@ class RadvizModel(DomainModel):
             clusters_RawData.append(cluster)
             random_id = random.randint(0,len(idsData_cluster)-1)
             subset_raw_data.append(raw_data[idsData_cluster[3]]) #3
-            label_by_clusters.append(labels[idsData_cluster[3]]) #3
+            #label_by_clusters.append(labels[idsData_cluster[3]]) #3
+            label_by_clusters.append(i) #3
 
             tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=max_features)
             [X, features] = tf_v.vectorize(clusters_RawData[i])
@@ -112,9 +113,9 @@ class RadvizModel(DomainModel):
         #X_sum : the clusters_TFData (tf vectors) of each cluster was reduced to just one vector (the columns were summed). At the end only one vector is generated for each cluster.
         #subset_raw_data: sub dataset (raw data) from each cluster. A random sample was took from each cluster.
 
-    def getMedoidSamples_inCluster(self,nro_cluster, y_Pred, raw_data, labels):
+    def getMedoidSamples_inCluster(self,nro_cluster, y_Pred, raw_data, labels, max_features_in_cluster):
 
-        max_features = 60
+        max_features = max_features_in_cluster
         [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
 
         features_uniques = np.unique(features_in_clusters).tolist()
@@ -167,16 +168,16 @@ class RadvizModel(DomainModel):
                 cluster_labels.append(label_by_clusters[i])
         return [subset_raw_data, cluster_labels, original_labels, new_X_sum, features_uniques]
 
-    def getAllSamples_inCluster(self, nro_cluster, y_Pred, raw_data, labels):
-        max_features = 60
+    def getAllSamples_inCluster(self, nro_cluster, y_Pred, raw_data, labels, max_features_in_cluster):
+        max_features = max_features_in_cluster
         [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
 
         features_uniques = np.unique(features_in_clusters).tolist()
 
         return self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data)
 
-    def getAllSamples_inCluster_RemoveCommonFeatures(self, nro_cluster, y_Pred, raw_data, labels):
-        max_features = 60
+    def getAllSamples_inCluster_RemoveCommonFeatures(self, nro_cluster, y_Pred, raw_data, labels, max_features_in_cluster):
+        max_features = max_features_in_cluster
         [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
 
         intersection = reduce(np.intersect1d, (features_in_clusters)).tolist() #getting common keywords between all clusters
@@ -185,8 +186,8 @@ class RadvizModel(DomainModel):
 
         return self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data)
 
-    def getAllSamples_inCluster_RemoveCommonFeatures_medoids(self, nro_cluster, y_Pred, raw_data, labels):
-        max_features = 60
+    def getAllSamples_inCluster_RemoveCommonFeatures_medoids(self, nro_cluster, y_Pred, raw_data, labels, max_features_in_cluster):
+        max_features = max_features_in_cluster
         [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
 
         intersection = reduce(np.intersect1d, (features_in_clusters)).tolist() #getting common keywords between all clusters
@@ -197,7 +198,7 @@ class RadvizModel(DomainModel):
         [subset_raw_data, cluster_labels, original_labels, new_X_sum, features_uniques] =  self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data)
         return [subset_raw_data, cluster_labels, original_labels, new_X_sum, features_uniques,    labels_medoid_cluster, X_medoid_Cluster]
 
-    def getRadvizPoints(self, session, filterByTerm, typeRadViz):
+    def getRadvizPoints(self, session, filterByTerm, typeRadViz, nroCluster):
         es_info = self._esInfo(session['domainId'])
         index = es_info['activeDomainIndex']
         max_features = 200
@@ -220,7 +221,9 @@ class RadvizModel(DomainModel):
         labels = stringArray
         #labels = ddteval_data["labels"]
         #urls = ddteval_data["urls"]
-        nro_cluster = 4
+        nro_cluster = int(nroCluster)
+        max_anchors = 240
+        max_features_in_cluster=int(np.ceil(max_anchors/nro_cluster))
         yPredKmeans = self.Kmeans(data, nro_cluster )
         print typeRadViz
         if typeRadViz == "1":
@@ -232,25 +235,25 @@ class RadvizModel(DomainModel):
             stringArray = labels
         elif typeRadViz == "2":
             #[clusterData, labels_cluster, X_sum] = self.getRandomSample_inCluster( nro_cluster, yPredKmeans, data, labels)
-            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster( nro_cluster, yPredKmeans, data, labels)
+            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster( nro_cluster, yPredKmeans, data, labels,  max_features_in_cluster)
             stringArray = original_labels
             data = clusterData
             features = features_uniques
             X = csr_matrix(X_sum)
         elif typeRadViz == "3":
-            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels)
+            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels, max_features_in_cluster)
             stringArray = original_labels
             data = clusterData
             features = features_uniques
             X = csr_matrix(X_sum)
         elif typeRadViz == "4":
-            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels)
+            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels, max_features_in_cluster)
             stringArray = original_labels
             data = clusterData
             features = features_uniques
             X = csr_matrix(X_sum)
         elif typeRadViz == "5":
-            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels)
+            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels, max_features_in_cluster)
             stringArray = original_labels
             data = clusterData
             features = features_uniques
