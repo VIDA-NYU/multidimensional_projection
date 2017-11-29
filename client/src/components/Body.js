@@ -74,7 +74,8 @@ class Body extends Component {
      searchText: '',
      subdata:undefined,
      selectedAnchors:[false],
-     radvizTypeProjection: 1 //traditional radviz
+     radvizTypeProjection: 1, //traditional radviz
+     radvizNroCluster:4
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
@@ -526,6 +527,10 @@ componentWillReceiveProps(props){
     this.setState({radvizTypeProjection})
     this.props.changeTypeRadViz(radvizTypeProjection);
   };
+  handleChangeNroCluster(event, indexProjection, radvizNroCluster){
+    this.setState({radvizNroCluster:radvizNroCluster})
+    this.props.changeNroCluster(radvizNroCluster);
+  };
 
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
@@ -591,7 +596,7 @@ componentWillReceiveProps(props){
                 labelStyle={{textTransform: "capitalize", fontSize:14, fontWeight:"normal", marginLeft:2, marginRight:2}}
                 backgroundColor={this.props.backgroundColor}
                 //icon={<Search />}
-                style={{width:110, height:35, marginTop: 0, margin: 12, marginLeft:"-20px"}}
+                style={{width:110, height:35, marginTop: 0, marginRight: 2, marginLeft:"-20px"}}
                 onClick={this.multiScaleRadViz.bind(this)}
               />
 
@@ -600,7 +605,7 @@ componentWillReceiveProps(props){
         <Grid>
           <Col  ls={7} md={7} style={{ background:'white',}}>
             <Row className='Menus-child'>
-            <div style={{ marginLeft:'-130px' ,marginRight:'-60px'}}>
+            <div style={{ marginLeft:'-230px' ,marginRight:'-60px'}}>
             <Toolbar style={{width:'100%',height:'70%'}}>
               <ToolbarGroup firstChild={true}>
                 {interaction}
@@ -621,6 +626,18 @@ componentWillReceiveProps(props){
                  <MenuItem value={3} primaryText="Remove_C_Keywords" />
                  <MenuItem value={4} primaryText="Cluster_STNE" />
                  <MenuItem value={5} primaryText="Cluster_PCA" />
+              </DropDownMenu>
+              <DropDownMenu value={this.state.radvizNroCluster} onChange={this.handleChangeNroCluster.bind(this)}>
+                 <MenuItem value={1} primaryText="1" />
+                 <MenuItem value={2} primaryText="2" />
+                 <MenuItem value={3} primaryText="3" />
+                 <MenuItem value={4} primaryText="4" />
+                 <MenuItem value={5} primaryText="5" />
+                 <MenuItem value={6} primaryText="6" />
+                 <MenuItem value={7} primaryText="7" />
+                 <MenuItem value={8} primaryText="8" />
+                 <MenuItem value={9} primaryText="9" />
+                 <MenuItem value={10} primaryText="10" />
               </DropDownMenu>
             </Toolbar>
             </div>
