@@ -214,9 +214,9 @@ class RadvizModel(DomainModel):
         #print data
         stringLabels = np.array(map(str, np.array(newsgroups_train.target)))
 
-        stringArray = [w.replace('0', 'sci.crypt') for w in stringLabels]
+        stringArray = [w.replace('0', 'comp.os.ms-windows.misc') for w in stringLabels]
         stringArray = [w.replace('1', 'rec.sport.hockey') for w in stringArray]
-        stringArray = [w.replace('2', 'comp.os.ms-windows.misc') for w in stringArray]
+        stringArray = [w.replace('2', 'sci.crypt') for w in stringArray]
         stringArray = [w.replace('3', 'talk.politics.mideast') for w in stringArray]
         labels = stringArray
         #labels = ddteval_data["labels"]
