@@ -28,6 +28,7 @@ class RadViz extends Component {
         this.denominator_medoidsCluster = [];
         this.labels_medoidsCluster =[];
         this.normalizedData_medoidsCluster =[];
+        this.pairwise_medoidsPoints = [];
 
     }
     componentWillMount(){
@@ -198,7 +199,7 @@ class RadViz extends Component {
           if(!(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0))){
             newState['selected'] = selected;
           }
-          if(this.state.data !== props.data) { this.outputScaledPCA = {}; newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;}
+          if(this.state.data !== props.data) { this.pairwise_medoidsPoints = []; this.outputScaledPCA = {}; newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;}
           newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;
           this.setState(newState);
 
@@ -426,9 +427,61 @@ class RadViz extends Component {
         return [mn_X, mx_X, mn_Y, mx_Y];
     };
 
+    vecDotProduct(vecA, vecB) {
+    	var product = 0;
+    	for (var i = 0; i < vecA.length; i++) {
+    		product += vecA[i] * vecB[i];
+    	}
+    	return product;
+    }
+
+    vecMagnitude(vec) {
+    	var sum = 0;
+    	for (var i = 0; i < vec.length; i++) {
+    		sum += vec[i] * vec[i];
+    	}
+    	return Math.sqrt(sum);
+    }
+
+    cosineSimilarity(vecA, vecB) {
+    	return this.vecDotProduct(vecA, vecB) / (this.vecMagnitude(vecA) * this.vecMagnitude(vecB));
+    }
+
+    getSimilarityMatrix(normalizedData, data_clusters){
+      console.log(normalizedData);
+      console.log(data_clusters);
+      console.log(this.labels_medoidsCluster);
+      var normalizedData_medoidsCluster =normalizedData;
+      var cosineSimilarityMatrix = {};
+      var maxSimilarities = {};
+      for(let k=0; k<Object.keys(data_clusters).length; k++){
+        var clusterName = Object.keys(data_clusters)[k];
+        var vecA = normalizedData_medoidsCluster[this.labels_medoidsCluster.indexOf(clusterName)]; //var index_labelCluster = this.labels_medoidsCluster.indexOf(clusterName);
+        var max =0; var indexMax = ""; var indexMaxName={};
+        for(let l=0; l<Object.keys(data_clusters).length; l++){
+          if(k!=l){
+            let clusterNameB = Object.keys(data_clusters)[l];
+            var vecB = normalizedData_medoidsCluster[this.labels_medoidsCluster.indexOf(clusterNameB)];
+            var distance = this.cosineSimilarity(vecA, vecB);
+            //cosineSimilarityMatrix[clusterName][clusterNameB]=distance;
+            if(max<distance){
+              max =distance;
+              indexMax = clusterNameB;
+            }
+          }
+        }
+        indexMaxName[indexMax] = max;
+        maxSimilarities[clusterName]= indexMaxName;
+      }
+      console.log(maxSimilarities);
+      return maxSimilarities;
+    }
+
+
     projectionTSNE(data_clusters, anchors){
       this.currentMapping = [];
       let ret = [];
+      var medoidsPoints = {};
       for(let k=0; k<Object.keys(data_clusters).length; k++){
         var clusterName = Object.keys(data_clusters)[k];
         var data = data_clusters[clusterName];
@@ -447,6 +500,7 @@ class RadViz extends Component {
         if(isNaN(p_medoid[0])) p_medoid[0]=0;//when all dimension values were zero.
         if(isNaN(p_medoid[1])) p_medoid[1]=0;//When all dimension values were zero
 
+        medoidsPoints[clusterName]=p_medoid;
         for (let i = 0; i < x_y.length; ++i){
           let p = [0,0];
           //for (let j = 0; j < 2;++j){
@@ -457,11 +511,18 @@ class RadViz extends Component {
           if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
           if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
 
-          var a = -0.25; var b = 0.25;
+          var a = -0.2; var b = 0.2;
+          var r =1;
           p[0] = (b-a)*((p[0] - mn_X) / (mx_X - mn_X)) + (a); //Normalizing points from 'a' to 'b'
           p[1] = (b-a)*((p[1] - mn_Y) / (mx_Y - mn_Y))+ (a); //Normalizing points from 'a' to 'b'
           var x_p = p_medoid[0];
           var y_p = p_medoid[1];
+
+          var inside_circle = Math.sqrt((p[0]+x_p)**2 + (p[1]+y_p)**2); //determination if the medoids p(x,y) is inside the circunfence
+          if(inside_circle>(r-b)){
+            x_p = ((p[0]+x_p)>0)?x_p-b:x_p+b;
+            y_p = ((p[1]+y_p)>0)?y_p-b:y_p+b;}
+
           p[0] = p[0]+x_p;
           p[1] = p[1]+y_p;
 
@@ -477,6 +538,26 @@ class RadViz extends Component {
           }
 
         }
+      }
+      var pairwise_medoidsPoints = [];
+      var maxSimilarities = this.getSimilarityMatrix(this.normalizedData_medoidsCluster, data_clusters);
+      for(let k=0; k<Object.keys(maxSimilarities).length; k++){
+        var clusterName = Object.keys(maxSimilarities)[k];
+        var arrayPoints = medoidsPoints[clusterName].concat(medoidsPoints[ Object.keys(maxSimilarities[clusterName])[0] ]);
+        pairwise_medoidsPoints[k]=arrayPoints;
+      }
+      this.pairwise_medoidsPoints = pairwise_medoidsPoints;
+
+      return ret;
+    }
+    setLines(i, ret, p0, p1,p2,p3){
+      ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:'black', strokeWidth:i}} />);
+      return ret;
+    }
+    drawLinesSimilarity(){
+      let ret = [];
+      for(var i=0; i<this.pairwise_medoidsPoints.length; i++){
+        ret = this.setLines(2, ret, this.pairwise_medoidsPoints[i][0], this.pairwise_medoidsPoints[i][1],this.pairwise_medoidsPoints[i][2],this.pairwise_medoidsPoints[i][3]);
       }
       return ret;
     }
@@ -618,18 +699,18 @@ class RadViz extends Component {
             this.selectionPoly.push(mouse);
             this.setState(this.state);
         }else if(this.state.draggingAnchorGroup){
-	        let center=[this.props.width/2, this.props.height/2];
-	        let vec=[mouse[0] - center[0], mouse[1]-center[1]];
-	        let normVec=numeric.norm2(vec);
-	        vec[0] /= normVec;
-	        vec[1] /= normVec;
-	        // Computing the angle by making a dot product with the [1,0] vector
-	        let cosAngle = vec[0];
-	        let angle = Math.acos(cosAngle);
-	        if (mouse[1] < center[1])
-	            {angle *= -1;}
-	        let angleDifference = angle - this.state.startAnchorGroupAngle;
-	        this.setState({'offsetAnchors':angleDifference});
+  	        let center=[this.props.width/2, this.props.height/2];
+  	        let vec=[mouse[0] - center[0], mouse[1]-center[1]];
+  	        let normVec=numeric.norm2(vec);
+  	        vec[0] /= normVec;
+  	        vec[1] /= normVec;
+  	        // Computing the angle by making a dot product with the [1,0] vector
+  	        let cosAngle = vec[0];
+  	        let angle = Math.acos(cosAngle);
+  	        if (mouse[1] < center[1])
+  	            {angle *= -1;}
+  	        let angleDifference = angle - this.state.startAnchorGroupAngle;
+  	        this.setState({'offsetAnchors':angleDifference});
         }
     }
 
@@ -712,6 +793,7 @@ class RadViz extends Component {
       let anchorText = [];
       let sampleTSNE = [];
       let selectedAnchors = [];
+      let lineSimilarities = [];
       if (this.props.data){
         let anchorXY = [];
         for (let i = 0; i < this.state.nDims; ++i)
@@ -722,7 +804,8 @@ class RadViz extends Component {
 
           anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
 
-          key={i} style={{cursor:'hand', stroke:(selectedAnchors[this.state.dimNames[i]]?'black':'none'), fill:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?'black':'#9c9c9c'), strokeWidth:(selectedAnchors[this.state.dimNames[i]]?1:'none'), opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
+          key={i} style={{cursor:'hand', stroke:(selectedAnchors[this.state.dimNames[i]]?'black':'none'), fill:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?'black':'#9c9c9c'), strokeWidth:(selectedAnchors[this.state.dimNames[i]]?1:'none'),
+          opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
 
           let normalizedAngle = this.normalizeAngle(this.state.anchorAngles[i] + this.state.offsetAnchors);
           let sizeText = (selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?'12':'11';
@@ -743,12 +826,14 @@ class RadViz extends Component {
             sampleDots = (this.state.radvizTypeProjection<=3 )?this.radvizMapping(this.state.normalizedData, anchorXY) : this.projectionTSNE(this.state.normalizedClusterData, anchorXY);
             //sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
             //sampleTSNE = this.projectionTSNE(this.state.normalizedData, anchorXY);
+            lineSimilarities = this.drawLinesSimilarity();
           }
           return (
             <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
             onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect} onDoubleClick = {this.unselectAllData} onClick={this.unselectAllData}  onKeyDown={this.handleKeyDown}>
             <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
             style={{stroke:'#ececec',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
+            {lineSimilarities}
             {sampleDots}
             {this.svgPoly(this.selectionPoly)}
             {anchorText}
@@ -764,8 +849,8 @@ RadViz.defaultProps = {
 	height:700,
 	marginX:190,
 	marginY:190,
-    sigmoid_translate:0,
-    sigmoid_scale:1,
+  sigmoid_translate:0,
+  sigmoid_scale:1,
 	colors:['red','green','blue'],
 	callbackSelection:function(selected){}
 };
