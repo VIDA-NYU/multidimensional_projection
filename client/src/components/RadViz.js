@@ -9,7 +9,7 @@ class RadViz extends Component {
 
     constructor(props){
         super(props);
-        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':'', 'radvizTypeProjection': this.props.radvizTypeProjection, 'sizeMdproj':0.25};
+        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':'', 'radvizTypeProjection': this.props.radvizTypeProjection, 'sizeMdproj':this.props.clusterSeparation, toggledShowLineSimilarity:this.props.toggledShowLineSimilarity, 'clusterSeparation':this.props.clusterSeparation};
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
@@ -193,7 +193,9 @@ class RadViz extends Component {
           let newState = {'normalizedData':normalizedData, 'dimNames':dimNames, 'nDims':nDims,
                           'denominators':denominators, 'offsetAnchors':0, 'sigmoid_scale':props.sigmoid_scale,
                           'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor,
-                          'radvizTypeProjection': props.radvizTypeProjection,'normalizedClusterData':normalizedClusterData, 'idsDataIntoClusters':idsDataIntoClusters, 'clusterData_TF':clusterData_TF };
+                          'radvizTypeProjection': props.radvizTypeProjection,'normalizedClusterData':normalizedClusterData,
+                          'idsDataIntoClusters':idsDataIntoClusters, 'clusterData_TF':clusterData_TF, toggledShowLineSimilarity:props.toggledShowLineSimilarity,
+                          'clusterSeparation':props.clusterSeparation, 'sizeMdproj':props.clusterSeparation };
 
           if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
           if(!(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0))){
@@ -854,7 +856,7 @@ class RadViz extends Component {
             sampleDots = (this.state.radvizTypeProjection<=3 )?this.radvizMapping(this.state.normalizedData, anchorXY) : this.projectionTSNE(this.state.normalizedClusterData, anchorXY);
             //sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
             //sampleTSNE = this.projectionTSNE(this.state.normalizedData, anchorXY);
-            lineSimilarities = this.drawLinesSimilarity();
+            lineSimilarities = (this.state.toggledShowLineSimilarity)?this.drawLinesSimilarity():'';
           }
           return (
             <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
