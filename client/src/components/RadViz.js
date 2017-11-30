@@ -554,10 +554,38 @@ class RadViz extends Component {
       ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:'black', strokeWidth:i}} />);
       return ret;
     }
+    getAngle(p0, p1,p2, p3){
+      // angle in degrees
+      let center=[p0, p1];
+      let destine=[p2, p3];
+      let vec=[destine[0] - center[0], destine[1]-center[1]];
+      let normVec=numeric.norm2(vec);
+      vec[0] /= normVec;
+      vec[1] /= normVec;
+      // Computing the angle by making a dot product with the [1,0] vector
+      let cosAngle = vec[0];
+      let angle = Math.acos(cosAngle);
+      if (destine[1] < center[1])
+          {angle *= -1;}
+      return angle;
+    }
+    reduceLineLength(points, d){
+      var newPoints = [];
+      var p0 = points[0]; var p1 = points[1]; var p2 = points[2]; var p3 = points[3];
+      var angleDegXc = this.getAngle(p0, p1,p2, p3); //Math.atan2(p1 - p3, p0 - p2) * 180 / Math.PI;
+      newPoints[0] = p0 + d * Math.cos(angleDegXc);
+      newPoints[1] = p1 + d * Math.sin(angleDegXc);
+      var angleDegXp = this.getAngle(p2, p3, p0, p1);//Math.atan2(p3 - p1, p2 - p0) * 180 / Math.PI;
+      newPoints[2] = p2 + d * Math.cos(angleDegXp);
+      newPoints[3] = p3 + d * Math.sin(angleDegXp);
+      return newPoints;
+    }
     drawLinesSimilarity(){
       let ret = [];
       for(var i=0; i<this.pairwise_medoidsPoints.length; i++){
-        ret = this.setLines(2, ret, this.pairwise_medoidsPoints[i][0], this.pairwise_medoidsPoints[i][1],this.pairwise_medoidsPoints[i][2],this.pairwise_medoidsPoints[i][3]);
+        var p0 = this.pairwise_medoidsPoints[i][0]; var p1 = this.pairwise_medoidsPoints[i][1]; var p2 = this.pairwise_medoidsPoints[i][2]; var p3 = this.pairwise_medoidsPoints[i][3];
+        var newPoints = this.reduceLineLength(this.pairwise_medoidsPoints[i], 0.2);
+        ret = this.setLines(2, ret, newPoints[0], newPoints[1],newPoints[2],newPoints[3]);
       }
       return ret;
     }
