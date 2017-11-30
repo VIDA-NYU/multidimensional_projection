@@ -35,6 +35,7 @@ import SnippetView from './SnippetView';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import RadViz from './RadViz';
 import RaisedButton from 'material-ui/RaisedButton';
+import Toggle from 'material-ui/Toggle';
 
 const styles = {
   block: {
@@ -68,6 +69,7 @@ class Body extends Component {
      dimNames:[],
      'sigmoidScale':1,
      'sigmoidTranslate':0,
+     'clusterSeparation':0.2,
      accuracy: '0',
      sessionBody: this.props.session,
      checkSigmoid:false,
@@ -76,13 +78,15 @@ class Body extends Component {
      subdata:undefined,
      selectedAnchors:[false],
      radvizTypeProjection: 1, //traditional radviz
-     radvizNroCluster:4
+     radvizNroCluster:4,
+     toggledShowLineSimilarity: false
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
    this.updateOnSelection_FindAnchor = this.updateOnSelection_FindAnchor.bind(this);
    this.updateSigmoidScale = this.updateSigmoidScale.bind(this);
    this.updateSigmoidTranslate = this.updateSigmoidTranslate.bind(this);
+   this.updateClusterSeparation = this.updateClusterSeparation.bind(this);
    this.handleUpdateInput = this.handleUpdateInput.bind(this);
    this.handleUpdateInput_FindAnchor = this.handleUpdateInput_FindAnchor.bind(this);
    this.showingData = this.showingData.bind(this);
@@ -210,6 +214,9 @@ class Body extends Component {
 
   updateSigmoidTranslate(s){
       this.setState({'sigmoidTranslate':s});
+  }
+  updateClusterSeparation(s){
+      this.setState({'clusterSeparation':s});
   }
 
     handleNewRequest(searchText){
@@ -545,6 +552,9 @@ componentWillReceiveProps(props){
     this.setState({radvizNroCluster:radvizNroCluster})
     this.props.changeNroCluster(radvizNroCluster);
   };
+  onToggleShowSimilatiryLines(){
+    this.setState({toggledShowLineSimilarity:!this.state.toggledShowLineSimilarity});
+  }
 
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
@@ -567,7 +577,10 @@ componentWillReceiveProps(props){
         linkBackOriginalData = <FlatButton label='Original data' labelPosition='before' primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:'8px'}} />;
       }
       let sigmoid = <div style={{display:'flex',marginLeft:'-100px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
-      Translation:<Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
+      Translation<Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
+      </ListItem></div>;
+      let separationCluster = <div style={{display:'flex',marginLeft:'-100px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
+      Cluster separation<Slider style={{marginLeft:'10px'}} min={0.15} max={0.35} step={0.01} defaultValue={0.2} onChange={this.updateClusterSeparation}/>
       </ListItem></div>;
       let interaction = <div style={{width:'380px'}}><RadioButtonGroup name='shipSpeed' defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
        <RadioButton value={0} label='Show all' labelStyle={styles.radioButton} style={{width:'110px', marginRight:'-30px'}}/>
@@ -620,6 +633,7 @@ componentWillReceiveProps(props){
           <Col  ls={7} md={7} style={{ background:'white',}}>
             <Row className='Menus-child'>
             <div style={{ marginLeft:'-230px' ,marginRight:'-60px'}}>
+
             <Toolbar style={{width:'100%',height:'70%'}}>
               <ToolbarGroup firstChild={true}>
                 {interaction}
@@ -630,10 +644,11 @@ componentWillReceiveProps(props){
               <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px', width:130}}>
                 {/*{projection_labels}*/}
                 {find_anchor}
+                {buttonScaleData}
               </ToolbarGroup>
               <ToolbarGroup style={{marginLeft:'10px',}}>
-              {buttonScaleData}
-              </ToolbarGroup>
+              <Row className='Menus-child'>
+
               <DropDownMenu value={this.state.radvizTypeProjection} onChange={this.handleChangeProjection.bind(this)}>
                  <MenuItem value={1} primaryText="Original_RadViz" />
                  <MenuItem value={2} primaryText="N_TopKeywords" />
@@ -653,6 +668,17 @@ componentWillReceiveProps(props){
                  <MenuItem value={9} primaryText="9" />
                  <MenuItem value={10} primaryText="10" />
               </DropDownMenu>
+              </Row>
+              <Row className='Menus-child'>
+              <Toggle
+                label="Cluster similarity"
+                toggled={this.state.toggledShowLineSimilarity}
+                style={styles.toggle}
+                onClick={this.onToggleShowSimilatiryLines.bind(this)}
+              />
+              {separationCluster}
+              </Row>
+              </ToolbarGroup>
             </Toolbar>
             </div>
             {/*}<div style={{position: 'absolute', left: '-5%', marginTop:'10px' ,marginRight:'-20px' }}>
@@ -679,14 +705,15 @@ componentWillReceiveProps(props){
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
             setSelectedAnchorsRadViz={this.setSelectedAnchorsRadViz.bind(this)} searchText_FindAnchor={this.state.searchText_FindAnchor}
-            radvizTypeProjection={this.state.radvizTypeProjection} originalData={this.state.originalData}/>
+            radvizTypeProjection={this.state.radvizTypeProjection} originalData={this.state.originalData} toggledShowLineSimilarity={this.state.toggledShowLineSimilarity}
+            clusterSeparation={this.state.clusterSeparation}/>
             <ul style={{listStyleType: 'inside'}}>{legend} </ul>
 
             <RadViz data={this.state.subdata} colors={this.state.colors_subRadviz} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
             searchText_FindAnchor={this.state.searchText_FindAnchor}
-            radvizTypeProjection={3} originalData={this.state.originalData}/>
+            radvizTypeProjection={3} originalData={this.state.originalData} toggledShowLineSimilarity={false}/>
 
             </Row>
           </Col>
