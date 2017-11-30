@@ -9,7 +9,7 @@ class RadViz extends Component {
 
     constructor(props){
         super(props);
-        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':'', 'radvizTypeProjection': this.props.radvizTypeProjection};
+        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':'', 'radvizTypeProjection': this.props.radvizTypeProjection, 'sizeMdproj':0.25};
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
@@ -511,7 +511,7 @@ class RadViz extends Component {
           if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
           if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
 
-          var a = -0.2; var b = 0.2;
+          var a = -this.state.sizeMdproj; var b = this.state.sizeMdproj;
           var r =1;
           p[0] = (b-a)*((p[0] - mn_X) / (mx_X - mn_X)) + (a); //Normalizing points from 'a' to 'b'
           p[1] = (b-a)*((p[1] - mn_Y) / (mx_Y - mn_Y))+ (a); //Normalizing points from 'a' to 'b'
@@ -584,7 +584,7 @@ class RadViz extends Component {
       let ret = [];
       for(var i=0; i<this.pairwise_medoidsPoints.length; i++){
         var p0 = this.pairwise_medoidsPoints[i][0]; var p1 = this.pairwise_medoidsPoints[i][1]; var p2 = this.pairwise_medoidsPoints[i][2]; var p3 = this.pairwise_medoidsPoints[i][3];
-        var newPoints = this.reduceLineLength(this.pairwise_medoidsPoints[i], 0.2);
+        var newPoints = this.reduceLineLength(this.pairwise_medoidsPoints[i], this.state.sizeMdproj);
         ret = this.setLines(2, ret, newPoints[0], newPoints[1],newPoints[2],newPoints[3]);
       }
       return ret;
