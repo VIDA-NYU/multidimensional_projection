@@ -229,6 +229,7 @@ class Body extends Component {
 
   componentWillMount(){
     console.log(this.props.dimNames.length);
+    this.tagsNames ={};
 	     this.setState({originalData: this.props.originalData, data:this.props.data, subdata:this.props.data, colors:this.props.colors, flat:this.props.flat, dimNames: this.props.dimNames, value: this.props.dimNames.length});
        //this.updateColorsTags(this.state.value);
        this.runModel();
@@ -237,6 +238,7 @@ class Body extends Component {
 componentWillReceiveProps(props){
   	if(props.originalData !== this.state.originalData){
         let colors = [];
+        this.tagsNames ={};
         let dimNames = Object.keys(props.originalData);
         //colors = this.setColorPoints(this.state.value, dimNames, props.originalData);
         //this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, subdata:props.data, flat:props.flat, dimNames: props.dimNames, });
