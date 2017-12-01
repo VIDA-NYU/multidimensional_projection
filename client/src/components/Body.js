@@ -79,7 +79,9 @@ class Body extends Component {
      selectedAnchors:[false],
      radvizTypeProjection: 1, //traditional radviz
      radvizNroCluster:4,
-     toggledShowLineSimilarity: false
+     toggledShowLineSimilarity: false,
+     buttonExpand:false,
+     expandedData:[]
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
@@ -235,7 +237,6 @@ class Body extends Component {
 
 
   componentWillMount(){
-    console.log(this.props.dimNames.length);
     this.tagsNames ={};
 	     this.setState({originalData: this.props.originalData, data:this.props.data, subdata:this.props.data, colors:this.props.colors, flat:this.props.flat, dimNames: this.props.dimNames, value: this.props.dimNames.length});
        //this.updateColorsTags(this.state.value);
@@ -555,7 +556,20 @@ componentWillReceiveProps(props){
   onToggleShowSimilatiryLines(){
     this.setState({toggledShowLineSimilarity:!this.state.toggledShowLineSimilarity});
   }
+  resetButtonExpand(updatedExpandedData){
+    this.setState({buttonExpand:false, expandedData:updatedExpandedData});
+  }
 
+  handleExpandButton(){
+    this.setState({buttonExpand:true});
+    this.forceUpdate();
+  }
+  handleCollapseButton(){
+    this.setState({buttonExpand:false, expandedData:[]});
+  }
+  updateCollapseData(updatedExpandedData){
+    this.setState({expandedData:updatedExpandedData});
+  }
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
     {
@@ -632,15 +646,15 @@ componentWillReceiveProps(props){
                 backgroundColor={this.props.backgroundColor}
                 //icon={<Search />}
                 style={{width:110, height:35, marginTop: 0, marginRight: 0, marginLeft:"-20px"}}
-                onClick={this.multiScaleRadViz.bind(this)}
+                onClick={this.handleExpandButton.bind(this)}
               />
       let buttonCollapseClusters= <RaisedButton
                 label="Collapse clusters"
                 labelStyle={{textTransform: "capitalize", fontSize:10, fontWeight:"normal", marginLeft:0, marginRight:0}}
                 backgroundColor={this.props.backgroundColor}
                 //icon={<Search />}
-                style={{width:110, height:35, marginTop: 0, marginRight: 0, marginLeft:"-20px"}}
-                onClick={this.multiScaleRadViz.bind(this)}
+                style={{width:115, height:35, marginTop: 0, marginRight: 0, marginLeft:"-20px"}}
+                onClick={this.handleCollapseButton.bind(this)}
               />
 
       return(
@@ -739,14 +753,14 @@ componentWillReceiveProps(props){
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
             setSelectedAnchorsRadViz={this.setSelectedAnchorsRadViz.bind(this)} searchText_FindAnchor={this.state.searchText_FindAnchor}
             radvizTypeProjection={this.state.radvizTypeProjection} originalData={this.state.originalData} toggledShowLineSimilarity={this.state.toggledShowLineSimilarity}
-            clusterSeparation={this.state.clusterSeparation}/>
+            clusterSeparation={this.state.clusterSeparation} resetButtonExpand = {this.resetButtonExpand.bind(this)} expandedData={this.state.expandedData} buttonExpand={this.state.buttonExpand} updateCollapseData={this.updateCollapseData.bind(this)}/>
             <ul style={{listStyleType: 'inside'}}>{legend} </ul>
 
             <RadViz data={this.state.subdata} colors={this.state.colors_subRadviz} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
             searchText_FindAnchor={this.state.searchText_FindAnchor}
-            radvizTypeProjection={3} originalData={this.state.originalData} toggledShowLineSimilarity={false}/>
+            radvizTypeProjection={3} originalData={this.state.originalData} toggledShowLineSimilarity={false} expandedData={this.state.expandedData} buttonExpand={this.state.buttonExpand} />
 
             </Row>
 

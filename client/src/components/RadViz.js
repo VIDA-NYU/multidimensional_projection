@@ -9,7 +9,8 @@ class RadViz extends Component {
 
     constructor(props){
         super(props);
-        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':'', 'radvizTypeProjection': this.props.radvizTypeProjection, 'sizeMdproj':this.props.clusterSeparation, toggledShowLineSimilarity:this.props.toggledShowLineSimilarity, 'clusterSeparation':this.props.clusterSeparation};
+        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':'', 'radvizTypeProjection': this.props.radvizTypeProjection, 'sizeMdproj':this.props.clusterSeparation, toggledShowLineSimilarity:this.props.toggledShowLineSimilarity,
+        'clusterSeparation':this.props.clusterSeparation, 'expandedData': this.props.expandedData, 'buttonExpand':this.props.buttonExpand};
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
@@ -29,6 +30,7 @@ class RadViz extends Component {
         this.labels_medoidsCluster =[];
         this.normalizedData_medoidsCluster =[];
         this.pairwise_medoidsPoints = [];
+        this.expandedDataLocal=[];
 
     }
     componentWillMount(){
@@ -114,6 +116,7 @@ class RadViz extends Component {
 
     preprocessingData(props){
       if (props.data ){
+          this.expandedDataLocal=[];
           let dimNames = Object.keys(props.data[0]);
           let nDims = dimNames.length;
 
@@ -141,6 +144,7 @@ class RadViz extends Component {
           // computing the denominator of radviz (sums of entries). Also initializing selected array (dots that are selected)
           let denominators = [];
           let selected = [];
+          let expandedData = [];
           let normalizedClusterData ={};
           let idsDataIntoClusters ={};
           let clusterData_TF = {};
@@ -155,6 +159,7 @@ class RadViz extends Component {
               let aux = [];
               let aux_medoid_cluster = [];
               selected.push(false);
+              expandedData.push(false);
               denominators.push(0);
               // normalizing data by columns => equal weights to all dimensions (words)
               let max_entry_by_row = -1;
@@ -195,11 +200,14 @@ class RadViz extends Component {
                           'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor,
                           'radvizTypeProjection': props.radvizTypeProjection,'normalizedClusterData':normalizedClusterData,
                           'idsDataIntoClusters':idsDataIntoClusters, 'clusterData_TF':clusterData_TF, toggledShowLineSimilarity:props.toggledShowLineSimilarity,
-                          'clusterSeparation':props.clusterSeparation, 'sizeMdproj':props.clusterSeparation };
+                          'clusterSeparation':props.clusterSeparation, 'sizeMdproj':props.clusterSeparation, 'buttonExpand':props.buttonExpand };
 
           if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
           if(!(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0))){
             newState['selected'] = selected;
+          }
+          if(this.state.expandedData.length==0 || props.expandedData.length==0){
+            newState['expandedData'] = expandedData;
           }
           if(this.state.data !== props.data) { this.pairwise_medoidsPoints = []; this.outputScaledPCA = {}; newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;}
           newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;
@@ -530,7 +538,8 @@ class RadViz extends Component {
 
           var idInCluster = this.state.idsDataIntoClusters[clusterName][i];
           var p = [0,0];
-          if(this.state.selected[idInCluster]){
+          if((this.state.selected[idInCluster] && this.state.buttonExpand) || this.state.expandedData[idInCluster]){
+            this.expandedDataLocal.push(idInCluster);
             p = this.getPointsOriginalRadViz(idInCluster,anchors,this.state.normalizedData );
           }
           else{
@@ -698,6 +707,13 @@ class RadViz extends Component {
         this.sortDimensions();
 
     	}
+      if(this.state.selected.includes(true)  && this.state.buttonExpand){
+        var temp = this.state.expandedData;
+        for(var i=0; i<this.expandedDataLocal.length; i++){
+          temp[this.expandedDataLocal[i]] =true;
+        }
+        this.props.resetButtonExpand(temp);
+      }
     }
 
 
