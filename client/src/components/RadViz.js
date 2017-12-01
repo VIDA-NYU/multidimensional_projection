@@ -450,9 +450,6 @@ class RadViz extends Component {
     }
 
     getSimilarityMatrix(normalizedData, data_clusters){
-      console.log(normalizedData);
-      console.log(data_clusters);
-      console.log(this.labels_medoidsCluster);
       var normalizedData_medoidsCluster =normalizedData;
       var cosineSimilarityMatrix = {};
       var maxSimilarities = {};
@@ -475,10 +472,36 @@ class RadViz extends Component {
         indexMaxName[indexMax] = max;
         maxSimilarities[clusterName]= indexMaxName;
       }
-      console.log(maxSimilarities);
       return maxSimilarities;
     }
 
+    getPointsClusterRadViz(x_y,mn_X, mx_X, mn_Y, mx_Y,p_medoid){
+      let p = [0,0];
+      //for (let j = 0; j < 2;++j){
+        //let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
+        p[0] = x_y[0];
+        p[1] = x_y[1];
+      //}
+      if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
+      if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
+
+      var a = -this.state.sizeMdproj; var b = this.state.sizeMdproj;
+      var r =1;
+      p[0] = (b-a)*((p[0] - mn_X) / (mx_X - mn_X)) + (a); //Normalizing points from 'a' to 'b'
+      p[1] = (b-a)*((p[1] - mn_Y) / (mx_Y - mn_Y))+ (a); //Normalizing points from 'a' to 'b'
+      var x_p = p_medoid[0];
+      var y_p = p_medoid[1];
+
+      var inside_circle = Math.sqrt((p[0]+x_p)**2 + (p[1]+y_p)**2); //determination if the medoids p(x,y) is inside the circunfence
+      if(inside_circle>(r-b)){
+        x_p = ((p[0]+x_p)>0)?x_p-b:x_p+b;
+        y_p = ((p[1]+y_p)>0)?y_p-b:y_p+b;}
+
+      p[0] = p[0]+x_p;
+      p[1] = p[1]+y_p;
+
+      return p;
+    }
 
     projectionTSNE(data_clusters, anchors){
       this.currentMapping = [];
@@ -504,32 +527,17 @@ class RadViz extends Component {
 
         medoidsPoints[clusterName]=p_medoid;
         for (let i = 0; i < x_y.length; ++i){
-          let p = [0,0];
-          //for (let j = 0; j < 2;++j){
-            //let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
-            p[0] = x_y[i][0];
-            p[1] = x_y[i][1];
-          //}
-          if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
-          if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
 
-          var a = -this.state.sizeMdproj; var b = this.state.sizeMdproj;
-          var r =1;
-          p[0] = (b-a)*((p[0] - mn_X) / (mx_X - mn_X)) + (a); //Normalizing points from 'a' to 'b'
-          p[1] = (b-a)*((p[1] - mn_Y) / (mx_Y - mn_Y))+ (a); //Normalizing points from 'a' to 'b'
-          var x_p = p_medoid[0];
-          var y_p = p_medoid[1];
-
-          var inside_circle = Math.sqrt((p[0]+x_p)**2 + (p[1]+y_p)**2); //determination if the medoids p(x,y) is inside the circunfence
-          if(inside_circle>(r-b)){
-            x_p = ((p[0]+x_p)>0)?x_p-b:x_p+b;
-            y_p = ((p[1]+y_p)>0)?y_p-b:y_p+b;}
-
-          p[0] = p[0]+x_p;
-          p[1] = p[1]+y_p;
+          var idInCluster = this.state.idsDataIntoClusters[clusterName][i];
+          var p = [0,0];
+          if(this.state.selected[idInCluster]){
+            p = this.getPointsOriginalRadViz(idInCluster,anchors,this.state.normalizedData );
+          }
+          else{
+            p =this.getPointsClusterRadViz(x_y[i],mn_X, mx_X, mn_Y, mx_Y,p_medoid);
+          }
 
           this.currentMapping.push(p);
-          var idInCluster = this.state.idsDataIntoClusters[clusterName][i];
           if(this.props.projection == 'Model Result'){
             if(this.props.modelResult[idInCluster]!=='trainData'){
               ret = this.setColorPoints(idInCluster, ret, p[0], p[1]);
@@ -592,22 +600,27 @@ class RadViz extends Component {
       return ret;
     }
 
+    getPointsOriginalRadViz(i,anchors, data){
+      let p = [0,0];
+      for (let j = 0; j < anchors.length;++j){
+        let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
+        p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i] * s;
+        p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] * s;
+      }
+      if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
+      if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
+      return p;
+    }
+
     radvizMapping(data, anchors){
       this.currentMapping = [];
       let ret = [];
       for (let i = 0; i < data.length; ++i){
-        let p = [0,0];
-        for (let j = 0; j < anchors.length;++j){
-          let s = this.sigmoid(data[i][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
-          p[0] += anchors[j][0]*data[i][j]/this.state.denominators[i] * s;
-          p[1] += anchors[j][1]*data[i][j]/this.state.denominators[i] * s;
-        }
-        if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
-        if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
+        var p = this.getPointsOriginalRadViz(i,anchors, data);
         this.currentMapping.push(p);
         if(this.props.projection == 'Model Result'){
           if(this.props.modelResult[i]!=='trainData'){
-            ret = this.setColorPoints(i, ret, p[0], p[1]);
+            ret = this.setColorPoints(i, ret, p[0], p[1], data);
           }
         }
         else{
