@@ -579,7 +579,7 @@ componentWillReceiveProps(props){
       let sigmoid = <div style={{display:'flex',marginLeft:'-100px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
       Translation<Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
       </ListItem></div>;
-      let separationCluster = <div style={{display:'flex',marginLeft:'-100px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
+      let clusterSeparation = <div style={{display:'flex',marginLeft:'-100px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
       Cluster separation<Slider style={{marginLeft:'10px'}} min={0.15} max={0.35} step={0.01} defaultValue={0.2} onChange={this.updateClusterSeparation}/>
       </ListItem></div>;
       let interaction = <div style={{width:'380px'}}><RadioButtonGroup name='shipSpeed' defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
@@ -626,29 +626,51 @@ componentWillReceiveProps(props){
                 style={{width:110, height:35, marginTop: 0, marginRight: 2, marginLeft:"-20px"}}
                 onClick={this.multiScaleRadViz.bind(this)}
               />
+      let buttonExpandCluster= <RaisedButton
+                label="Expand Cluster"
+                labelStyle={{textTransform: "capitalize", fontSize:10, fontWeight:"normal", marginLeft:0, marginRight:0}}
+                backgroundColor={this.props.backgroundColor}
+                //icon={<Search />}
+                style={{width:110, height:35, marginTop: 0, marginRight: 0, marginLeft:"-20px"}}
+                onClick={this.multiScaleRadViz.bind(this)}
+              />
+      let buttonRegroupClusters= <RaisedButton
+                label="Regroup clusters"
+                labelStyle={{textTransform: "capitalize", fontSize:10, fontWeight:"normal", marginLeft:0, marginRight:0}}
+                backgroundColor={this.props.backgroundColor}
+                //icon={<Search />}
+                style={{width:110, height:35, marginTop: 0, marginRight: 0, marginLeft:"-20px"}}
+                onClick={this.multiScaleRadViz.bind(this)}
+              />
 
       return(
         <div>
         <Grid>
           <Col  ls={7} md={7} style={{ background:'white',}}>
             <Row className='Menus-child'>
-            <div style={{ marginLeft:'-230px' ,marginRight:'-60px'}}>
-
+            <div style={{ marginLeft:'-230px' ,marginRight:'-60px', marginBottom:'-15px',}}>
             <Toolbar style={{width:'100%',height:'70%'}}>
-              <ToolbarGroup firstChild={true}>
-                {interaction}
-              </ToolbarGroup>
-              <ToolbarGroup >
-                {sigmoid}
-              </ToolbarGroup>
-              <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px', width:130}}>
-                {/*{projection_labels}*/}
-                {find_anchor}
+                <ToolbarGroup firstChild={true}>
+                  {interaction}
+                </ToolbarGroup>
+                <ToolbarGroup >
+                  {sigmoid}
+                </ToolbarGroup>
+                <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px', width:130}}>
+                  {/*{projection_labels}*/}
+                  {find_anchor}
+                </ToolbarGroup>
+                <ToolbarGroup firstChild={true} style={{marginLeft:'10px',}}>
                 {buttonScaleData}
               </ToolbarGroup>
-              <ToolbarGroup style={{marginLeft:'10px',}}>
-              <Row className='Menus-child'>
-
+            </Toolbar>
+            </div>
+            </Row>
+            <Divider style={{marginLeft:'-120px',marginTop:5}}/>
+            <Row className='Menus-child'>
+            <div style={{ marginTop:'5px', marginLeft:'-230px' ,marginRight:'-60px', marginBottom:'-5px'}}>
+            <Toolbar style={{width:'100%',height:'70%'}}>
+              <ToolbarGroup firstChild={true} style={{marginLeft:'10px',}}>
               <DropDownMenu value={this.state.radvizTypeProjection} onChange={this.handleChangeProjection.bind(this)}>
                  <MenuItem value={1} primaryText="Original_RadViz" />
                  <MenuItem value={2} primaryText="N_TopKeywords" />
@@ -656,7 +678,10 @@ componentWillReceiveProps(props){
                  <MenuItem value={4} primaryText="Cluster_PCA" />
                  <MenuItem value={5} primaryText="SuperNodesRadViz" />
               </DropDownMenu>
-              <DropDownMenu value={this.state.radvizNroCluster} onChange={this.handleChangeNroCluster.bind(this)}>
+              </ToolbarGroup >
+              <ToolbarGroup >
+              #Clusters
+              <DropDownMenu value={this.state.radvizNroCluster} onChange={this.handleChangeNroCluster.bind(this)} style={{marginLeft:'-15px'}}>
                  <MenuItem value={1} primaryText="1" />
                  <MenuItem value={2} primaryText="2" />
                  <MenuItem value={3} primaryText="3" />
@@ -668,17 +693,25 @@ componentWillReceiveProps(props){
                  <MenuItem value={9} primaryText="9" />
                  <MenuItem value={10} primaryText="10" />
               </DropDownMenu>
-              </Row>
-              <Row className='Menus-child'>
+              </ToolbarGroup >
+
+              <ToolbarGroup >
+              {clusterSeparation}
+              </ToolbarGroup>
+              <ToolbarGroup >
+              {buttonExpandCluster}
+              </ToolbarGroup>
+              <ToolbarGroup >
+              {buttonRegroupClusters}
+              </ToolbarGroup>
+              <ToolbarGroup >
               <Toggle
                 label="Cluster similarity"
                 toggled={this.state.toggledShowLineSimilarity}
-                style={styles.toggle}
+                style={{width:100}}
                 onClick={this.onToggleShowSimilatiryLines.bind(this)}
               />
-              {separationCluster}
-              </Row>
-              </ToolbarGroup>
+              </ToolbarGroup >
             </Toolbar>
             </div>
             {/*}<div style={{position: 'absolute', left: '-5%', marginTop:'10px' ,marginRight:'-20px' }}>
@@ -716,6 +749,7 @@ componentWillReceiveProps(props){
             radvizTypeProjection={3} originalData={this.state.originalData} toggledShowLineSimilarity={false}/>
 
             </Row>
+
           </Col>
 
           <Col  ls={4} md={4} style={{background:'white', marginLeft:'60px', borderLeft: '2px solid', borderColor:'lightgray'}}>
