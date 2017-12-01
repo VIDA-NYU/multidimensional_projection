@@ -634,8 +634,8 @@ componentWillReceiveProps(props){
                 style={{width:110, height:35, marginTop: 0, marginRight: 0, marginLeft:"-20px"}}
                 onClick={this.multiScaleRadViz.bind(this)}
               />
-      let buttonRegroupClusters= <RaisedButton
-                label="Regroup clusters"
+      let buttonCollapseClusters= <RaisedButton
+                label="Collapse clusters"
                 labelStyle={{textTransform: "capitalize", fontSize:10, fontWeight:"normal", marginLeft:0, marginRight:0}}
                 backgroundColor={this.props.backgroundColor}
                 //icon={<Search />}
@@ -702,7 +702,7 @@ componentWillReceiveProps(props){
               {buttonExpandCluster}
               </ToolbarGroup>
               <ToolbarGroup >
-              {buttonRegroupClusters}
+              {buttonCollapseClusters}
               </ToolbarGroup>
               <ToolbarGroup >
               <Toggle
