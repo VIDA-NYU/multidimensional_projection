@@ -570,7 +570,7 @@ class RadViz extends Component {
       return ret;
     }
     setLines(i, ret, p0, p1,p2,p3){
-      ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:'black', strokeWidth:i}} />);
+      ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:'#8c8b8b', strokeWidth:i, borderTop: 'dashed', strokeDasharray:"5, 5", dropShadow:"0 2px 1px black"}} />);
       return ret;
     }
     getAngle(p0, p1,p2, p3){
