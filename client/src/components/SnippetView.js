@@ -215,8 +215,8 @@ class ViewTabSnippets extends React.Component{
               accuracyOnlineLearning:accuracy,
           });
           this.forceUpdate();
-          this.props.reloadFilters();
-	        this.updateOnlineAccuracy(accuracy);
+        //  this.props.reloadFilters();
+	      //  this.updateOnlineAccuracy(accuracy);
 
         }
 

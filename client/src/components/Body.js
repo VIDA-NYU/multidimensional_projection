@@ -542,8 +542,8 @@ componentWillReceiveProps(props){
       if(this.props.filterTerm !==''){
         linkBackOriginalData = <FlatButton label='Original data' labelPosition='before' primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:'8px'}} />;
       }
-      let sigmoid = <div style={{display:'flex',marginLeft:'170px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
-      Translation:<Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
+      let sigmoid = <div style={{display:'flex',marginLeft:'170px'}}><ListItem style={{marginTop:-25}} innerDivStyle={{marginTop:10}}>
+      Translation: <Slider style={{marginLeft:'10px',marginTop:'15px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
       </ListItem></div>;
       let interaction = <div style={{width:'140px'}}><RadioButtonGroup name='shipSpeed' defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
        <RadioButton value={0} label='Show all' labelStyle={styles.radioButton} />
@@ -561,8 +561,9 @@ componentWillReceiveProps(props){
           filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
           openOnFocus={true}
           />;
+     let pageLabel = <div style={{marginLeft:'20px',marginTop:'-40px'}}> Pages: </div>
      let pagesFeild=
-      <DropDownMenu maxHeight={300} value={this.valueDropDown} onChange={this.handlepageInput.bind(this)}>
+      <DropDownMenu style={{marginLeft:'-60px',marginTop:'10px'}} maxHeight={300} value={this.valueDropDown} onChange={this.handlepageInput.bind(this)}>
         {pages}
       </DropDownMenu>
     /*      <AutoComplete
@@ -611,8 +612,9 @@ componentWillReceiveProps(props){
               {/*{projection_labels}*/}
               {find_anchor}
             </ToolbarGroup>
-           <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px'}}>
-             {pagesFeild}
+           <ToolbarGroup>
+            {pageLabel}
+            {pagesFeild}
           </ToolbarGroup>
           </Toolbar>
             </div>
