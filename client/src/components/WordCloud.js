@@ -32,7 +32,7 @@ class WordCloud extends Component {
     var hashmapTerms = [];
     for(var a in this.props.dimNames){
       var nameFeature= this.props.dimNames[a];
-      if(nameFeature != 'labels' && nameFeature != 'urls'){
+      if(nameFeature != 'labels' && nameFeature != 'urls' && nameFeature != 'pred_labels' ){
         hashmapTerms[nameFeature]=0;
         for (let i = 0; i < this.props.originalData[nameFeature].length; ++i){
           var frequencyTerm = this.props.originalData[nameFeature][i];
