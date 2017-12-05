@@ -923,13 +923,13 @@ class RadViz extends Component {
           if (Math.abs(normalizedAngle) < Math.PI/2){
             anchorText.push(
               <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-              <rect x={-1} y={-8} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#C0C0C0"}/>
+              <rect x={-1} y={-8} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#FFFF00"} stroke={"#CCCC00"}/>
               <text textAnchor='start' x={0} y={0} onMouseDown={this.startDragAnchor(i)}  fontSize={sizeText} fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
               </g>);
           }else{
             anchorText.push(
               <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-              <rect x={-1} y={-9} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#C0C0C0"}/>
+              <rect x={-1} y={-9} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#FFFF00"} stroke={"#CCCC00"}/>
               <text textAnchor='end' x={0} y={7} onMouseDown={this.startDragAnchor(i)} fontSize={sizeText}   fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
               </g>);
             }
