@@ -10,7 +10,7 @@ class RadViz extends Component {
     constructor(props){
         super(props);
         this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':'', 'radvizTypeProjection': this.props.radvizTypeProjection, 'sizeMdproj':this.props.clusterSeparation, toggledShowLineSimilarity:this.props.toggledShowLineSimilarity,
-        'clusterSeparation':this.props.clusterSeparation, 'expandedData': this.props.expandedData, 'buttonExpand':this.props.buttonExpand};
+        'clusterSeparation':this.props.clusterSeparation, 'expandedData': this.props.expandedData, 'buttonExpand':this.props.buttonExpand, 'termFrequencies':{}};
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
@@ -192,7 +192,6 @@ class RadViz extends Component {
               anchorAngles.push(i * 2*Math.PI / nDims);
           }
 
-
           this.scaleX = scaleLinear().domain([-1,1]).range([props.marginX/2, props.width-props.marginX/2]);
           this.scaleY = scaleLinear().domain([-1,1]).range([props.marginY/2, props.height - props.marginY/2]);
           let newState = {'normalizedData':normalizedData, 'dimNames':dimNames, 'nDims':nDims,
@@ -200,17 +199,26 @@ class RadViz extends Component {
                           'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor,
                           'radvizTypeProjection': props.radvizTypeProjection,'normalizedClusterData':normalizedClusterData,
                           'idsDataIntoClusters':idsDataIntoClusters, 'clusterData_TF':clusterData_TF, toggledShowLineSimilarity:props.toggledShowLineSimilarity,
-                          'clusterSeparation':props.clusterSeparation, 'sizeMdproj':props.clusterSeparation, 'buttonExpand':props.buttonExpand };
+                          'clusterSeparation':props.clusterSeparation, 'sizeMdproj':props.clusterSeparation, 'buttonExpand':props.buttonExpand};
 
-          if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText;}
+          if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText; }
+
+          if(Object.keys(this.state.termFrequencies).length === 0){
+            var termFrequencies =  this.setSelectedTermFrequency(props.data,selected,dimNames);
+            newState['termFrequencies']=termFrequencies;
+          }
           if(!(props.selectedSearchText.length<=0 && (props.showedData!==this.state.showedData || this.state.selected.length>0))){
+            if(Object.keys(this.state.termFrequencies).length === 0){
+              var termFrequencies =  this.setSelectedTermFrequency(props.data,selected,dimNames);
+              newState['termFrequencies']=termFrequencies;
+            }
             newState['selected'] = selected;
           }
           if(this.state.expandedData.length==0 || props.expandedData.length==0){
             newState['expandedData'] = expandedData;
           }
           if(this.state.data !== props.data) { this.pairwise_medoidsPoints = []; this.outputScaledPCA = {}; newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;}
-          newState['data'] = props.data; newState['anchorAngles'] = anchorAngles;
+          //newState['data'] = props.data;// newState['anchorAngles'] = anchorAngles;
           this.setState(newState);
 
       }
@@ -670,6 +678,7 @@ class RadViz extends Component {
     }
 
     stopDrag(e){
+
     	if (this.state.draggingSelection){
             if (this.selectionPoly.length > 0){
         		let selected = [];
@@ -687,7 +696,8 @@ class RadViz extends Component {
               selected.push(tempSelected);
         		}
         		this.selectionPoly= [];
-        		this.setState({'draggingSelection':false, 'selected':selected});
+            var termFrequencies =  this.setSelectedTermFrequency(this.props.data,selected,this.state.dimNames);
+        		this.setState({'draggingSelection':false, 'selected':selected, 'termFrequencies':termFrequencies});
         		this.props.callbackSelection(selected);
             this.props.setSelectedPoints(selected);
             var selectedAnchors = this.setSelectedAnchorsAux(this.state.normalizedData, selected);
@@ -799,7 +809,8 @@ class RadViz extends Component {
       for (let i = 0; i < this.props.data.length; ++i){
         selected.push(false);
       }
-      this.setState({'draggingSelection':false, 'selected':selected});
+      var termFrequencies =  this.setSelectedTermFrequency(this.props.data,selected,this.state.dimNames);
+      this.setState({'draggingSelection':false, 'selected':selected, 'termFrequencies':termFrequencies});
       this.props.setSelectedPoints(selected);
       //this.props.setSelectedAnchorsRadViz([]);
     }
@@ -846,6 +857,44 @@ class RadViz extends Component {
       this.setState({'anchorAngles':temp});
     }
 
+    setSelectedTermFrequency(data, selected,dimNames){
+      var frequency_list = [];
+      var hashmapTerms = [];
+      let selectedAnchors = [];
+      var frequencies ={};
+      for (let j = 0; j < dimNames.length;++j){
+        var nameFeature= dimNames[j];
+        if(nameFeature != 'labels' && nameFeature != 'urls' && nameFeature != 'pred_labels' ){
+          hashmapTerms[nameFeature]=0;
+          for (let i = 0; i < data.length; ++i){
+              var frequencyTerm = data[i][nameFeature];
+              if(selected.includes(true)){
+                if(selected[i]){ //create wordcloud based just on the selected data.
+                  hashmapTerms[nameFeature]=hashmapTerms[nameFeature] + frequencyTerm;
+                }
+              }
+              else{
+                hashmapTerms[nameFeature]=hashmapTerms[nameFeature] + frequencyTerm;
+              }
+          }
+          if(hashmapTerms[nameFeature] > 0)  {
+            frequency_list.push({'text': nameFeature, 'value': hashmapTerms[nameFeature] });
+
+          }
+        }
+      }
+      var maxValue = Math.max.apply(Math,frequency_list.map(function(o){return o.value;}));
+      var minRange=1, maxRange=25;
+      if(maxValue<12000){ minRange= 1; maxRange=50;} else {maxValue =13000;}
+      for(var i in frequency_list){
+        var scaleX = scaleLinear().domain([0,maxValue]).range([minRange,maxRange]);
+        frequencies[frequency_list[i]['text']]=scaleX(frequency_list[i].value);
+        frequency_list[i].value = scaleX(  frequency_list[i].value);
+      }
+      //this.setState({selectedPoints: this.state.selected});
+      return frequencies;
+    }
+
     render() {
       let sampleDots = [];
       let anchorDots = [];
@@ -855,10 +904,11 @@ class RadViz extends Component {
       let lineSimilarities = [];
       if (this.props.data){
         let anchorXY = [];
-        for (let i = 0; i < this.state.nDims; ++i)
-        {anchorXY.push(this.anglesToXY(this.state.anchorAngles[i], 1));}
-
+        for (let i = 0; i < this.state.nDims; ++i){
+          anchorXY.push(this.anglesToXY(this.state.anchorAngles[i], 1));
+        }
         selectedAnchors = this.setSelectedAnchors(this.state.normalizedData);
+        var termFrequencies =  this.state.TermFrequencies;
         for (let i = 0; i < this.state.nDims; ++i){
 
           anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
@@ -873,33 +923,35 @@ class RadViz extends Component {
           if (Math.abs(normalizedAngle) < Math.PI/2){
             anchorText.push(
               <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
+              <rect x={-1} y={-8} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#C0C0C0"}/>
               <text textAnchor='start' x={0} y={0} onMouseDown={this.startDragAnchor(i)}  fontSize={sizeText} fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
               </g>);
-            }else{
-              anchorText.push(
-                <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-                <text textAnchor='end' x={0} y={7} onMouseDown={this.startDragAnchor(i)} fontSize={sizeText}   fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
-                </g>);
-              }
+          }else{
+            anchorText.push(
+              <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
+              <rect x={-1} y={-9} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#C0C0C0"}/>
+              <text textAnchor='end' x={0} y={7} onMouseDown={this.startDragAnchor(i)} fontSize={sizeText}   fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+              </g>);
             }
-            sampleDots = (this.state.radvizTypeProjection<=3 )?this.radvizMapping(this.state.normalizedData, anchorXY) : this.projectionTSNE(this.state.normalizedClusterData, anchorXY);
-            //sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
-            //sampleTSNE = this.projectionTSNE(this.state.normalizedData, anchorXY);
-            lineSimilarities = (this.state.toggledShowLineSimilarity)?this.drawLinesSimilarity():'';
-          }
-          return (
-            <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
-            onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect} onDoubleClick = {this.unselectAllData} onClick={this.unselectAllData}  onKeyDown={this.handleKeyDown}>
-            <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
-            style={{stroke:'#ececec',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
-            {lineSimilarities}
-            {sampleDots}
-            {this.svgPoly(this.selectionPoly)}
-            {anchorText}
+        }
+        sampleDots = (this.state.radvizTypeProjection<=3 )?this.radvizMapping(this.state.normalizedData, anchorXY) : this.projectionTSNE(this.state.normalizedClusterData, anchorXY);
+        //sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
+        //sampleTSNE = this.projectionTSNE(this.state.normalizedData, anchorXY);
+        lineSimilarities = (this.state.toggledShowLineSimilarity)?this.drawLinesSimilarity():'';
+      }
+      return (
+        <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
+        onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect} onDoubleClick = {this.unselectAllData} onClick={this.unselectAllData}  onKeyDown={this.handleKeyDown}>
+        <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
+        style={{stroke:'#ececec',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
+        {lineSimilarities}
+        {sampleDots}
+        {this.svgPoly(this.selectionPoly)}
+        {anchorText}
 
-            {anchorDots}
-            </svg>
-          );
+        {anchorDots}
+        </svg>
+      );
         }
 }
 
