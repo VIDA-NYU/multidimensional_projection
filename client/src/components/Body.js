@@ -74,6 +74,7 @@ class Body extends Component {
      searchPage:'',
      open:false,
      pagesCap:100,
+     showFindKeyword:true,
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
@@ -91,6 +92,7 @@ class Body extends Component {
    this.indexColor = -1;
    this.valueDropDown=100;
    this.highestvalue=0;
+   this.drop=1;
 
 
 
@@ -475,7 +477,10 @@ componentWillReceiveProps(props){
         searchText_FindAnchor: searchText_FindAnchor,
       });
     };
-
+  handleselectInput(event,key,value){
+    this.drop = value;
+    this.setState({showFindKeyword:false})
+  }
 
 
 
@@ -515,6 +520,7 @@ componentWillReceiveProps(props){
       });
       var length = this.props.lengthTotalPages;
       var pages=[];
+      var select_feild=[];
   /*  if(length<100){
         pages.push(length)
       }
@@ -529,6 +535,8 @@ componentWillReceiveProps(props){
         }
         pages.push(<MenuItem value={length} key={length} primaryText={`${length}`} />)
 
+      select_feild.push(<MenuItem value={1} key={"Labels"} primaryText={"Labels"}/>);
+      select_feild.push(<MenuItem value={2} key={"Model_result"} primaryText={"Model_result"}/>);
   //    pages.push("50");
   //    pages.push("100");
   //    pages.push("200");
@@ -550,22 +558,28 @@ componentWillReceiveProps(props){
        <RadioButton value={1} label='Hide selected' labelStyle={styles.radioButton} style={{marginLeft:'-50px'}} />
        <RadioButton value={2} label='Hide unselected' labelStyle={styles.radioButton} style={{marginLeft:'-30px'}} />
      </RadioButtonGroup></div>;
-     let projection_labels =
-          <AutoComplete
-          floatingLabelText='Projection'
-          textFieldStyle={{width:'70%'}}
-          searchText={this.state.searchText}
-          onUpdateInput={this.handleUpdateInput}
-          onNewRequest={this.updateOnSelection}
-          dataSource={values}
-          filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
-          openOnFocus={true}
-          />;
+     // let projection_labels =
+     //      <AutoComplete
+     //      floatingLabelText='Projection'
+     //      textFieldStyle={{width:'70%'}}
+     //      searchText={this.state.searchText}
+     //      onUpdateInput={this.handleUpdateInput}
+     //      onNewRequest={this.updateOnSelection}
+     //      dataSource={values}
+     //      filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
+     //      openOnFocus={true}
+     //      />;
+    // let drop="select";
      let pageLabel = <div style={{marginLeft:'20px',marginTop:'-40px'}}> Pages: </div>
      let pagesFeild=
-      <DropDownMenu style={{marginLeft:'-60px',marginTop:'10px'}} maxHeight={300} value={this.valueDropDown} onChange={this.handlepageInput.bind(this)}>
+      <DropDownMenu style={{marginLeft:'-60px',marginTop:'10px'}}  maxHeight={300} value={this.valueDropDown} onChange={this.handlepageInput.bind(this)}>
         {pages}
       </DropDownMenu>
+
+      let selectFeild=
+       <DropDownMenu style={{width:'150px'}}  maxHeight={300} value={this.drop} onChange={this.handleselectInput.bind(this)} >
+         {select_feild}
+       </DropDownMenu>
     /*      <AutoComplete
           floatingLabelText='Pages'
           searchText={this.state.searchText}
@@ -578,7 +592,10 @@ componentWillReceiveProps(props){
       let find_anchor =
            <AutoComplete
            floatingLabelText='Find Keyword'
-           textFieldStyle={{width:'70%'}}
+           textFieldStyle={{width:'45%'}}
+           listStyle={{width:'100%'}}
+           maxSearchResults={10}
+           disableFocusRipple={this.state.showFindKeyword}
            searchText={this.state.searchText_FindAnchor}
            onUpdateInput={this.handleUpdateInput_FindAnchor}
            onNewRequest={this.updateOnSelection_FindAnchor}
@@ -586,6 +603,7 @@ componentWillReceiveProps(props){
            filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
            openOnFocus={true}
            />;
+
 
       //Setting pages to object format:
       var selectedPoints_aux = this.state.selectedPoints;
@@ -612,7 +630,10 @@ componentWillReceiveProps(props){
               {/*{projection_labels}*/}
               {find_anchor}
             </ToolbarGroup>
-           <ToolbarGroup>
+            <ToolbarGroup style={{marginLeft:'-90px'}}>
+             {selectFeild}
+           </ToolbarGroup>
+           <ToolbarGroup style={{marginLeft:'-70px'}}>
             {pageLabel}
             {pagesFeild}
           </ToolbarGroup>
