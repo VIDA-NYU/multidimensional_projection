@@ -472,23 +472,27 @@ class RadViz extends Component {
       for(let k=0; k<Object.keys(data_clusters).length; k++){
         var clusterName = Object.keys(data_clusters)[k];
         var vecA = normalizedData_medoidsCluster[this.labels_medoidsCluster.indexOf(clusterName)]; //var index_labelCluster = this.labels_medoidsCluster.indexOf(clusterName);
-        var max =0; var indexMax = ""; var indexMaxName={};
+        var max =0; var indexMax = ""; //var indexMaxName={};
+        var similarityArray=[];
         for(let l=0; l<Object.keys(data_clusters).length; l++){
-          if(k!=l){
+          var pairSimilar ={};
+          if(l>k){
             let clusterNameB = Object.keys(data_clusters)[l];
             var vecB = normalizedData_medoidsCluster[this.labels_medoidsCluster.indexOf(clusterNameB)];
             var distance = this.cosineSimilarity(vecA, vecB);
-            //cosineSimilarityMatrix[clusterName][clusterNameB]=distance;
-            if(max<distance){
+            pairSimilar[clusterNameB]=distance;
+            similarityArray.push(pairSimilar);
+            /*if(max<distance){
               max =distance;
               indexMax = clusterNameB;
-            }
+            }*/
           }
         }
-        indexMaxName[indexMax] = max;
-        maxSimilarities[clusterName]= indexMaxName;
+        if(similarityArray.length>0){ cosineSimilarityMatrix[clusterName]=similarityArray;}
+        //indexMaxName[indexMax] = max;
+        //maxSimilarities[clusterName]= indexMaxName;
       }
-      return maxSimilarities;
+      return cosineSimilarityMatrix;
     }
 
     getPointsClusterRadViz(x_y,mn_X, mx_X, mn_Y, mx_Y,p_medoid){
@@ -568,17 +572,30 @@ class RadViz extends Component {
       }
       var pairwise_medoidsPoints = [];
       var maxSimilarities = this.getSimilarityMatrix(this.normalizedData_medoidsCluster, data_clusters);
+      console.log("SIMILARITIES");
+      console.log(maxSimilarities);
+      var cont =0;
       for(let k=0; k<Object.keys(maxSimilarities).length; k++){
         var clusterName = Object.keys(maxSimilarities)[k];
-        var arrayPoints = medoidsPoints[clusterName].concat(medoidsPoints[ Object.keys(maxSimilarities[clusterName])[0] ]);
-        pairwise_medoidsPoints[k]=arrayPoints;
+        console.log(maxSimilarities[clusterName]);
+        for(let l=0; l<maxSimilarities[clusterName].length; l++){
+          var oneObjSimilarity = maxSimilarities[clusterName][l];
+          var arrayPoints = medoidsPoints[clusterName].concat(medoidsPoints[Object.keys(oneObjSimilarity)[0]]);
+          var arrayPoints_valueSimilarity =arrayPoints.concat(oneObjSimilarity[Object.keys(oneObjSimilarity)[0]]);
+          pairwise_medoidsPoints[cont]=arrayPoints_valueSimilarity;
+          cont++;
+        }
       }
       this.pairwise_medoidsPoints = pairwise_medoidsPoints;
 
       return ret;
     }
     setLines(i, ret, p0, p1,p2,p3){
-      ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:'#8c8b8b', strokeWidth:i, borderTop: 'dashed', strokeDasharray:"5, 5", dropShadow:"0 2px 1px black"}} />);
+      if(i>3)
+        ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:'#8c8b8b', strokeWidth:i, borderTop: 'dashed', strokeDasharray:"8, 0", dropShadow:"0 2px 1px black"}} />);
+      else{
+        ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:'#8c8b8b', strokeWidth:i, borderTop: 'dashed', strokeDasharray:"5, 3", dropShadow:"0 2px 1px black"}} />);
+      }
       return ret;
     }
     getAngle(p0, p1,p2, p3){
@@ -612,7 +629,7 @@ class RadViz extends Component {
       for(var i=0; i<this.pairwise_medoidsPoints.length; i++){
         var p0 = this.pairwise_medoidsPoints[i][0]; var p1 = this.pairwise_medoidsPoints[i][1]; var p2 = this.pairwise_medoidsPoints[i][2]; var p3 = this.pairwise_medoidsPoints[i][3];
         var newPoints = this.reduceLineLength(this.pairwise_medoidsPoints[i], this.state.sizeMdproj);
-        ret = this.setLines(2, ret, newPoints[0], newPoints[1],newPoints[2],newPoints[3]);
+        ret = this.setLines((this.pairwise_medoidsPoints[i][4]*10)+2, ret, newPoints[0], newPoints[1],newPoints[2],newPoints[3]);
       }
       return ret;
     }
