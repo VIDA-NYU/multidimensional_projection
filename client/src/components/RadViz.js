@@ -9,8 +9,8 @@ class RadViz extends Component {
 
     constructor(props){
         super(props);
-        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':'', 'radvizTypeProjection': this.props.radvizTypeProjection, 'sizeMdproj':this.props.clusterSeparation, toggledShowLineSimilarity:this.props.toggledShowLineSimilarity,
-        'clusterSeparation':this.props.clusterSeparation, 'expandedData': this.props.expandedData, 'buttonExpand':this.props.buttonExpand, 'termFrequencies':{}};
+        this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':'', 'radvizTypeProjection': this.props.radvizTypeProjection, 'sizeMdproj':this.props.clusterSeparation,  toggledShowLineSimilarity:this.props.toggledShowLineSimilarity,
+        'clusterSeparation':this.props.clusterSeparation, 'clusterSimilarityThreshold':this.props.clusterSimilarityThreshold, 'expandedData': this.props.expandedData, 'buttonExpand':this.props.buttonExpand, 'termFrequencies':{}};
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
@@ -199,7 +199,7 @@ class RadViz extends Component {
                           'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor,
                           'radvizTypeProjection': props.radvizTypeProjection,'normalizedClusterData':normalizedClusterData,
                           'idsDataIntoClusters':idsDataIntoClusters, 'clusterData_TF':clusterData_TF, toggledShowLineSimilarity:props.toggledShowLineSimilarity,
-                          'clusterSeparation':props.clusterSeparation, 'sizeMdproj':props.clusterSeparation, 'buttonExpand':props.buttonExpand};
+                          'clusterSeparation':props.clusterSeparation, 'clusterSimilarityThreshold':props.clusterSimilarityThreshold, 'sizeMdproj':props.clusterSeparation, 'buttonExpand':props.buttonExpand};
 
           if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText; }
 
@@ -379,10 +379,14 @@ class RadViz extends Component {
         label_cluster.push(clusterName);
         let aux = [];
         for (let i = 0; i < nDims; ++i){
-            let val_medoid_sum =0;
+            let val_medoid_sum =0;//sum
+            var arrayMedian = []; // computing median
             for (let j = 0; j < data.length; ++j){
-                val_medoid_sum = val_medoid_sum + data[j][i];
+                val_medoid_sum = val_medoid_sum + data[j][i]; //sum
+                arrayMedian.push(data[j][i]); // computing median
             }
+            var median = arrayMedian;
+            val_medoid_sum = val_medoid_sum/data.length;
             aux.push(val_medoid_sum);
         }
         medoids_clusterData_TF.push(aux);
@@ -572,12 +576,12 @@ class RadViz extends Component {
       }
       var pairwise_medoidsPoints = [];
       var maxSimilarities = this.getSimilarityMatrix(this.normalizedData_medoidsCluster, data_clusters);
-      console.log("SIMILARITIES");
-      console.log(maxSimilarities);
+      //console.log("SIMILARITIES");
+      //console.log(maxSimilarities);
       var cont =0;
       for(let k=0; k<Object.keys(maxSimilarities).length; k++){
         var clusterName = Object.keys(maxSimilarities)[k];
-        console.log(maxSimilarities[clusterName]);
+        //console.log(maxSimilarities[clusterName]);
         for(let l=0; l<maxSimilarities[clusterName].length; l++){
           var oneObjSimilarity = maxSimilarities[clusterName][l];
           var arrayPoints = medoidsPoints[clusterName].concat(medoidsPoints[Object.keys(oneObjSimilarity)[0]]);
@@ -591,7 +595,7 @@ class RadViz extends Component {
       return ret;
     }
     setLines(i, ret, p0, p1,p2,p3){
-      if(i>3)
+      if(i>3.14)
         ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:'#8c8b8b', strokeWidth:i, borderTop: 'dashed', strokeDasharray:"8, 0", dropShadow:"0 2px 1px black"}} />);
       else{
         ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:'#8c8b8b', strokeWidth:i, borderTop: 'dashed', strokeDasharray:"5, 3", dropShadow:"0 2px 1px black"}} />);
@@ -629,7 +633,10 @@ class RadViz extends Component {
       for(var i=0; i<this.pairwise_medoidsPoints.length; i++){
         var p0 = this.pairwise_medoidsPoints[i][0]; var p1 = this.pairwise_medoidsPoints[i][1]; var p2 = this.pairwise_medoidsPoints[i][2]; var p3 = this.pairwise_medoidsPoints[i][3];
         var newPoints = this.reduceLineLength(this.pairwise_medoidsPoints[i], this.state.sizeMdproj);
-        ret = this.setLines((this.pairwise_medoidsPoints[i][4]*10)+2, ret, newPoints[0], newPoints[1],newPoints[2],newPoints[3]);
+        var similarityThreshold = this.pairwise_medoidsPoints[i][4];
+        if(similarityThreshold>this.state.clusterSimilarityThreshold){
+          ret = this.setLines((similarityThreshold*10)+2, ret, newPoints[0], newPoints[1],newPoints[2],newPoints[3]);
+        }
       }
       return ret;
     }
