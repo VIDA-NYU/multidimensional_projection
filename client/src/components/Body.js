@@ -70,6 +70,7 @@ class Body extends Component {
      'sigmoidScale':1,
      'sigmoidTranslate':0,
      'clusterSeparation':0.2,
+     'clusterSimilarityThreshold':1,
      accuracy: '0',
      sessionBody: this.props.session,
      checkSigmoid:false,
@@ -89,6 +90,7 @@ class Body extends Component {
    this.updateSigmoidScale = this.updateSigmoidScale.bind(this);
    this.updateSigmoidTranslate = this.updateSigmoidTranslate.bind(this);
    this.updateClusterSeparation = this.updateClusterSeparation.bind(this);
+   this.updateClusterSimilarityThreshold = this.updateClusterSimilarityThreshold.bind(this);
    this.handleUpdateInput = this.handleUpdateInput.bind(this);
    this.handleUpdateInput_FindAnchor = this.handleUpdateInput_FindAnchor.bind(this);
    this.showingData = this.showingData.bind(this);
@@ -219,6 +221,9 @@ class Body extends Component {
   }
   updateClusterSeparation(s){
       this.setState({'clusterSeparation':s});
+  }
+  updateClusterSimilarityThreshold(s){
+    this.setState({'clusterSimilarityThreshold':s});
   }
 
     handleNewRequest(searchText){
@@ -596,6 +601,10 @@ componentWillReceiveProps(props){
       let clusterSeparation = <div style={{display:'flex',marginLeft:'-100px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
       Cluster separation<Slider style={{marginLeft:'10px'}} min={0.15} max={0.35} step={0.01} defaultValue={0.2} onChange={this.updateClusterSeparation}/>
       </ListItem></div>;
+      let clusterSimilarityThreshold = <div style={{display:'flex',marginLeft:'-10px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
+      Similarity threshold<Slider style={{marginLeft:'10px'}} min={0} max={1} step={0.01} defaultValue={1} onChange={this.updateClusterSimilarityThreshold}/>
+      </ListItem></div>;
+
       let interaction = <div style={{width:'380px'}}><RadioButtonGroup name='shipSpeed' defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
        <RadioButton value={0} label='Show all' labelStyle={styles.radioButton} style={{width:'110px', marginRight:'-30px'}}/>
        <RadioButton value={1} label='Hide selected' labelStyle={styles.radioButton} style={{width:'130px', marginRight:'-30px' }} />
@@ -631,9 +640,18 @@ componentWillReceiveProps(props){
       var legend = Object.keys(this.tagsNames).map((k, index)=>{
         return <li style={{color:this.tagsNames[k], textTransform: 'capitalize', fontWeight: 'bold', float: 'left', margin:15}}> {k} </li>;
       });
+      let buttonScaleData = <Button onClick={this.multiScaleRadViz.bind(this)} style={{textTransform: "capitalize", width: '59px', height: '37px', fontSize: '10px', padding:0}}>
+      Multi Scale
+      </Button>
+      let buttonExpandCluster = <Button onClick={this.handleExpandButton.bind(this)} style={{textTransform: "capitalize", width: '59px', height: '37px', fontSize: '10px', padding:0}}>
+      Expand<br/>Cluster
+      </Button>
+      let buttonCollapseClusters = <Button onClick={this.handleCollapseButton.bind(this)} style={{textTransform: "capitalize", width: '59px', height: '37px', fontSize: '10px', padding:0}}>
+      Collapse<br/>clusters
+      </Button>
 
-      let buttonScaleData = <RaisedButton
-                label="Multi Scale"
+      /*let buttonScaleData = <RaisedButton
+                label="Multi "
                 labelStyle={{textTransform: "capitalize", fontSize:14, fontWeight:"normal", marginLeft:2, marginRight:2}}
                 backgroundColor={this.props.backgroundColor}
                 //icon={<Search />}
@@ -656,6 +674,7 @@ componentWillReceiveProps(props){
                 style={{width:115, height:35, marginTop: 0, marginRight: 0, marginLeft:"-20px"}}
                 onClick={this.handleCollapseButton.bind(this)}
               />
+      */
 
       return(
         <div>
@@ -684,7 +703,7 @@ componentWillReceiveProps(props){
             <Row className='Menus-child'>
             <div style={{ marginTop:'5px', marginLeft:'-230px' ,marginRight:'-60px', marginBottom:'-5px'}}>
             <Toolbar style={{width:'100%',height:'70%'}}>
-              <ToolbarGroup firstChild={true} style={{marginLeft:'10px',}}>
+              <ToolbarGroup firstChild={true} style={{marginLeft:'-10px', marginRight:'-80px'}}>
               <DropDownMenu value={this.state.radvizTypeProjection} onChange={this.handleChangeProjection.bind(this)}>
                  <MenuItem value={1} primaryText="Original_RadViz" />
                  <MenuItem value={2} primaryText="N_TopKeywords" />
@@ -712,17 +731,16 @@ componentWillReceiveProps(props){
               <ToolbarGroup >
               {clusterSeparation}
               </ToolbarGroup>
-              <ToolbarGroup >
+              <ToolbarGroup style={{marginLeft:'-10px', width:130}} >
               {buttonExpandCluster}
-              </ToolbarGroup>
-              <ToolbarGroup >
               {buttonCollapseClusters}
               </ToolbarGroup>
-              <ToolbarGroup >
+              <ToolbarGroup style={{marginLeft:'0px', width:310}}>
+              {clusterSimilarityThreshold}
               <Toggle
-                label="Cluster similarity"
+                label="High similarity by cluster" //Clusters similarity
                 toggled={this.state.toggledShowLineSimilarity}
-                style={{width:100}}
+                style={{width:143}}
                 onClick={this.onToggleShowSimilatiryLines.bind(this)}
               />
               </ToolbarGroup >
@@ -753,7 +771,7 @@ componentWillReceiveProps(props){
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
             setSelectedAnchorsRadViz={this.setSelectedAnchorsRadViz.bind(this)} searchText_FindAnchor={this.state.searchText_FindAnchor}
             radvizTypeProjection={this.state.radvizTypeProjection} originalData={this.state.originalData} toggledShowLineSimilarity={this.state.toggledShowLineSimilarity}
-            clusterSeparation={this.state.clusterSeparation} resetButtonExpand = {this.resetButtonExpand.bind(this)} expandedData={this.state.expandedData} buttonExpand={this.state.buttonExpand} updateCollapseData={this.updateCollapseData.bind(this)}/>
+            clusterSeparation={this.state.clusterSeparation} clusterSimilarityThreshold={this.state.clusterSimilarityThreshold} resetButtonExpand = {this.resetButtonExpand.bind(this)} expandedData={this.state.expandedData} buttonExpand={this.state.buttonExpand} updateCollapseData={this.updateCollapseData.bind(this)}/>
             <ul style={{listStyleType: 'inside'}}>{legend} </ul>
 
             <RadViz data={this.state.subdata} colors={this.state.colors_subRadviz} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
