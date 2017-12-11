@@ -590,7 +590,7 @@ class RadViz extends Component {
       return p;
     }
 
-    projectionTSNE(data_clusters, anchors){
+    projectionPCA(data_clusters, anchors){
       this.currentMapping = [];
       let ret = [];
       var medoidsPoints = {};
@@ -1053,7 +1053,7 @@ class RadViz extends Component {
               </g>);
             }
         }
-        sampleDots = (this.state.radvizTypeProjection<=3 )?this.radvizMapping(this.state.normalizedData, anchorXY) : this.projectionTSNE(this.state.normalizedClusterData, anchorXY);
+        sampleDots = (this.state.radvizTypeProjection<=3 )?this.radvizMapping(this.state.normalizedData, anchorXY) : this.projectionPCA(this.state.normalizedClusterData, anchorXY);
         //sampleDots = this.radvizMapping(this.state.normalizedData, anchorXY);
         //sampleTSNE = this.projectionTSNE(this.state.normalizedData, anchorXY);
         lineSimilarities = this.drawLinesSimilarity(this.pairwise_medoidsPoints, false);
