@@ -509,12 +509,15 @@ componentWillReceiveProps(props){
 
   //Set pages to object format. It is necessary because SnippetView component, which shows pages as snippets, was already working with this format in DDT. SnippetView component are being re-used with some little changes.
   setPagesToObjectFormat(selectedPoints, originalData){
-    var pages = {};
+    var pages = [];
+    //var pages = {};
     if(selectedPoints.length>0){
       for (let i = 0; i < originalData['urls'].length; ++i){
         if(selectedPoints[i]){
-          pages[originalData['urls'][i]] = {'idRadViz':i, 'image_url':originalData['image_url'][i], 'order':0, 'snippet':originalData['snippet'][i], 'timestamp':'', 'title':originalData['title'][i],
-          'tags': originalData['labels'][i]};
+          /*pages[originalData['urls'][i]] = {'idRadViz':i, 'image_url':originalData['image_url'][i], 'order':0, 'snippet':originalData['snippet'][i], 'timestamp':'', 'title':originalData['title'][i],
+          'tags': originalData['labels'][i]};*/
+          pages.push({'idRadViz':i, 'url':originalData['urls'][i], 'image_url':originalData['image_url'][i], 'order':0, 'snippet':originalData['snippet'][i], 'timestamp':'', 'title':originalData['title'][i],
+          'tags': originalData['labels'][i]});
         }
       }
     }
@@ -589,7 +592,7 @@ componentWillReceiveProps(props){
       });
       let selectedUrls = []; selectedUrls.push(<p></p>);
       let nroSelectedUrls = 0;
-      if(this.state.selectedPoints.includes(true)) {selectedUrls = this.showingUrls(); nroSelectedUrls =selectedUrls.length; }
+      //if(this.state.selectedPoints.includes(true)) {selectedUrls = this.showingUrls(); nroSelectedUrls =selectedUrls.length; }
     //  let linkBackOriginalData = (this.props.filterTerm !=='') ? <a title='Original data' onclick={this.comeBack.bind(this)}>Original data</a>:<a>-<a>;
       let linkBackOriginalData = <div></div>;
       if(this.props.filterTerm !==''){
@@ -637,6 +640,9 @@ componentWillReceiveProps(props){
       var selectedPoints_aux = this.state.selectedPoints;
       var originalData_aux = this.state.originalData;
       var pagesObjectFormat = this.setPagesToObjectFormat(selectedPoints_aux, originalData_aux);
+      //nroSelectedUrls =Object.keys(pagesObjectFormat).length;
+      nroSelectedUrls =pagesObjectFormat.length;
+
       var legend = Object.keys(this.tagsNames).map((k, index)=>{
         return <li style={{color:this.tagsNames[k], textTransform: 'capitalize', fontWeight: 'bold', float: 'left', margin:15}}> {k} </li>;
       });
@@ -792,7 +798,7 @@ componentWillReceiveProps(props){
             </Row>
             <Row className='Menus-child'>
 
-              <SnippetView pages={pagesObjectFormat} session={this.state.sessionBody}  internalUpdating={false} tagFromSnippets={this.tagFromSnippets.bind(this)} reloadFilters={this.reloadFilters.bind(this)} updateOnlineAccuracy={this.updateOnlineAccuracy.bind(this)} nroSelectedUrls={nroSelectedUrls}/>
+              <SnippetView pages={pagesObjectFormat} session={this.state.sessionBody}  internalUpdating={false} tagFromSnippets={this.tagFromSnippets.bind(this)} reloadFilters={this.reloadFilters.bind(this)} updateOnlineAccuracy={this.updateOnlineAccuracy.bind(this)} lengthTotalPages={nroSelectedUrls}/>
             </Row>
           </Col>
           </Grid>

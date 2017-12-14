@@ -10,7 +10,7 @@ class RadViz extends Component {
     constructor(props){
         super(props);
         this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':'', 'radvizTypeProjection': this.props.radvizTypeProjection, 'sizeMdproj':this.props.clusterSeparation,  toggledShowLineSimilarity:this.props.toggledShowLineSimilarity,
-        'clusterSeparation':this.props.clusterSeparation, 'clusterSimilarityThreshold':this.props.clusterSimilarityThreshold, 'expandedData': this.props.expandedData, 'buttonExpand':this.props.buttonExpand, 'termFrequencies':{}};
+        'clusterSimilarityThreshold':this.props.clusterSimilarityThreshold, 'expandedData': this.props.expandedData, 'buttonExpand':this.props.buttonExpand, 'termFrequencies':{}};
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
@@ -118,6 +118,7 @@ class RadViz extends Component {
     }
 
     preprocessingData(props){
+      //console.log('preprocessingData');
       if (props.data ){
           this.expandedDataLocal=[];
           let dimNames = Object.keys(props.data[0]);
@@ -202,7 +203,7 @@ class RadViz extends Component {
                           'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor,
                           'radvizTypeProjection': props.radvizTypeProjection,'normalizedClusterData':normalizedClusterData,
                           'idsDataIntoClusters':idsDataIntoClusters, 'clusterData_TF':clusterData_TF, toggledShowLineSimilarity:props.toggledShowLineSimilarity,
-                          'clusterSeparation':props.clusterSeparation, 'clusterSimilarityThreshold':props.clusterSimilarityThreshold, 'sizeMdproj':props.clusterSeparation, 'buttonExpand':props.buttonExpand};
+                          'clusterSimilarityThreshold':props.clusterSimilarityThreshold, 'sizeMdproj':props.clusterSeparation, 'buttonExpand':props.buttonExpand};
 
           if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText; }
 
@@ -232,8 +233,34 @@ class RadViz extends Component {
     }
 
     componentWillReceiveProps(props){
-        this.preprocessingData(props);
+          this.preprocessingData(props);
+
     }
+    /*shouldComponentUpdate(nextProps, nextState){
+      //console.log('shouldComponentUpdate');
+      if(this.state.sigmoid_scale != nextProps.sigmoid_scale || this.state.sigmoid_translate != nextProps.sigmoid_translate
+        || this.state.radvizTypeProjection != nextProps.radvizTypeProjection|| this.state.toggledShowLineSimilarity !=nextProps.toggledShowLineSimilarity
+        || this.state.clusterSimilarityThreshold !=nextProps.clusterSimilarityThreshold || this.state.searchText_FindAnchor != nextProps.searchText_FindAnchor
+        || this.state.sizeMdproj != nextProps.clusterSeparation|| this.state.buttonExpand != nextProps.buttonExpand)  {
+          return true;
+          //console.log('TRUE');
+        }
+        else{
+          if(this.state.sigmoid_scale != nextState.sigmoid_scale || this.state.sigmoid_translate != nextState.sigmoid_translate
+            || this.state.radvizTypeProjection != nextState.radvizTypeProjection|| this.state.toggledShowLineSimilarity !=nextState.toggledShowLineSimilarity
+            || this.state.clusterSimilarityThreshold !=nextState.clusterSimilarityThreshold || this.state.searchText_FindAnchor != nextState.searchText_FindAnchor
+            || this.state.sizeMdproj != nextState.clusterSeparation|| this.state.buttonExpand != nextState.buttonExpand
+            || this.state.selected != nextState.selected) {
+              //console.log('TRUE nextState');
+              return true;
+            }
+            else{
+              //console.log('FALSE');
+              return false;
+            }
+
+        }
+    }*/
 
     anglesToXY(anchorAngle, radius=1){
         let initPoint = [radius, 0];
@@ -1013,6 +1040,7 @@ class RadViz extends Component {
     }
 
     render() {
+      //console.log("Render RADVIZ");
       let sampleDots = [];
       let anchorDots = [];
       let anchorText = [];
