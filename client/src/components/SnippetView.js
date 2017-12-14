@@ -82,8 +82,8 @@ class ViewTabSnippets extends React.Component{
       click_flag: false,
       change_color_urls:[],
       checkedSelectAllPages: false,
-      openDialogTagAllPages:false,
-      nroSelectedUrls:0
+      openDialogTagAllPages:false
+      //nroSelectedUrls:0
 
     };
     this.state.allSearchQueries = this.buildQueryString(this.props.session);
@@ -121,10 +121,22 @@ class ViewTabSnippets extends React.Component{
     );
   }
 
+  //Set pages to object format. It is necessary because SnippetView component, which shows pages as snippets, was already working with this format in DDT. SnippetView component are being re-used with some little changes.
+  setPagesToObjectFormat(data){
+    var pages = {};
+    for (let i = 0; i < data.length; ++i){
+          pages[data[i]['url']] = data[i];
+    }
+    return pages;
+  }
+
   componentWillMount(){
+    var currentPages = this.props.pages.slice(0, this.perPage);
+    var pagesOnPagination = this.setPagesToObjectFormat(currentPages);
     this.getAvailableTags();
     this.setState({
-        session:this.props.session, sessionString: JSON.stringify(this.props.session), pages:this.props.pages, currentPagination:0, offset:0, lengthPages:Object.keys(this.props.pages).length, lengthTotalPages:this.props.lengthTotalPages, nroSelectedUrls:this.props.nroSelectedUrls
+        session:this.props.session, sessionString: JSON.stringify(this.props.session), pages:pagesOnPagination, currentPagination:0, offset:0, lengthPages:Object.keys(pagesOnPagination).length, lengthTotalPages:this.props.lengthTotalPages, allPagesInArray:this.props.pages //, nroSelectedUrls:this.props.nroSelectedUrls
+        //session:this.props.session, sessionString: JSON.stringify(this.props.session), pages:this.props.pages, currentPagination:0, offset:0, lengthPages:Object.keys(this.props.pages).length, lengthTotalPages:this.props.lengthTotalPages, nroSelectedUrls:this.props.nroSelectedUrls
         //session:this.props.session, sessionString: JSON.stringify(this.props.session), pages:this.props.pages, currentPagination:this.props.currentPagination, offset:this.props.offset, lengthPages:this.props.lengthPages, lengthTotalPages:this.props.lengthTotalPages,
     });
     this.updateOnlineClassifier(this.props.session);
@@ -155,17 +167,20 @@ class ViewTabSnippets extends React.Component{
   componentWillReceiveProps(nextProps, nextState){
     //if (JSON.stringify(nextProps.session) !== this.state.sessionString || this.props.queryFromSearch) {
     //  if(this.props.internalUpdating){return ;}
-
       if(!this.props.queryFromSearch) $('div').scrollTop(0);
+      var currentPages = nextProps.pages.slice(0, this.perPage);
+      var pagesOnPagination = this.setPagesToObjectFormat(currentPages);
       this.setState({
         session: nextProps.session,
         sessionString: JSON.stringify(nextProps.session),
-        pages: nextProps.pages,
+        pages: pagesOnPagination,
         lengthTotalPages: nextProps.lengthTotalPages,
-        currentPagination: nextProps.currentPagination,
+        currentPagination: nextState.currentPagination,
         offset: nextProps.offset,
         allSearchQueries: this.buildQueryString(nextProps.session),
-        nroSelectedUrls:nextProps.nroSelectedUrls
+        //nroSelectedUrls:nextProps.nroSelectedUrls
+        lengthTotalPages:nextProps.lengthTotalPages,
+        allPagesInArray:nextProps.pages
       });
       this.updateOnlineClassifier(nextProps.session);
   //  }
@@ -246,12 +261,16 @@ class ViewTabSnippets extends React.Component{
     $('div').scrollTop(0);
     let selected = data.selected; //current page (number)
     let offset = Math.ceil(selected * this.perPage);
-    this.setState({offset: offset, currentPagination:data.selected, pages:[]});
-    this.props.handlePageClick(offset, data.selected);
+
+    //getting pages for the new pagination
+    var currentPages = this.state.allPagesInArray.slice(offset, this.perPage+offset);
+    var pagesOnPagination = this.setPagesToObjectFormat(currentPages);
+    this.setState({offset: offset, currentPagination:data.selected, pages:pagesOnPagination});//pages:[]});
+    //this.props.handlePageClick(offset, data.selected);
     //Returns dictionary from server in the format: {url1: {snippet, image_url, title, tags, retrieved}} (tags are a list, potentially empty)
     var tempSession = JSON.parse(JSON.stringify(this.props.session));
     tempSession['from'] = offset;
-    this.getPages(tempSession);
+    //this.getPages(tempSession);
   }
 
   //Updating the urls into the current page (pagination) when there is not more urls in that page.
@@ -870,12 +889,12 @@ class ViewTabSnippets extends React.Component{
     return (
       <div>
       <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray',marginRight:'-50px', paddingTop: 5}}>
-        <p style={{float:"left", color: "#757575", fontSize: "13px", fontWeight: "500", marginLeft:'10px',}}> Selected pages: <span style={{color:'black'}}>{this.state.nroSelectedUrls}</span> </p>
+        <p style={{float:"left", color: "#757575", fontSize: "13px", fontWeight: "500", marginLeft:'10px',}}> Selected pages: <span style={{color:'black'}}>{this.state.lengthTotalPages}</span> </p>
         <p style={{float:"right", color: "#757575", fontSize: "13px", fontWeight: "500", marginRight: "11px",}}>  Domain Model Accuracy: {this.state.accuracyOnlineLearning} % </p>
       </div>
       <div  style={{width:this.props.width_areaSnippet}}>
       <div style={{  marginLeft:'23px'}} >
-      {/*<ReactPaginate
+      <ReactPaginate
       previousLabel={'previous'}
       nextLabel={'next'}
       initialPage={0}
@@ -883,13 +902,14 @@ class ViewTabSnippets extends React.Component{
       breakLabel={<a >...</a>}
       breakClassName={'break-me'}
       pageCount={currentPageCount}
-      marginPagesDisplayed={1}
+      marginPagesDisplayed={2}
       pageRangeDisplayed={1}
       onPageChange={this.handlePageClick.bind(this)}
       containerClassName={'pagination'}
       subContainerClassName={'pages pagination'}
-      activeClassName={'active'} /> */}
-      <div style={{display: 'flex', alignItems: 'center', float:'right', fontSize: '12px', fontWeight: '500', paddingRight: '20px', marginTop: '-7px', marginRight:'-5px'}}>
+      activeClassName={'active'} />
+
+      <div style={{display: 'flex', alignItems: 'center', float:'right', fontSize: '12px', fontWeight: '500', paddingRight: '20px', marginTop: '-20px', marginRight:'-5px'}}>
       <div style={{display: 'inline', fontSize: '12px', marginRight: '30px', marginLeft: '-20px' }}>
       <div style={{textAlign: 'center', verticalAlign: 'middle', lineHeight: '30px', marginRight: 0, marginLeft:0,   display: 'inline-block',
         height: 30,
@@ -931,7 +951,7 @@ class ViewTabSnippets extends React.Component{
         FORWARD<br/>LINKS
         </Button>
       </div>
-      <div style={{marginLeft:'0px', marginTop:'30px', width:300, height:20}} />
+      <div style={{marginLeft:'0px', marginTop:'-15px', width:300, height:20}} />
       {/*<Checkbox
       label={'Select ALL results in '+ceil_currentPageCount + ' paginations'}
       checked={this.state.checkedSelectAllPages}
@@ -948,19 +968,19 @@ class ViewTabSnippets extends React.Component{
       <Divider inset={true} />
       </List>
       <div style={{display: 'table', marginRight: 'auto', marginLeft: 'auto',}}>
-      {/*<ReactPaginate previousLabel={'previous'}
+      <ReactPaginate previousLabel={'previous'}
       nextLabel={'next'}
       initialPage={0}
       forcePage={this.state.currentPagination}
       breakLabel={<a >...</a>}
       breakClassName={'break-me'}
       pageCount={currentPageCount}
-      marginPagesDisplayed={3}
-      pageRangeDisplayed={8}
+      marginPagesDisplayed={2}
+      pageRangeDisplayed={1}
       onPageChange={this.handlePageClick.bind(this)}
       containerClassName={'pagination'}
       subContainerClassName={'pages pagination'}
-      activeClassName={'active'} /> */}
+      activeClassName={'active'} />
       </div>
       </div>
       <Dialog  title='Tag Selected?'  actions={actionsCancelMultipleSelection} modal={false} open={this.state.openMultipleSelection} onRequestClose={this.handleCloseMultipleSelection.bind(this)}>
