@@ -23,6 +23,7 @@ class RadViz extends Component {
         this.startDragAnchorGroup = this.startDragAnchorGroup.bind(this);
         this.sortDimensions = this.sortDimensions.bind(this);
         this.setSelectedAnchors = this.setSelectedAnchors.bind(this);
+        this.highlightData = this.highlightData.bind(this);
         this.startanchorAngles = 0;
         this.currentUpdatedAngle=0;
         this.selectedAnchors=[];
@@ -878,6 +879,32 @@ class RadViz extends Component {
         }.bind(this);
     }
 
+    highlightData(i){
+      return function(e){
+          var selected = [];
+          var nameFeature= this.state.dimNames[i];
+          if(nameFeature != 'labels' && nameFeature != 'urls' && nameFeature != 'pred_labels' ){
+            for (let i = 0; i < this.props.data.length; ++i){
+                var frequencyTerm = this.props.data[i][nameFeature];
+                if(frequencyTerm>0){
+                  selected.push(true);
+                }
+                else{
+                  selected.push(false);
+                }
+            }
+          }
+          var termFrequencies =  this.setSelectedTermFrequency(this.props.data,selected,this.state.dimNames);
+          this.setState({ 'selected':selected, 'termFrequencies':termFrequencies, 'draggingSelection':false});
+          this.props.callbackSelection(selected);
+          this.props.setSelectedPoints(selected);
+          var selectedAnchors = this.setSelectedAnchorsAux(this.state.normalizedData, selected);
+          this.props.setSelectedAnchorsRadViz(selectedAnchors);
+          e.stopPropagation();
+
+      }.bind(this);
+    }
+
     pointInPolygon(point, polygon){
         polygon.push(polygon[0]);
     	let inside = false;
@@ -1058,7 +1085,7 @@ class RadViz extends Component {
         var termFrequencies =  this.state.TermFrequencies;
         for (let i = 0; i < this.state.nDims; ++i){
 
-          anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5}
+          anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5} onClick={this.highlightData(i)}
 
           key={i} style={{cursor:'hand', stroke:(selectedAnchors[this.state.dimNames[i]]?'black':'none'), fill:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?'black':'#9c9c9c'), strokeWidth:(selectedAnchors[this.state.dimNames[i]]?1:'none'),
           opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
@@ -1071,13 +1098,13 @@ class RadViz extends Component {
             anchorText.push(
               <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
               <rect x={-1} y={-8} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#FFFF00"} stroke={"#CCCC00"}/>
-              <text textAnchor='start' x={0} y={0} onMouseDown={this.startDragAnchor(i)}  fontSize={sizeText} fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+              <text textAnchor='start' x={0} y={0} onMouseDown={this.startDragAnchor(i)}   fontSize={sizeText} fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
               </g>);
           }else{
             anchorText.push(
               <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
               <rect x={-1} y={-9} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#FFFF00"} stroke={"#CCCC00"}/>
-              <text textAnchor='end' x={0} y={7} onMouseDown={this.startDragAnchor(i)} fontSize={sizeText}   fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+              <text textAnchor='end' x={0} y={7} onMouseDown={this.startDragAnchor(i)} fontSize={sizeText} fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
               </g>);
             }
         }
