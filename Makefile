@@ -66,5 +66,6 @@ $(GET_REACT_DATA_TARGET):
 	source activate mdproj; \
 	pushd client; \
 	npm install; \
+	python fix_for_npm_child_process_issue.py; \
 	npm run build; \
 	popd
