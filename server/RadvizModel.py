@@ -204,7 +204,7 @@ class RadvizModel(DomainModel):
         max_features = 200
         ddteval_data = fetch_data(index, filterByTerm, es_doc_type=es_doc_type, es=es)
 
-        categories = ['sci.crypt', 'rec.sport.hockey', 'comp.os.ms-windows.misc','talk.politics.mideast']
+        categories =  ['sci.crypt', 'rec.sport.hockey', 'talk.politics.mideast', 'soc.religion.christian']#'comp.os.ms-windows.misc', 'sci.med'
         newsgroups_train = fetch_20newsgroups(subset='train', categories=categories)
 
         #data = ddteval_data["data"]
@@ -214,10 +214,12 @@ class RadvizModel(DomainModel):
         #print data
         stringLabels = np.array(map(str, np.array(newsgroups_train.target)))
 
-        stringArray = [w.replace('0', 'comp.os.ms-windows.misc') for w in stringLabels]
-        stringArray = [w.replace('1', 'rec.sport.hockey') for w in stringArray]
-        stringArray = [w.replace('2', 'sci.crypt') for w in stringArray]
-        stringArray = [w.replace('3', 'talk.politics.mideast') for w in stringArray]
+        stringArray = [w.replace('0', 'rec.sport.hockey') for w in stringLabels] #comp.os.ms-windows.misc
+        #stringArray = [w.replace('0', 'rec.sport.hockey') for w in stringArray]
+        stringArray = [w.replace('1', 'sci.crypt') for w in stringArray]
+        stringArray = [w.replace('2', 'talk.politics.mideast') for w in stringArray]
+        #stringArray = [w.replace('3', 'sci.med') for w in stringArray]
+        stringArray = [w.replace('3', 'soc.religion.christian') for w in stringArray]
         labels = stringArray
         #labels = ddteval_data["labels"]
         #urls = ddteval_data["urls"]
