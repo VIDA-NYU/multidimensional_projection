@@ -35,7 +35,7 @@ conda_env: $(CONDA_ENV_TARGET)
 ## cherrypy_config  : Configure CherryPy (set absolute root environment)
 cherrypy_config: $(CHERRY_PY_CONFIG_TARGET)
 
-## get_nltk_data    : Download NLTK corpus and tokenizers 
+## get_nltk_data    : Download NLTK corpus and tokenizers
 get_nltk_data: $(GET_NLTK_DATA_TARGET)
 
 tsp_solver: $(TSP_SOLVER_TARGET)
@@ -66,5 +66,6 @@ $(GET_REACT_DATA_TARGET):
 	source activate mdproj; \
 	pushd client; \
 	npm install; \
+	python fix_for_npm_child_process_issue.py; \
 	npm run build; \
 	popd
