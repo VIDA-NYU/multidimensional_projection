@@ -198,31 +198,30 @@ class RadvizModel(DomainModel):
         [subset_raw_data, cluster_labels, original_labels, new_X_sum, features_uniques] =  self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data)
         return [subset_raw_data, cluster_labels, original_labels, new_X_sum, features_uniques,    labels_medoid_cluster, X_medoid_Cluster]
 
-    def getRadvizPoints(self, session, filterByTerm, typeRadViz, nroCluster):
+    def getRadvizPoints(self, session, filterByTerm, typeRadViz, nroCluster, removeKeywords):
         es_info = self._esInfo(session['domainId'])
         index = es_info['activeDomainIndex']
         max_features = 200
-        ddteval_data = fetch_data(index, filterByTerm, es_doc_type=es_doc_type, es=es)
+        ddteval_data = fetch_data(index, filterByTerm,removeKeywords, es_doc_type=es_doc_type, es=es)
 
         categories =  ['sci.crypt', 'rec.sport.hockey', 'talk.politics.mideast', 'soc.religion.christian']#'comp.os.ms-windows.misc', 'sci.med'
         newsgroups_train = fetch_20newsgroups(subset='train', categories=categories)
 
-        #data = ddteval_data["data"]
-        data = newsgroups_train.data
+        data = ddteval_data["data"]
+        #data = newsgroups_train.data
         X = []
         features = []
         #print data
-        stringLabels = np.array(map(str, np.array(newsgroups_train.target)))
+        #stringLabels = np.array(map(str, np.array(newsgroups_train.target)))
 
-        stringArray = [w.replace('0', 'rec.sport.hockey') for w in stringLabels] #comp.os.ms-windows.misc
-        #stringArray = [w.replace('0', 'rec.sport.hockey') for w in stringArray]
-        stringArray = [w.replace('1', 'sci.crypt') for w in stringArray]
-        stringArray = [w.replace('2', 'talk.politics.mideast') for w in stringArray]
-        #stringArray = [w.replace('3', 'sci.med') for w in stringArray]
-        stringArray = [w.replace('3', 'soc.religion.christian') for w in stringArray]
-        labels = stringArray
-        #labels = ddteval_data["labels"]
-        #urls = ddteval_data["urls"]
+        #stringArray = [w.replace('0', 'rec.sport.hockey') for w in stringLabels] #comp.os.ms-windows.misc
+        #stringArray = [w.replace('1', 'sci.crypt') for w in stringArray]
+        #stringArray = [w.replace('2', 'talk.politics.mideast') for w in stringArray]
+        #stringArray = [w.replace('3', 'soc.religion.christian') for w in stringArray]
+        #labels = stringArray
+        labels = ddteval_data["labels"]
+        urls = ddteval_data["urls"]
+
         nro_cluster = int(nroCluster)
         max_anchors = 240
         max_features_in_cluster=int(np.ceil(max_anchors/nro_cluster))
@@ -278,15 +277,15 @@ class RadvizModel(DomainModel):
         # labels = self.radviz.loadLabels("data/ht_data_labels_200.csv")
         # urls = self.radviz.loadSampleNames("data/ht_data_urls_200.csv")
 
-        #titles = ddteval_data["title"]
-        #snippets = ddteval_data["snippet"]
-        #image_urls = ddteval_data["image_url"]
+        titles = ddteval_data["title"]
+        snippets = ddteval_data["snippet"]
+        image_urls = ddteval_data["image_url"]
 
-        urls = np.asarray(range(len(stringArray))).astype(str).tolist() #generating ids
-        labels = stringArray
-        titles = stringArray
-        snippets = stringArray
-        image_urls = stringArray
+        #urls = np.asarray(range(len(stringArray))).astype(str).tolist() #generating ids
+        #labels = stringArray
+        #titles = stringArray
+        #snippets = stringArray
+        #image_urls = stringArray
 
 
         self.radviz = Radviz(X, features, labels, urls)
