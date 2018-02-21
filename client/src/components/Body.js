@@ -36,7 +36,7 @@ import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui
 import RadViz from './RadViz';
 import RaisedButton from 'material-ui/RaisedButton';
 import Toggle from 'material-ui/Toggle';
-
+import Snackbar from 'material-ui/Snackbar';
 const styles = {
   block: {
     maxWidth: 250,
@@ -83,7 +83,8 @@ class Body extends Component {
      toggledShowLineSimilarity: false,
      buttonExpand:false,
      expandedData:[],
-     toggledShowCheckBoxRemoveKeywords:false
+     toggledShowCheckBoxRemoveKeywords:false,
+     updatingRadViz: this.props.updatingRadViz
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
@@ -251,6 +252,7 @@ class Body extends Component {
   }
 
 componentWillReceiveProps(props){
+    if(props.updatingRadViz) this.setState({updatingRadViz:props.updatingRadViz,toggledShowCheckBoxRemoveKeywords:false });
   	if(props.originalData !== this.state.originalData){
         let colors = [];
         this.tagsNames ={};
@@ -259,7 +261,7 @@ componentWillReceiveProps(props){
         //this.setState({value: this.state.value, colors:colors, originalData: props.originalData, data:props.data, subdata:props.data, flat:props.flat, dimNames: props.dimNames, });
         //props.dimNames.length-7 : -7 because we are excluding url, label,title,snippet,image_url,pred_labels, modelResult. we are just using dimensions
         colors = this.setColorPoints(props.dimNames.length-7, dimNames, props.originalData);
-        this.setState({value: props.dimNames.length-7, colors:colors, originalData: props.originalData, data:props.data, subdata:props.data, flat:props.flat, dimNames: props.dimNames, });
+        this.setState({value: props.dimNames.length-7, colors:colors, originalData: props.originalData, data:props.data, subdata:props.data, flat:props.flat, dimNames: props.dimNames, updatingRadViz:props.updatingRadViz});
 
     }
   	if(this.state.dimNames.indexOf(props.searchText) !==-1){
@@ -716,7 +718,6 @@ updateListRemoveKeywords(tempDelKeywords){
                 onClick={this.handleCollapseButton.bind(this)}
               />
       */
-
       return(
         <div>
         <Grid>
@@ -851,6 +852,10 @@ updateListRemoveKeywords(tempDelKeywords){
             </Row>
           </Col>
           </Grid>
+            <Snackbar
+            open={this.state.updatingRadViz}
+            message="Updating Visualization"
+          />
         </div>
 
       );
