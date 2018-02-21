@@ -5,7 +5,7 @@ from elasticsearch import Elasticsearch
 from pprint import pprint
 
 
-def fetch_data( index, filterByTerm, categories=[], remove_duplicate=True, convert_to_ascii=True, preprocess=False, es_doc_type="page", es=None):
+def fetch_data( index, filterByTerm, removeKeywords, categories=[], remove_duplicate=True, convert_to_ascii=True, preprocess=False, es_doc_type="page", es=None):
 
     if es == None:
         es = Elasticsearch("http://localhost:9200")
@@ -104,8 +104,14 @@ def fetch_data( index, filterByTerm, categories=[], remove_duplicate=True, conve
 
         if (topic_name in categories) or len(categories) == 0:
             labels.append(topic_name)
-            if preprocess:
-                text.append(preprocess(rec["text"][0])[0:MAX_WORDS])
+            if removeKeywords:
+                if rec.get("text") is not None:
+                    textTemp = preprocessF(removeKeywords, rec["text"][0][0:MAX_WORDS])
+                    text.append(textTemp)
+                else:
+                    continue
+            #if preprocess:
+                #text.append(preprocess(rec["text"][0])[0:MAX_WORDS])
             else:
                 if rec.get("text") is not None:
                     text.append(rec["text"][0][0:MAX_WORDS])
@@ -160,6 +166,33 @@ def preprocess(text, convert_to_ascii=True):
     preprocessed_text = " ".join([word.strip() for word in text.split(" ") if len(word.strip()) > 2 and (word.strip() != "") and (isnumeric(word.strip()) == False) and notHtmlTag(word.strip()) and notMonth(word.strip())])
 
     return preprocessed_text
+
+def preprocessF(removeKeywords, text):
+    # Remove unwanted chars and new lines
+    text = text.lower().replace(","," ").replace("__"," ").replace("(", " ").replace(")", " ").replace("[", " ").replace("]", " ").replace(".", " ").replace("/", " ").replace("\\", " ").replace("_", " ").replace("#", " ").replace("-", " ").replace("+", " ").replace("%", " ").replace(";", " ").replace(":", " ").replace("'", " ").replace("\""," ").replace("^", " ")
+    text = text.replace("\n"," ")
+    convert_to_ascii = True
+    if convert_to_ascii:
+        # Convert to ascii
+        ascii_text = []
+        for x in text.split(" "):
+            try:
+                ascii_text.append(x.encode('ascii', 'ignore'))
+            except:
+                continue
+
+        text = " ".join(ascii_text)
+    print text
+    preprocessed_text = " ".join([word.strip() for word in text.split(" ") if len(word.strip()) > 2 and (word.strip() != "") and (isnumeric(word.strip()) == False) and notHtmlTag(word.strip()) and notMonth(word.strip()) and notSelectedKeywords(word.strip(), removeKeywords)])
+    return preprocessed_text
+
+def notSelectedKeywords(word, removeKeywords):
+    selectedKeywords_tags = removeKeywords #["arizona", "california", "colorado", "florida","georgia", "iowa","illinois", "missouri","nevada", "new", "hampshire", "york", "north", "carolina", "ohio", "rhode", "island", "pennsylvania","texas", "virginia", "wisconsin","national","global", "project","punditFact","terms","punditfact", "people","pants", "fire"]
+
+    if word in selectedKeywords_tags:
+        return False
+
+    return True
 
 def notHtmlTag(word):
     html_tags = ["http", "html", "img", "images", "image", "index"]
