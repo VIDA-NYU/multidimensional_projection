@@ -4,13 +4,26 @@ import {scaleLinear} from 'd3-scale';
 import $ from 'jquery';
 import TSNE from 'tsne-js';
 import PCA from 'ml-pca';
+import Checkbox from 'material-ui/Checkbox';
+
+const styles = {
+  block: {
+    maxWidth: 250,
+  },
+  radioButton: {
+    fontSize: '10px',
+    fontWeight:'small',
+    marginLeft:'-15px'
+  },
+};
 
 class RadViz extends Component {
 
     constructor(props){
         super(props);
         this.state={'draggingAnchor':false, 'showedData': this.props.showedData, 'selected':[], 'data': undefined,'nDims': 0, 'searchText_FindAnchor':'', 'radvizTypeProjection': this.props.radvizTypeProjection, 'sizeMdproj':this.props.clusterSeparation,  toggledShowLineSimilarity:this.props.toggledShowLineSimilarity,
-        'clusterSimilarityThreshold':this.props.clusterSimilarityThreshold, 'expandedData': this.props.expandedData, 'buttonExpand':this.props.buttonExpand, 'termFrequencies':{}};
+        'clusterSimilarityThreshold':this.props.clusterSimilarityThreshold, 'expandedData': this.props.expandedData, 'buttonExpand':this.props.buttonExpand, 'termFrequencies':{},
+        'showCheckBoxRemoveKeywords': this.props.showCheckBoxRemoveKeywords};
         this.startDragSelect = this.startDragSelect.bind(this);
         this.startDragAnchor = this.startDragAnchor.bind(this);
         this.stopDrag = this.stopDrag.bind(this);
@@ -35,6 +48,7 @@ class RadViz extends Component {
         this.borderStringClusters = [];
         this.maxSimilarities={};
         this.expandedDataLocal=[];
+        this.listRemovedKeywords =[];
 
     }
     componentWillMount(){
@@ -204,9 +218,12 @@ class RadViz extends Component {
                           'sigmoid_translate':props.sigmoid_translate, 'searchText_FindAnchor':props.searchText_FindAnchor,
                           'radvizTypeProjection': props.radvizTypeProjection,'normalizedClusterData':normalizedClusterData,
                           'idsDataIntoClusters':idsDataIntoClusters, 'clusterData_TF':clusterData_TF, toggledShowLineSimilarity:props.toggledShowLineSimilarity,
-                          'clusterSimilarityThreshold':props.clusterSimilarityThreshold, 'sizeMdproj':props.clusterSeparation, 'buttonExpand':props.buttonExpand};
+                          'clusterSimilarityThreshold':props.clusterSimilarityThreshold, 'sizeMdproj':props.clusterSeparation, 'buttonExpand':props.buttonExpand,
+                          showCheckBoxRemoveKeywords:props.showCheckBoxRemoveKeywords };
 
           if(props.selectedSearchText.length>0) {selected = []; selected=props.selectedSearchText; }
+
+          if(!props.showCheckBoxRemoveKeywords) {this.listRemovedKeywords=[]; }; //Remove selected keywords from array (Reset Keywords)
 
           if(Object.keys(this.state.termFrequencies).length === 0){
             var termFrequencies =  this.setSelectedTermFrequency(props.data,selected,dimNames);
@@ -901,7 +918,6 @@ class RadViz extends Component {
           var selectedAnchors = this.setSelectedAnchorsAux(this.state.normalizedData, selected);
           this.props.setSelectedAnchorsRadViz(selectedAnchors);
           e.stopPropagation();
-
       }.bind(this);
     }
 
@@ -1066,6 +1082,21 @@ class RadViz extends Component {
       return frequencies;
     }
 
+    // Adding selected keywords list.
+    addDelKeywords(i){
+      //console.log(i);
+      var nameFeature= this.state.dimNames[i];
+      var tempDelKeywords = this.listRemovedKeywords;
+      var indexFound = tempDelKeywords.indexOf(nameFeature);
+      if(indexFound> -1){
+        tempDelKeywords.splice(indexFound, 1);
+      }
+      else {
+        tempDelKeywords.push(nameFeature);
+      }
+      this.props.updateListRemoveKeywords(tempDelKeywords); //Sending list of selected keywords for removing of RadViz
+    }
+
     render() {
       //console.log("Render RADVIZ");
       let sampleDots = [];
@@ -1076,6 +1107,8 @@ class RadViz extends Component {
       let lineSimilarities = [];
       let highSimilarities = [];
       let borderClusters = [];
+
+
       if (this.props.data){
         let anchorXY = [];
         for (let i = 0; i < this.state.nDims; ++i){
@@ -1094,17 +1127,24 @@ class RadViz extends Component {
           let sizeText = (selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?'12':'11';
           var colorText = (this.state.dimNames[i].toLowerCase() === this.state.searchText_FindAnchor.toLowerCase())?'#FFFF00':'#000000'; //(selectedAnchors[this.state.dimNames[i]]?'black':'black')
           var strokeText = (this.state.dimNames[i].toLowerCase() === this.state.searchText_FindAnchor.toLowerCase())?'#0000ff':'None';
+          var x_checkbox =10;
+          var x_rect = x_checkbox-1;
+          var x_checkbox_else = (-1)*x_checkbox;
+          var checkBoxList1 = (this.state.showCheckBoxRemoveKeywords)? <foreignObject  x={-4} y={-14}  transform={`rotate(${(normalizedAngle)*180/Math.PI})`}> <label onClick={this.addDelKeywords.bind(this, i) }  ><input id="checkBox" type="checkbox" value={i}/></label></foreignObject> : <div/>;
+          var checkBoxList2 =  (this.state.showCheckBoxRemoveKeywords)? <foreignObject  x={-8} y={-7}  transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)` }><label onClick={this.addDelKeywords.bind(this,i) }  > <input id="checkBox" type="checkbox" value={i}/></label></foreignObject> : <div/>;
           if (Math.abs(normalizedAngle) < Math.PI/2){
             anchorText.push(
               <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-              <rect x={-1} y={-8} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#FFFF00"} stroke={"#CCCC00"}/>
-              <text textAnchor='start' x={0} y={0} onMouseDown={this.startDragAnchor(i)}   fontSize={sizeText} fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+              {checkBoxList1}
+              <rect x={x_rect} y={-8} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#FFFF00"} stroke={"#CCCC00"}/>
+              <text textAnchor='start' x={x_checkbox} y={0} onMouseDown={this.startDragAnchor(i)}   fontSize={sizeText} fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
               </g>);
           }else{
             anchorText.push(
               <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
-              <rect x={-1} y={-9} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#FFFF00"} stroke={"#CCCC00"}/>
-              <text textAnchor='end' x={0} y={7} onMouseDown={this.startDragAnchor(i)} fontSize={sizeText} fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
+              {checkBoxList2}
+              <rect x={x_rect} y={-9} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#FFFF00"} stroke={"#CCCC00"}/>
+              <text textAnchor='end' x={x_checkbox_else} y={7} onMouseDown={this.startDragAnchor(i)} fontSize={sizeText} fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
               </g>);
             }
         }
