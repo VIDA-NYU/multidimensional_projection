@@ -82,7 +82,8 @@ class Body extends Component {
      radvizNroCluster:4,
      toggledShowLineSimilarity: false,
      buttonExpand:false,
-     expandedData:[]
+     expandedData:[],
+     toggledShowCheckBoxRemoveKeywords:false
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
@@ -101,6 +102,7 @@ class Body extends Component {
    this.tagsNames ={};
      this.fontSize='13px';
    this.indexColor = -1;
+   this.listRemovedKeywords=[];
 
 
  };
@@ -578,6 +580,36 @@ componentWillReceiveProps(props){
   updateCollapseData(updatedExpandedData){
     this.setState({expandedData:updatedExpandedData});
   }
+
+  onToggleShowCheckBoxRemoveKeywords(){
+    this.setState({toggledShowCheckBoxRemoveKeywords:!this.state.toggledShowCheckBoxRemoveKeywords});
+  }
+  //Delete selected domains
+deleteKeywords(){
+  var tempDelKeywords=this.listRemovedKeywords;
+  var delKeywords= tempDelKeywords.join('|') ;
+  //console.log(delKeywords);
+  this.props.removeKeywordsRadViz(delKeywords);
+  //delKeywords:tempDelKeywords,
+  this.setState({ toggledDeleteKeywords:false, expandCardDeleteKeywords:false});
+  this.listRemovedKeywords = []; //Reseting list of selected keywords
+  /* $.post(
+    '/delDomain',
+    {'domains': JSON.stringify(delDomains)},
+    function(domains) {
+      this.setState({openDeleteDomain: false, delDomains: {}});
+      this.getAvailableDomains();
+      this.forceUpdate();
+    }.bind(this)
+  );*/
+};
+// Get all the domains selected for deletion
+updateListRemoveKeywords(tempDelKeywords){
+  console.log(tempDelKeywords);
+  this.listRemovedKeywords = tempDelKeywords;
+}
+
+
   render(){
     if(this.state.flat===1)//Object.keys(this.state.radvizpoints).length >0)
     {
@@ -598,7 +630,7 @@ componentWillReceiveProps(props){
       if(this.props.filterTerm !==''){
         linkBackOriginalData = <FlatButton label='Original data' labelPosition='before' primary={true} onTouchTap={this.comeBack.bind(this)} icon={<ComeBackOriginalData />} style={{marginTop:'8px'}} />;
       }
-      let sigmoid = <div style={{display:'flex',marginLeft:'-100px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
+      let sigmoid = <div style={{display:'flex',marginLeft:'-100px', width:'100px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
       Translation<Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
       </ListItem></div>;
       let clusterSeparation = <div style={{display:'flex',marginLeft:'-100px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
@@ -608,7 +640,7 @@ componentWillReceiveProps(props){
       Similarity threshold<Slider style={{marginLeft:'10px'}} min={0} max={1} step={0.01} defaultValue={1} onChange={this.updateClusterSimilarityThreshold}/>
       </ListItem></div>;
 
-      let interaction = <div style={{width:'380px'}}><RadioButtonGroup name='shipSpeed' defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
+      let interaction = <div style={{width:'300px'}}><RadioButtonGroup name='shipSpeed' defaultSelected={0} onChange={this.showingData} style={{display:'flex'}}>
        <RadioButton value={0} label='Show all' labelStyle={styles.radioButton} style={{width:'110px', marginRight:'-30px'}}/>
        <RadioButton value={1} label='Hide selected' labelStyle={styles.radioButton} style={{width:'130px', marginRight:'-30px' }} />
        <RadioButton value={2} label='Hide unselected' labelStyle={styles.radioButton} style={{width:'140px', marginRight:'-30px'}} />
@@ -648,6 +680,9 @@ componentWillReceiveProps(props){
       });
       let buttonScaleData = <Button onClick={this.multiScaleRadViz.bind(this)} style={{textTransform: "capitalize", width: '59px', height: '37px', fontSize: '10px', padding:0}}>
       Multi Scale
+      </Button>
+      let buttonRemoveKeywords = <Button onClick={this.deleteKeywords.bind(this)} disabled={!this.state.toggledShowCheckBoxRemoveKeywords} style={{textTransform: "capitalize", width: '98px', height: '37px', fontSize: '10px', padding:2}}>
+      Remove <br/> Selected Keywords
       </Button>
       let buttonExpandCluster = <Button onClick={this.handleExpandButton.bind(this)} style={{textTransform: "capitalize", width: '59px', height: '37px', fontSize: '10px', padding:0}}>
       Expand<br/>Cluster
@@ -694,12 +729,24 @@ componentWillReceiveProps(props){
                 </ToolbarGroup>
                 <ToolbarGroup >
                   {sigmoid}
+                <ToolbarSeparator />
                 </ToolbarGroup>
-                <ToolbarGroup style={{marginLeft:'10px',marginTop:'-25px', width:130}}>
+
+                <ToolbarGroup style={{marginLeft:'-100px',marginTop:'-25px', width:130}}>
                   {/*{projection_labels}*/}
                   {find_anchor}
                 </ToolbarGroup>
+                <ToolbarGroup style={{marginLeft:'-100px',marginTop:'0px', width:150}}>
+                <Toggle
+                  label="Select keyword" //Clusters similarity
+                  toggled={this.state.toggledShowCheckBoxRemoveKeywords}
+                  style={{width:150}}
+                  onClick={this.onToggleShowCheckBoxRemoveKeywords.bind(this)}
+                />
+                {buttonRemoveKeywords}
+                </ToolbarGroup>
                 <ToolbarGroup firstChild={true} style={{marginLeft:'10px',}}>
+                <ToolbarSeparator style={{marginRight:'6px'}} />
                 {buttonScaleData}
               </ToolbarGroup>
             </Toolbar>
@@ -777,7 +824,9 @@ componentWillReceiveProps(props){
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
             setSelectedAnchorsRadViz={this.setSelectedAnchorsRadViz.bind(this)} searchText_FindAnchor={this.state.searchText_FindAnchor}
             radvizTypeProjection={this.state.radvizTypeProjection} originalData={this.state.originalData} toggledShowLineSimilarity={this.state.toggledShowLineSimilarity}
-            clusterSeparation={this.state.clusterSeparation} clusterSimilarityThreshold={this.state.clusterSimilarityThreshold} resetButtonExpand = {this.resetButtonExpand.bind(this)} expandedData={this.state.expandedData} buttonExpand={this.state.buttonExpand} updateCollapseData={this.updateCollapseData.bind(this)}/>
+            clusterSeparation={this.state.clusterSeparation} clusterSimilarityThreshold={this.state.clusterSimilarityThreshold} resetButtonExpand = {this.resetButtonExpand.bind(this)}
+            expandedData={this.state.expandedData} buttonExpand={this.state.buttonExpand} updateCollapseData={this.updateCollapseData.bind(this)}
+            updateListRemoveKeywords={this.updateListRemoveKeywords.bind(this)} showCheckBoxRemoveKeywords={this.state.toggledShowCheckBoxRemoveKeywords} />
             <ul style={{listStyleType: 'inside'}}>{legend} </ul>
 
             <RadViz data={this.state.subdata} colors={this.state.colors_subRadviz} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
