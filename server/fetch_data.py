@@ -120,8 +120,12 @@ def fetch_data( index, filterByTerm, removeKeywords, categories=[], remove_dupli
             urls.append(rec["url"][0])
             if not rec.get('description') is None:
                 snippet.append(" ".join(rec['description'][0].split(" ")[0:20]))
+            else:
+                snippet.append("")
             if not rec.get('image_url') is None:
                 image_url.append(rec['image_url'][0])
+            else:
+                image_url.append("")
             if not rec.get('title') is None:
                 title.append(rec['title'][0])
             else:
