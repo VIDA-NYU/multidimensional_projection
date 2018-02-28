@@ -763,7 +763,7 @@ updateListRemoveKeywords(tempDelKeywords){
                  <MenuItem value={2} primaryText="N_TopKeywords" />
                  <MenuItem value={3} primaryText="Remove_C_Keywords" />
                  <MenuItem value={4} primaryText="Cluster_PCA" />
-                 <MenuItem value={5} primaryText="SuperNodesRadViz" />
+                 <MenuItem value={5} primaryText="UnlabeledData_based_Class" />
               </DropDownMenu>
               </ToolbarGroup >
               <ToolbarGroup >
