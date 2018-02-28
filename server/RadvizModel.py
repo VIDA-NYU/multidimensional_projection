@@ -2,7 +2,7 @@ from radviz import Radviz
 import  numpy as np
 from collections import OrderedDict
 import json
-from sklearn import linear_model
+
 from domain_discovery_API.online_classifier.tfidf_vector import tfidf_vectorizer
 from domain_discovery_API.models.domain_discovery_model import DomainModel
 from domain_discovery_API.elastic.config import es, es_doc_type, es_server
@@ -11,13 +11,22 @@ from fetch_data import fetch_data
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.datasets import fetch_20newsgroups
 from numpy.linalg import norm
+from sklearn.metrics import accuracy_score
 from sklearn.manifold import TSNE
 
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.cluster import FeatureAgglomeration
+from sklearn.metrics import pairwise_distances
+from sklearn import svm
+from sklearn.naive_bayes import MultinomialNB
+from sklearn import linear_model
+
 import random
 from scipy.sparse import csr_matrix, lil_matrix
 from functools import reduce
+
+
 #import urllib2
 #from bs4 import BeautifulSoup
 
@@ -40,7 +49,7 @@ class RadvizModel(DomainModel):
         return es_info
 
     def clusterIndicesNumpy(self, clustNum, labels_array): #numpy
-        return np.where(labels_array == clustNum)[0]
+        return np.where(np.array(labels_array) == clustNum)[0]
 
     def Kmeans(self, data, nro_cluster ):
         random_state = 170
@@ -78,11 +87,15 @@ class RadvizModel(DomainModel):
             X_sum.append(np.ceil(temp))
         return [temp_data,labels_cluster, X_sum]
 
-    def getClusterInfo(self, nro_cluster, y_Pred, raw_data, labels, max_features):
+    def getClusterInfo(self, nro_cluster, y_Pred, raw_data, labels,  urls,titles, snippets,  image_urls, max_features):
         y_clusterData = range(nro_cluster)
         clusters_RawData = []
         label_by_clusters =[]
-        original_labels=[]
+        original_labels=[]#Original labels but with different order (because now the order of data is defined by grouped clusters).
+        original_urls = []#Original urls but with different order.
+        original_titles = [] #Original titles but with different order.
+        original_snippets = []#Original snippets but with different order.
+        original_imageUrls = []#Original image_urls but with different order.
         X_sum = []
         subset_raw_data = []
         features_in_clusters =[]
@@ -93,6 +106,10 @@ class RadvizModel(DomainModel):
             for j in idsData_cluster:
                 cluster.append( raw_data[j] )
                 original_labels.append(labels[j])
+                original_urls.append(urls[j])
+                original_titles.append(titles[j])
+                original_snippets.append(snippets[j])
+                original_imageUrls.append(image_urls[j])
             clusters_RawData.append(cluster)
             random_id = random.randint(0,len(idsData_cluster)-1)
             subset_raw_data.append(raw_data[idsData_cluster[3]]) #3
@@ -105,7 +122,7 @@ class RadvizModel(DomainModel):
             features_in_clusters.append(features)
             temp = np.squeeze(np.asarray(np.sum(X.todense(), axis=0)))
             X_sum.append(np.ceil(temp))
-        return [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ]
+        return [features_in_clusters, clusters_RawData, label_by_clusters, original_labels,original_urls, original_titles, original_snippets,original_imageUrls, clusters_TFData, X_sum, subset_raw_data ]
         #features_in_clusters : list of features for each cluster.
         #clusters_RawData : array of arrays. [[raw_data_for_cluster1][raw_data_for_cluster2][raw_data_for_cluster3] ...]
         #label_by_clusters : label for each cluster.
@@ -113,10 +130,51 @@ class RadvizModel(DomainModel):
         #X_sum : the clusters_TFData (tf vectors) of each cluster was reduced to just one vector (the columns were summed). At the end only one vector is generated for each cluster.
         #subset_raw_data: sub dataset (raw data) from each cluster. A random sample was took from each cluster.
 
-    def getMedoidSamples_inCluster(self,nro_cluster, y_Pred, raw_data, labels, max_features_in_cluster):
+    def getClassInfo(self, label_by_classes, allLabels,  urls,titles, snippets,  image_urls, raw_data, max_features ):
+
+        classes_TFData = []
+        classes_RawData = []
+        features_in_classes =[]
+        original_labels = [] #Original labels but with different order.(because now the order of data is defined by grouped clusters).
+        original_urls = []#Original urls but with different order.
+        original_titles = [] #Original titles but with different order.
+        original_snippets = []#Original snippets but with different order.
+        original_imageUrls = []#Original image_urls but with different order.
+        X_sum = []
+
+        for i in label_by_classes:
+            oneClass = []
+            arr = [str(r) for r in allLabels]
+            idsData_class = self.clusterIndicesNumpy(str(i),arr)
+            for j in idsData_class:
+                oneClass.append( raw_data[j] )
+                original_labels.append(allLabels[j])
+                original_urls.append(urls[j])
+                original_titles.append(titles[j])
+                original_snippets.append(snippets[j])
+                original_imageUrls.append(image_urls[j])
+
+            classes_RawData.append(oneClass)
+            tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=max_features)
+            [X, features] = tf_v.vectorize(oneClass)
+            classes_TFData.append(X.todense())
+            features_in_classes.append(features)
+
+            temp = np.squeeze(np.asarray(np.sum(X.todense(), axis=0)))
+            X_sum.append(np.ceil(temp))
+
+        return [features_in_classes, classes_TFData, classes_RawData, original_labels,original_urls, original_titles, original_snippets,original_imageUrls,  label_by_classes ]
+        #Important!! allLabels has a different order than original_labels. Since here, the order of original_labels array should be taken into account.
+        #features_in_classes : list of features for each class.
+        #label_by_classes : label for each class.
+        #classes_TFData : array of arrays. [[raw_data_for_class1][raw_data_for_class2][raw_data_for_class3] ...]
+        #X_sum : the classes_TFData (tf vectors) of each class was reduced to just one vector (the columns were summed). At the end only one vector is generated for each class.
+
+
+    def getMedoidSamples_inCluster(self,nro_cluster, y_Pred, raw_data, labels,  urls,titles, snippets,  image_urls, max_features_in_cluster):
 
         max_features = max_features_in_cluster
-        [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
+        [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, original_urls, original_titles, original_snippets,original_imageUrls, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels,  urls,titles, snippets,  image_urls,  max_features)
 
         features_uniques = np.unique(features_in_clusters).tolist()
         cluster_labels = []
@@ -150,7 +208,7 @@ class RadvizModel(DomainModel):
             cluster_labels.append(label_by_clusters[i])
         return [cluster_labels, new_X_sum]
 
-    def getVectors_for_allSamples(self, nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data):
+    def getVectors_for_allSamples(self, nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data):
         new_X_sum = []
         cluster_labels = []
         for i in range(nro_cluster):
@@ -166,104 +224,229 @@ class RadvizModel(DomainModel):
                         print "error"
                 new_X_sum.append(np.asarray(new_X))
                 cluster_labels.append(label_by_clusters[i])
-        return [subset_raw_data, cluster_labels, original_labels, new_X_sum, features_uniques]
+        return [subset_raw_data, cluster_labels, new_X_sum, features_uniques]
 
-    def getAllSamples_inCluster(self, nro_cluster, y_Pred, raw_data, labels, max_features_in_cluster):
+    def getVectors_for_allSamplesIntoClasses(self, features_uniques, features_in_classes, classes_TFData, classes_RawData, label_by_classes):
+        new_X_sum = []
+        new_X_sum_copy = []
+        classes_labels = [] #Labels assigned for each data. This can be just one by data. By contrast, original_urls have the original labels could mean each data could have more than one label (ex. A data could be 'relevant' and 'deep crawling' labels ).
+
+        for i in range(len(label_by_classes)):
+            X_from_cluster = classes_TFData[i]
+            for k in range(len(classes_TFData[i])):
+
+                new_X = np.zeros(len(features_uniques))
+                tempList = np.squeeze(np.asarray(X_from_cluster[k]))
+                for j in range(len(features_in_classes[i])): #loop over the class's features
+                    try:
+                        index_feat = features_uniques.index(features_in_classes[i][j])
+                        new_X[index_feat]=tempList[j]
+                    except ValueError:
+                        print "error"
+                new_X_sum.append(np.asarray(new_X))
+                new_X_sum_copy.append(np.asarray(new_X))
+                classes_labels.append(label_by_classes[i])
+        return [features_uniques, new_X_sum, new_X_sum_copy,  classes_labels ] #classes_labels should be equal to original_labels
+
+    def getAllSamples_inCluster(self, nro_cluster, y_Pred, raw_data, labels,  urls,titles, snippets,  image_urls, max_features_in_cluster):
         max_features = max_features_in_cluster
-        [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
+        [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, original_urls, original_titles, original_snippets,original_imageUrls, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels,  urls,titles, snippets,  image_urls, max_features)
 
-        features_uniques = np.unique(features_in_clusters).tolist()
+        #features_uniques = np.unique(features_in_clusters).tolist()
+        concatenate_ = np.concatenate((features_in_clusters), axis=0) #concatenate all features from clusters into one single array
+        features_uniques = np.unique(concatenate_).tolist() #remove duplicated features
+        [subset_raw_data, cluster_labels, new_X_sum, features_uniques] = self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data)
+        return  [subset_raw_data, cluster_labels, new_X_sum, features_uniques, original_labels, original_urls, original_titles, original_snippets,original_imageUrls]
 
-        return self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data)
-
-    def getAllSamples_inCluster_RemoveCommonFeatures(self, nro_cluster, y_Pred, raw_data, labels, max_features_in_cluster):
+    def getAllSamples_inCluster_RemoveCommonFeatures(self, nro_cluster, y_Pred, raw_data, labels,  urls,titles, snippets,  image_urls,  max_features_in_cluster):
         max_features = max_features_in_cluster
-        [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
+        [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, original_urls, original_titles, original_snippets,original_imageUrls, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, urls,titles, snippets,  image_urls,  max_features)
 
         intersection = reduce(np.intersect1d, (features_in_clusters)).tolist() #getting common keywords between all clusters
-        features_uniques_temp = np.unique(features_in_clusters).tolist()
+        #features_uniques_temp = np.unique(features_in_clusters).tolist()
+        concatenate_ = np.concatenate((features_in_clusters), axis=0) #concatenate all features from clusters into one single array
+        features_uniques_temp = np.unique(concatenate_).tolist() #remove duplicated features
         features_uniques = np.setdiff1d(features_uniques_temp,intersection).tolist()#removing common keywords between all clusters
 
-        return self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data)
+        [subset_raw_data, cluster_labels, new_X_sum, features_uniques] =  self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data)
+
+        return [subset_raw_data, cluster_labels, new_X_sum, features_uniques, original_labels, original_urls, original_titles, original_snippets,original_imageUrls]
+
+    def getAllSamples_inClasses_RemoveCommonFeatures(self, label_by_classes, allLabels,  urls,titles, snippets,  image_urls, raw_data, max_features_in_cluster):
+        max_features = max_features_in_cluster
+        [features_in_classes, classes_TFData, classes_RawData, original_labels, original_urls, original_titles, original_snippets,original_imageUrls,  label_by_classes] = self.getClassInfo(label_by_classes, allLabels, urls,titles, snippets,  image_urls, raw_data, max_features )
+
+        intersection = reduce(np.intersect1d, (features_in_classes)).tolist()#getting common keywords between all classes
+        concatenate_ = np.concatenate((features_in_classes), axis=0) #concatenate all features from classes into one single array
+        features_uniques_temp = np.unique(concatenate_).tolist() #remove duplicated features
+        features_uniques = np.setdiff1d(features_uniques_temp,intersection).tolist() #removing common keywords between all classes
+        [features_uniques, new_X_sum, new_X_sum_copy,classes_labels ] = self.getVectors_for_allSamplesIntoClasses(features_uniques, features_in_classes, classes_TFData, classes_RawData, label_by_classes)
+
+        return [features_uniques, new_X_sum, new_X_sum_copy,classes_labels, original_labels, original_urls, original_titles, original_snippets,original_imageUrls]
+
 
     def getAllSamples_inCluster_RemoveCommonFeatures_medoids(self, nro_cluster, y_Pred, raw_data, labels, max_features_in_cluster):
         max_features = max_features_in_cluster
-        [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, max_features)
+        [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, original_urls, original_titles, original_snippets,original_imageUrls,clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels,  urls,titles, snippets,  image_urls,  max_features)
 
         intersection = reduce(np.intersect1d, (features_in_clusters)).tolist() #getting common keywords between all clusters
-        features_uniques_temp = np.unique(features_in_clusters).tolist()
+        #features_uniques_temp = np.unique(features_in_clusters).tolist()
+        concatenate_ = np.concatenate((features_in_clusters), axis=0) #concatenate all features from clusters into one single array
+        features_uniques_temp = np.unique(concatenate_).tolist() #remove duplicated features
         features_uniques = np.setdiff1d(features_uniques_temp,intersection).tolist()#removing common keywords between all clusters
 
         [labels_medoid_cluster, X_medoid_Cluster] = self.getMedoidSamples_inCluster_NumData(features_in_clusters, features_uniques, label_by_clusters, X_sum )
-        [subset_raw_data, cluster_labels, original_labels, new_X_sum, features_uniques] =  self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters,original_labels, subset_raw_data)
+        [subset_raw_data, cluster_labels, new_X_sum, features_uniques] =  self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data)
         return [subset_raw_data, cluster_labels, original_labels, new_X_sum, features_uniques,    labels_medoid_cluster, X_medoid_Cluster]
+
+    def getNumberClasses(self, allLabels):
+        uniqueLabels = np.array(np.unique(allLabels).tolist())
+        return uniqueLabels
+
+    def getData(self, typeRadViz):
+        categories =  ['sci.crypt', 'rec.sport.hockey', 'talk.politics.mideast', 'soc.religion.christian']#'comp.os.ms-windows.misc', 'sci.med'
+        newsgroups_train = fetch_20newsgroups(subset='train', categories=categories)
+        data_train = newsgroups_train.data
+        newsgroups_test = fetch_20newsgroups(subset='test', categories=categories)
+        data_test = newsgroups_test.data
+        labels = []
+        labels.append(np.array(map(str, np.array(newsgroups_train.target))) )
+        labels.append(np.array(map(str, np.array(newsgroups_test.target))) )
+        temp_labels = []
+        temp_urls = []
+        for i in range(2):
+            temp = []
+            temp = [w.replace('0', 'rec.sport.hockey') for w in labels[i]] #comp.os.ms-windows.misc
+            temp = [w.replace('1', 'sci.crypt') for w in temp]
+            temp = [w.replace('2', 'soc.religion.christian') for w in temp]
+            temp = [w.replace('3', 'talk.politics.mideast') for w in temp]
+            temp_labels.append(temp)
+            temp_urls.append(np.asarray(range(len(temp))).astype(str).tolist() ) #generating ids
+        return [ data_train, data_test, temp_labels[0], temp_labels[1], temp_urls[0], temp_urls[1] ] # urls, titles, snippets, image_urls ]
+
+    def applyModel(self, new_X, features, newLabels,  data_test, labels_test, urls_test):
+            pp = csr_matrix(new_X)
+            sparceMatrix = pp
+            X_norm = (sparceMatrix - np.array(sparceMatrix.min()))/(np.array(sparceMatrix.max()) - np.array(sparceMatrix.min()))
+            denseMatrix = X_norm.todense() #convert sparce matrix to dense matrix
+            X_aux = denseMatrix
+
+            clf = MultinomialNB().fit(X_aux, newLabels)
+            #clf_SGDC = linear_model.SGDClassifier().fit(X_aux, newLabels)
+            #clf_SVM = svm.LinearSVC().fit(X_aux, newLabels)
+
+            tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=len(features), vocabulary=features)
+            [X_newdata, features_newfeatures] = tf_v.vectorize(data_test)
+
+            predicted = clf.predict(X_newdata)
+            #predicted_SGDC = clf_SGDC.predict(X_newdata)
+            #predicted_SVM = clf_SVM.predict(X_newdata.todense())
+            #predicted_test = clf_test.predict(X_newdata_test)
+
+            X_test = X_newdata
+
+            labels = labels_test
+            urls = urls_test
+            titles = urls_test
+            snippets = urls_test
+            image_urls = urls_test
+            cluster_labels = predicted.tolist()
+
+            accuracy_test = accuracy_score(labels_test, predicted)
+            print "Accuracy (classification): ", accuracy_test
+            #accuracy_test_SGDC = accuracy_score(stringArray_test, predicted_SGDC)
+            #accuracy_test_SVM = accuracy_score(stringArray_test, predicted_SVM)
+            #accuracy_test_test = accuracy_score(stringArray_test, predicted_test)
+
+            return [X_test, labels, urls, titles, snippets, image_urls, cluster_labels]
 
     def getRadvizPoints(self, session, filterByTerm, typeRadViz, nroCluster, removeKeywords):
         es_info = self._esInfo(session['domainId'])
+        print "session name"
+        print session['domainId']
         index = es_info['activeDomainIndex']
         max_features = 200
-        ddteval_data = fetch_data(index, filterByTerm,removeKeywords, es_doc_type=es_doc_type, es=es)
 
-        categories =  ['sci.crypt', 'rec.sport.hockey', 'talk.politics.mideast', 'soc.religion.christian']#'comp.os.ms-windows.misc', 'sci.med'
-        newsgroups_train = fetch_20newsgroups(subset='train', categories=categories)
+        ddteval_data = fetch_data(index, filterByTerm, removeKeywords, es_doc_type=es_doc_type, es=es)
+        if session['domainId'] == "AV9z2HmeoAktwC6sp6_q":
+            [ data_train, data_test, labels_train, labels_test, urls_train, urls_test ] = self.getData(typeRadViz)
+            data = data_train
+            labels = labels_train
+            urls = urls_train
+            titles = labels_train
+            snippets = labels_train
+            image_urls = labels_train
+        else:
+            data = ddteval_data["data"]
+            labels = ddteval_data["labels"]
+            urls = ddteval_data["urls"]
+            titles = ddteval_data["title"]
+            snippets = ddteval_data["snippet"]
+            image_urls = ddteval_data["image_url"]
 
-        data = ddteval_data["data"]
-        #data = newsgroups_train.data
         X = []
+        X_test = []
         features = []
-        #print data
-        #stringLabels = np.array(map(str, np.array(newsgroups_train.target)))
-
-        #stringArray = [w.replace('0', 'rec.sport.hockey') for w in stringLabels] #comp.os.ms-windows.misc
-        #stringArray = [w.replace('1', 'sci.crypt') for w in stringArray]
-        #stringArray = [w.replace('2', 'talk.politics.mideast') for w in stringArray]
-        #stringArray = [w.replace('3', 'soc.religion.christian') for w in stringArray]
-        #labels = stringArray
-        labels = ddteval_data["labels"]
-        urls = ddteval_data["urls"]
 
         nro_cluster = int(nroCluster)
         max_anchors = 240
         max_features_in_cluster=int(np.ceil(max_anchors/nro_cluster))
         yPredKmeans = self.Kmeans(data, nro_cluster )
-        print typeRadViz
+        #print yPredKmeans
+
         if typeRadViz == "1":
             tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=max_features)
             [X_, features_] = tf_v.vectorize(data)
             X = X_
+            X_test = X_
             features = features_
             cluster_labels = labels
-            stringArray = labels
+            newLabels = labels
+            newUrls = urls
+            newTitles = titles
+            newSnippets = snippets
+            newImageUrls = image_urls
         elif typeRadViz == "2":
             #[clusterData, labels_cluster, X_sum] = self.getRandomSample_inCluster( nro_cluster, yPredKmeans, data, labels)
-            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster( nro_cluster, yPredKmeans, data, labels,  max_features_in_cluster)
-            stringArray = original_labels
+            [clusterData,  cluster_labels, X_sum, features_uniques, newLabels, newUrls, newTitles, newSnippets,newImageUrls] = self.getAllSamples_inCluster( nro_cluster, yPredKmeans, data, labels,  urls,titles, snippets,  image_urls, max_features_in_cluster)
             data = clusterData
             features = features_uniques
             X = csr_matrix(X_sum)
+            X_test = X
         elif typeRadViz == "3":
-            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels, max_features_in_cluster)
-            stringArray = original_labels
+            [clusterData,  cluster_labels, X_sum, features_uniques, newLabels, newUrls, newTitles, newSnippets,newImageUrls] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels,  urls,titles, snippets,  image_urls, max_features_in_cluster)
             data = clusterData
             features = features_uniques
             X = csr_matrix(X_sum)
+            X_test = X
         elif typeRadViz == "4":
-            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels, max_features_in_cluster)
-            stringArray = original_labels
+            [clusterData,  cluster_labels, X_sum, features_uniques, newLabels, newUrls, newTitles, newSnippets,newImageUrls] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels, urls,titles, snippets,  image_urls,  max_features_in_cluster)
             data = clusterData
             features = features_uniques
             X = csr_matrix(X_sum)
+            X_test = X
         elif typeRadViz == "5":
-            [clusterData,  cluster_labels, original_labels, X_sum, features_uniques] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels, max_features_in_cluster)
-            stringArray = original_labels
-            data = clusterData
+
+            label_by_classes = self.getNumberClasses(labels)
+            [features_uniques, new_X_sum,new_X_sum_copy, classes_labels, newLabels, newUrls, newTitles, newSnippets,newImageUrls]  = self.getAllSamples_inClasses_RemoveCommonFeatures(label_by_classes, labels, urls,titles, snippets,  image_urls,  data, max_features_in_cluster)
+            cluster_labels1 = classes_labels
             features = features_uniques
-            X = csr_matrix(X_sum)
+            X = csr_matrix(new_X_sum)
+
+            [X_test_, labels_, urls_, titles_, snippets_, image_urls_, cluster_labels_] = self.applyModel(new_X_sum_copy, features, newLabels,  data_test, labels_test, urls_test)
+            newLabels = labels_
+            newUrls = urls_
+            newTitles = labels_
+            newSnippets = labels_
+            newImageUrls = labels_
+            cluster_labels  = cluster_labels_
+            X_test = X_test_
+
 
         else:
             print "Nothing to do"
 
-        matrix_transpose = np.transpose(X.todense())
+        matrix_transpose = np.transpose(X_test.todense())
 
         print "\n\n Number of 1-gram features = ", len(features)
         print "\n\n tf 1-gram matrix size = ", np.shape(X)
@@ -276,10 +459,11 @@ class RadvizModel(DomainModel):
         # print len(features)
         # labels = self.radviz.loadLabels("data/ht_data_labels_200.csv")
         # urls = self.radviz.loadSampleNames("data/ht_data_urls_200.csv")
-
-        titles = ddteval_data["title"]
-        snippets = ddteval_data["snippet"]
-        image_urls = ddteval_data["image_url"]
+        labels = newLabels
+        urls = newUrls
+        titles = newTitles
+        snippets = newSnippets
+        image_urls = newImageUrls
 
         #urls = np.asarray(range(len(stringArray))).astype(str).tolist() #generating ids
         #labels = stringArray
