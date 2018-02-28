@@ -49,6 +49,7 @@ class RadViz extends Component {
         this.maxSimilarities={};
         this.expandedDataLocal=[];
         this.listRemovedKeywords =[];
+        this.currentMapping=[];
 
     }
     componentWillMount(){
@@ -636,7 +637,7 @@ class RadViz extends Component {
     }
 
     projectionPCA(data_clusters, anchors){
-      this.currentMapping = [];
+      this.currentMapping = new Array(this.props.data.length);
       let ret = [];
       var medoidsPoints = {};
       var arrayBorders = [];
@@ -672,7 +673,10 @@ class RadViz extends Component {
             p =this.getPointsClusterRadViz(x_y[i],mn_X, mx_X, mn_Y, mx_Y,p_medoid);
           }
 
-          this.currentMapping.push(p);
+          if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
+          if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
+
+          this.currentMapping[idInCluster]= p; //When we apply clustering, the order of the data could change. So it better keep the original order.
           if(this.props.projection == 'Model Result'){
             if(this.props.modelResult[idInCluster]!=='trainData'){
               ret = this.setColorPoints(idInCluster, ret, p[0], p[1]);
