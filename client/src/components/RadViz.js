@@ -5,7 +5,7 @@ import $ from 'jquery';
 import TSNE from 'tsne-js';
 import PCA from 'ml-pca';
 import Checkbox from 'material-ui/Checkbox';
-
+import StackedBarChart from './StackedBarChart'
 const styles = {
   block: {
     maxWidth: 250,
@@ -900,27 +900,44 @@ class RadViz extends Component {
         }.bind(this);
     }
 
-    highlightData(i){
-      return function(e){
-          var selected = [];
-          var nameFeature= this.state.dimNames[i];
+    highlightData_(selectedDims){
+      var nameFeatures = [];
+      for(let t=0; t<selectedDims.length; t++){
+        nameFeatures.push(this.state.dimNames[selectedDims[t]]);
+      }
+      var selected = [];
+      //var nameFeature= this.state.dimNames[i];
+      for (let i = 0; i < this.props.data.length; ++i){
+        var booleanDim = false;
+        for(let j=0; j<nameFeatures.length; j++ ){
+          var nameFeature= nameFeatures[j];
           if(nameFeature != 'labels' && nameFeature != 'urls' && nameFeature != 'pred_labels' ){
-            for (let i = 0; i < this.props.data.length; ++i){
-                var frequencyTerm = this.props.data[i][nameFeature];
-                if(frequencyTerm>0){
-                  selected.push(true);
-                }
-                else{
-                  selected.push(false);
-                }
-            }
+              var frequencyTerm = this.props.data[i][nameFeature];
+              if(frequencyTerm>0){
+                booleanDim = true;
+                break; //boolean Or operator - Less stricted filter
+              }
+              else{
+                booleanDim = false;
+                //break; //Boolean And operator. More stricted filter
+              }
           }
-          var termFrequencies =  this.setSelectedTermFrequency(this.props.data,selected,this.state.dimNames);
-          this.setState({ 'selected':selected, 'termFrequencies':termFrequencies, 'draggingSelection':false});
-          this.props.callbackSelection(selected);
-          this.props.setSelectedPoints(selected);
-          var selectedAnchors = this.setSelectedAnchorsAux(this.state.normalizedData, selected);
-          this.props.setSelectedAnchorsRadViz(selectedAnchors);
+        }
+        selected.push(booleanDim);
+      }
+      var termFrequencies =  this.setSelectedTermFrequency(this.props.data,selected,this.state.dimNames);
+      this.setState({ 'selected':selected, 'termFrequencies':termFrequencies, 'draggingSelection':false});
+      this.props.callbackSelection(selected);
+      this.props.setSelectedPoints(selected);
+      var selectedAnchors = this.setSelectedAnchorsAux(this.state.normalizedData, selected);
+      this.props.setSelectedAnchorsRadViz(selectedAnchors);
+      this.forceUpdate();
+    }
+
+    highlightData(selectedDims){
+      return function(e){
+        //console.log(selectedDims);
+          this.highlightData_(selectedDims);
           e.stopPropagation();
       }.bind(this);
     }
@@ -1101,6 +1118,10 @@ class RadViz extends Component {
       this.props.updateListRemoveKeywords(tempDelKeywords); //Sending list of selected keywords for removing of RadViz
     }
 
+    highlightDataBySelectedDims(selectedDims){
+      this.highlightData_(selectedDims);
+    }
+
     render() {
       //console.log("Render RADVIZ");
       let sampleDots = [];
@@ -1121,8 +1142,8 @@ class RadViz extends Component {
         selectedAnchors = this.setSelectedAnchors(this.state.normalizedData);
         var termFrequencies =  this.state.TermFrequencies;
         for (let i = 0; i < this.state.nDims; ++i){
-
-          anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5} onClick={this.highlightData(i)}
+          var selectedDim = []; selectedDim.push(i);
+          anchorDots.push(<circle cx={this.scaleX(anchorXY[i][0])} cy={this.scaleX(anchorXY[i][1])} r={5} onClick={this.highlightData(selectedDim)}
 
           key={i} style={{cursor:'hand', stroke:(selectedAnchors[this.state.dimNames[i]]?'black':'none'), fill:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?'black':'#9c9c9c'), strokeWidth:(selectedAnchors[this.state.dimNames[i]]?1:'none'),
           opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
@@ -1159,21 +1180,27 @@ class RadViz extends Component {
         highSimilarities = (this.state.toggledShowLineSimilarity)?this.drawLinesSimilarity(this.maxSimilarities_medoidsPoints, true):'';
         borderClusters = this.drawBordersCluster(this.borderStringClusters);
       }
-      return (
-        <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none'}}
-        onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect} onDoubleClick = {this.unselectAllData} onClick={this.unselectAllData}  onKeyDown={this.handleKeyDown}>
-        <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
-        style={{stroke:'#ececec',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
-        {borderClusters}
-        {lineSimilarities}
-        {highSimilarities}
+      return (<div>
+          <div>
+            <StackedBarChart  termFrequencies={this.state.termFrequencies} dimNames={this.state.dimNames} selectedAnchors={selectedAnchors} highlightDataBySelectedDims={this.highlightDataBySelectedDims.bind(this)}/>
+          </div >
+          <div>
+            <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none', float:'right'}}
+            onMouseMove={this.dragSVG} onMouseUp={this.stopDrag} onMouseDown={this.startDragSelect} onDoubleClick = {this.unselectAllData} onClick={this.unselectAllData}  onKeyDown={this.handleKeyDown}>
+            <ellipse cx={this.props.width/2} cy={this.props.height/2} rx={(this.props.width-this.props.marginX)/2} ry={(this.props.height - this.props.marginY)/2}
+            style={{stroke:'#ececec',fill:'none', strokeWidth:5, cursor:'hand'}} onMouseDown={this.startDragAnchorGroup}/>
+            {borderClusters}
+            {lineSimilarities}
+            {highSimilarities}
 
-        {sampleDots}
-        {this.svgPoly(this.selectionPoly)}
-        {anchorText}
+            {sampleDots}
+            {this.svgPoly(this.selectionPoly)}
+            {anchorText}
 
-        {anchorDots}
-        </svg>
+            {anchorDots}
+            </svg>
+            </div>
+        </div>
       );
         }
 }
