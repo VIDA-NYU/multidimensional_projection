@@ -50,6 +50,8 @@ class RadViz extends Component {
         this.expandedDataLocal=[];
         this.listRemovedKeywords =[];
         this.currentMapping=[];
+        this.centroids = [];
+        this.clusters_points = [];
 
     }
     componentWillMount(){
@@ -724,6 +726,145 @@ class RadViz extends Component {
 
       return ret;
     }
+
+    euclideanDistance(p1, p2){
+      return Math.sqrt( Math.pow((p2[0]-p1[0]), 2) + Math.pow((p2[1]-p1[1]), 2) );
+    }
+
+    intraClusterDist(points_in_cluster, centroid){
+      var total_dist = 0
+      //for every item in cluster j, compute the distance the the center of cluster j, take average
+      for(var i=0; i<points_in_cluster.length; i++){
+        var p = points_in_cluster[i];
+        var dist = this.euclideanDistance(centroid, p);
+        total_dist = dist + total_dist;
+      }
+      return total_dist/points_in_cluster.length;
+    }
+
+    //var clusters = [ [[1,2],[3,4],[2,4]], [[2,3],[1,1]], [[1,2],[4,5],[2,7],[9,3]]; // [points_in_cluster1, points_in_cluster2, points_in_cluster3 ]
+    //var centroids = [[1,2],[1,1], [2,7]]; // [centroid_cluster1, centroid_cluster2, centroid_cluster3]
+    daviesBouldinIndex(clusters, centroids){
+      var intra_cluster_dists = []; //[intra_cluster1_dist, intra_cluster2_dist, intra_cluster3_dist]
+      for(var i=0; i<clusters.length; i++){
+        intra_cluster_dists.push(this.intraClusterDist(clusters[i], centroids[i]));
+      }
+      var DBindex = 0;
+      var DB_sum = 0;
+      for(var i=0; i<clusters.length; i++){
+        var max_num = -9999;
+        for(var j=0; j<clusters.length; j++){
+          if(i!=j){
+            var inter_cluster_dist = this.euclideanDistance(centroids[j], centroids[i]);
+            var DBi = (intra_cluster_dists[i] + intra_cluster_dists[j])/inter_cluster_dist;
+            if(DBi > max_num){
+                max_num = DBi
+            }
+          }
+        }
+        DB_sum = DB_sum+max_num;
+      }
+      return DB_sum/clusters.length;
+    }
+
+    computeCentroid(points){
+      var centroidX = 0;
+      var centroidY = 0;
+
+        for(var i=0; i<points.length ; i++) {
+            centroidX += points[i][0];
+            centroidY += points[i][1];
+        }
+    return [centroidX / points.length, centroidY / points.length];
+    }
+
+    evaluateClustering(data_clusters, anchors){
+      var currentMapping = new Array(this.props.data.length);
+      let ret = [];
+      var medoidsPoints = {};
+      var arrayBorders = [];
+
+      this.clusters_points = [];
+      this.centroids =[];
+      var temporalEvaluation = {};
+      for(var a=0; a<this.props.colors.length; a++){
+        temporalEvaluation[this.props.colors[a]]=[];
+      }
+      for(let k=0; k<Object.keys(data_clusters).length; k++){
+        var evaluate_cluster_points = [];
+
+        var clusterName = Object.keys(data_clusters)[k];
+        var data = data_clusters[clusterName];
+        let x_y = this.computePCA(data, clusterName);
+
+        var mn_X = 0, mx_X = 0, mn_Y = 0, mx_Y = 0;
+        [mn_X, mx_X, mn_Y, mx_Y] = this.minmax_XY(x_y);
+
+        var index_labelCluster = this.labels_medoidsCluster.indexOf(clusterName);
+        let p_medoid = [0,0];
+        for (let j = 0; j < anchors.length;++j){
+          let s = this.sigmoid(this.normalizedData_medoidsCluster[index_labelCluster][j], this.state.sigmoid_scale, this.state.sigmoid_translate);
+          p_medoid[0] += anchors[j][0]*this.normalizedData_medoidsCluster[index_labelCluster][j]/this.denominator_medoidsCluster [index_labelCluster] * s;
+          p_medoid[1] += anchors[j][1]*this.normalizedData_medoidsCluster[index_labelCluster][j]/this.denominator_medoidsCluster [index_labelCluster] * s;
+        }
+        if(isNaN(p_medoid[0])) p_medoid[0]=0;//when all dimension values were zero.
+        if(isNaN(p_medoid[1])) p_medoid[1]=0;//When all dimension values were zero
+
+        medoidsPoints[clusterName]=p_medoid;
+        for (let i = 0; i < x_y.length; ++i){
+
+          var idInCluster = this.state.idsDataIntoClusters[clusterName][i];
+          var p = [0,0];
+          if(this.state.radvizTypeProjection<=3){
+          //if((this.state.selected[idInCluster] && this.state.buttonExpand) || this.state.expandedData[idInCluster]){
+            p = this.getPointsOriginalRadViz(idInCluster,anchors,this.state.normalizedData );
+            evaluate_cluster_points.push(p);
+          }
+          else{
+            p =this.getPointsClusterRadViz(x_y[i],mn_X, mx_X, mn_Y, mx_Y,p_medoid);
+          }
+
+
+          if(isNaN(p[0])) p[0]=0;//when all dimension values were zero.
+          if(isNaN(p[1])) p[1]=0;//When all dimension values were zero
+          var scale_xy = []; scale_xy[0] = this.scaleX(p[0]); scale_xy[1]=this.scaleY(p[1]);
+          temporalEvaluation[this.props.colors[idInCluster]].push(scale_xy);
+          currentMapping[idInCluster]= p; //When we apply clustering, the order of the data could change. So it better keep the original order.
+          if(this.props.projection == 'Model Result'){
+            if(this.props.modelResult[idInCluster]!=='trainData'){
+              ret = this.setColorPoints(idInCluster, ret, p[0], p[1]);
+            }
+          }
+          else{
+            ret = this.setColorPoints(idInCluster, ret, p[0], p[1]);
+          }
+          //var border = []; border[0] = this.scaleX(p[0]); border[1]=this.scaleY(p[1]);
+        }
+
+
+        this.clusters_points.push(evaluate_cluster_points);
+        this.centroids.push(p_medoid);
+      }
+      var temp_clusters_points=[];
+      var temp_centroids=[];
+      for(let k=0; k<Object.keys(temporalEvaluation).length; k++){
+        var clusterName = Object.keys(temporalEvaluation)[k];
+        var data = temporalEvaluation[clusterName];
+        temp_clusters_points.push(data);
+        temp_centroids.push(this.computeCentroid(data));
+      }
+      /*console.log(temp_clusters_points);
+      console.log(temp_centroids);
+      console.log("**********************************************************************");
+      console.log(this.clusters_points);
+      console.log(this.centroids);*/
+      //evaluate Davies Blanid Index
+      var DBindex = this.daviesBouldinIndex(temp_clusters_points, temp_centroids);
+      console.log('----------------------------------------DBindex----------------------------------------');
+      console.log(DBindex);
+    }
+
+
     setLines(i, ret, p0, p1,p2,p3, color){
       if(i>3){
         i=i-0.5;
@@ -1179,6 +1320,9 @@ class RadViz extends Component {
         lineSimilarities = this.drawLinesSimilarity(this.pairwise_medoidsPoints, false);
         highSimilarities = (this.state.toggledShowLineSimilarity)?this.drawLinesSimilarity(this.maxSimilarities_medoidsPoints, true):'';
         borderClusters = this.drawBordersCluster(this.borderStringClusters);
+        if(!this.props.subradviz){
+          this.evaluateClustering(this.state.normalizedClusterData, anchorXY);
+        }
       }
       return (<div>
           <div>
