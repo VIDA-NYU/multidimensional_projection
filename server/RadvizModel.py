@@ -25,6 +25,7 @@ from sklearn import linear_model
 import random
 from scipy.sparse import csr_matrix, lil_matrix
 from functools import reduce
+import nltk
 
 
 #import urllib2
@@ -96,7 +97,6 @@ class RadvizModel(DomainModel):
         original_titles = [] #Original titles but with different order.
         original_snippets = []#Original snippets but with different order.
         original_imageUrls = []#Original image_urls but with different order.
-        X_sum = []
         subset_raw_data = []
         features_in_clusters =[]
         clusters_TFData = []
@@ -116,13 +116,53 @@ class RadvizModel(DomainModel):
             #label_by_clusters.append(labels[idsData_cluster[3]]) #3
             label_by_clusters.append(i) #3
 
-            tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=max_features)
+            # max_features set to twice required to filte using pos tags
+            tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=2*max_features)
             [X, features] = tf_v.vectorize(clusters_RawData[i])
-            clusters_TFData.append(X.todense())
-            features_in_clusters.append(features)
-            temp = np.squeeze(np.asarray(np.sum(X.todense(), axis=0)))
+
+            # Apply parts of speech tagging to improve selected keywords
+            posf_features, posf_index = self._pos_filter(features, max_features=max_features)
+            X_dense = X.todense()[:,posf_index]
+
+            clusters_TFData.append(X_dense)
+            features_in_clusters.append(posf_features)
+
+        # Co-cluster keywords using co-clustering formula
+        w_d = {}
+        X_sum = []
+        updated_features_in_clusters = []
+        updated_clusters_TFData = []
+        for i in range(nro_cluster):
+            curr_c = np.transpose(clusters_TFData[i])
+            curr_w = features_in_clusters[i]
+            new_features = []
+            delete_feature_data = []
+            for k in range(0, len(curr_w)):
+                if w_d.get(curr_w[k]) is None:
+                    w_d[curr_w[k]] = [-1]*nro_cluster
+                    w_d[curr_w[k]][i] = self._word_cluster_freq(curr_w[k], curr_w, curr_c)
+                    include_feature = True
+                    for j in range(0, nro_cluster):
+                        if j != i:
+                            if w_d[curr_w[k]][j] == -1:
+                                w_d[curr_w[k]][j] = self._word_cluster_freq(curr_w[k], features_in_clusters[j], np.transpose(clusters_TFData[j]))
+                            if w_d[curr_w[k]][i] < w_d[curr_w[k]][j]:
+                                include_feature = False
+                                break
+                    if include_feature:
+                        new_features.append(curr_w[k])
+                    else:
+                        delete_feature_data.append(k)
+
+            updated_features_in_clusters.append(new_features)
+            X = np.transpose(np.delete(curr_c, delete_feature_data, 0))
+            updated_clusters_TFData.append(X)
+            temp = np.squeeze(np.asarray(np.sum(X, axis=0)))
             X_sum.append(np.ceil(temp))
-        return [features_in_clusters, clusters_RawData, label_by_clusters, original_labels,original_urls, original_titles, original_snippets,original_imageUrls, clusters_TFData, X_sum, subset_raw_data ]
+
+                    
+        return [updated_features_in_clusters, clusters_RawData, label_by_clusters, original_labels,original_urls, original_titles, original_snippets,original_imageUrls, updated_clusters_TFData, X_sum, subset_raw_data ]
+    
         #features_in_clusters : list of features for each cluster.
         #clusters_RawData : array of arrays. [[raw_data_for_cluster1][raw_data_for_cluster2][raw_data_for_cluster3] ...]
         #label_by_clusters : label for each cluster.
@@ -130,6 +170,20 @@ class RadvizModel(DomainModel):
         #X_sum : the clusters_TFData (tf vectors) of each cluster was reduced to just one vector (the columns were summed). At the end only one vector is generated for each cluster.
         #subset_raw_data: sub dataset (raw data) from each cluster. A random sample was took from each cluster.
 
+    def _pos_filter(self, docterms=[], pos_tags=['NN','NNS', 'NNP', 'NNPS', 'JJ'], max_features=200):
+        tagged = nltk.pos_tag(docterms)
+        valid_words = [tag[0] for tag in tagged if tag[1] in pos_tags][0:max_features]
+        valid_words_index = [docterms.index(word) for word in valid_words]
+        return valid_words, valid_words_index
+
+    def _word_cluster_freq(self, word, features, w_d):
+
+        if not word in features:
+            return 0
+        
+        w_index = features.index(word)
+        return np.sum(w_d[w_index:])
+        
     def getClassInfo(self, label_by_classes, allLabels,  urls,titles, snippets,  image_urls, raw_data, max_features ):
 
         classes_TFData = []
@@ -255,6 +309,7 @@ class RadvizModel(DomainModel):
         #features_uniques = np.unique(features_in_clusters).tolist()
         concatenate_ = np.concatenate((features_in_clusters), axis=0) #concatenate all features from clusters into one single array
         features_uniques = np.unique(concatenate_).tolist() #remove duplicated features
+        
         [subset_raw_data, cluster_labels, new_X_sum, features_uniques] = self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data)
         return  [subset_raw_data, cluster_labels, new_X_sum, features_uniques, original_labels, original_urls, original_titles, original_snippets,original_imageUrls]
 
@@ -262,12 +317,12 @@ class RadvizModel(DomainModel):
         max_features = max_features_in_cluster
         [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, original_urls, original_titles, original_snippets,original_imageUrls, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, urls,titles, snippets,  image_urls,  max_features)
 
-        intersection = reduce(np.intersect1d, (features_in_clusters)).tolist() #getting common keywords between all clusters
+        #intersection = reduce(np.intersect1d, (features_in_clusters)).tolist() #getting common keywords between all clusters
         #features_uniques_temp = np.unique(features_in_clusters).tolist()
         concatenate_ = np.concatenate((features_in_clusters), axis=0) #concatenate all features from clusters into one single array
-        features_uniques_temp = np.unique(concatenate_).tolist() #remove duplicated features
-        features_uniques = np.setdiff1d(features_uniques_temp,intersection).tolist()#removing common keywords between all clusters
-
+        #features_uniques_temp = np.unique(concatenate_).tolist() #remove duplicated features
+        #features_uniques = np.setdiff1d(features_uniques_temp,intersection).tolist()#removing common keywords between all clusters
+        features_uniques = np.unique(concatenate_).tolist() #remove duplicated features
         [subset_raw_data, cluster_labels, new_X_sum, features_uniques] =  self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data)
 
         return [subset_raw_data, cluster_labels, new_X_sum, features_uniques, original_labels, original_urls, original_titles, original_snippets,original_imageUrls]
@@ -413,20 +468,19 @@ class RadvizModel(DomainModel):
             features = features_uniques
             X = csr_matrix(X_sum)
             X_test = X
-        elif typeRadViz == "3":
+        elif typeRadViz in ["3", "4"]:
             [clusterData,  cluster_labels, X_sum, features_uniques, newLabels, newUrls, newTitles, newSnippets,newImageUrls] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels,  urls,titles, snippets,  image_urls, max_features_in_cluster)
             data = clusterData
             features = features_uniques
             X = csr_matrix(X_sum)
             X_test = X
-        elif typeRadViz == "4":
-            [clusterData,  cluster_labels, X_sum, features_uniques, newLabels, newUrls, newTitles, newSnippets,newImageUrls] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels, urls,titles, snippets,  image_urls,  max_features_in_cluster)
-            data = clusterData
-            features = features_uniques
-            X = csr_matrix(X_sum)
-            X_test = X
+        # elif typeRadViz == "4":
+        #     [clusterData,  cluster_labels, X_sum, features_uniques, newLabels, newUrls, newTitles, newSnippets,newImageUrls] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels, urls,titles, snippets,  image_urls,  max_features_in_cluster)
+        #     data = clusterData
+        #     features = features_uniques
+        #     X = csr_matrix(X_sum)
+        #     X_test = X
         elif typeRadViz == "5":
-
             label_by_classes = self.getNumberClasses(labels)
             [features_uniques, new_X_sum,new_X_sum_copy, classes_labels, newLabels, newUrls, newTitles, newSnippets,newImageUrls]  = self.getAllSamples_inClasses_RemoveCommonFeatures(label_by_classes, labels, urls,titles, snippets,  image_urls,  data, max_features_in_cluster)
             cluster_labels1 = classes_labels
@@ -471,16 +525,14 @@ class RadvizModel(DomainModel):
         #snippets = stringArray
         #image_urls = stringArray
 
-
         self.radviz = Radviz(X, features, labels, urls)
-
+        
         return_obj = {}
         for i in range(0, len(features)):
             return_obj[features[i]] = matrix_transpose[i,:].tolist()[0]
         #labels_urls = OrderedDict([("labels",labels), ("urls",urls), ("title", ddteval_data["title"]),("snippet",ddteval_data["snippet"]),("image_url",ddteval_data["image_url"])])
         labels_urls = OrderedDict([("labels",labels), ("urls",urls), ("title", titles),("snippet",snippets),("image_url",image_urls), ("pred_labels",cluster_labels)])
         od = OrderedDict(list(OrderedDict(sorted(return_obj.items())).items()) + list(labels_urls.items()))
-
         return od
 
     def computeTSP(self):
