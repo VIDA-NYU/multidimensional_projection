@@ -827,13 +827,14 @@ updateListRemoveKeywords(tempDelKeywords){
             radvizTypeProjection={this.state.radvizTypeProjection} originalData={this.state.originalData} toggledShowLineSimilarity={this.state.toggledShowLineSimilarity}
             clusterSeparation={this.state.clusterSeparation} clusterSimilarityThreshold={this.state.clusterSimilarityThreshold} resetButtonExpand = {this.resetButtonExpand.bind(this)}
             expandedData={this.state.expandedData} buttonExpand={this.state.buttonExpand} updateCollapseData={this.updateCollapseData.bind(this)}
-            updateListRemoveKeywords={this.updateListRemoveKeywords.bind(this)} showCheckBoxRemoveKeywords={this.state.toggledShowCheckBoxRemoveKeywords} />
+            updateListRemoveKeywords={this.updateListRemoveKeywords.bind(this)} showCheckBoxRemoveKeywords={this.state.toggledShowCheckBoxRemoveKeywords}
+            subradviz={false} />
             <ul style={{listStyleType: 'inside'}}>{legend} </ul>
 
             <RadViz data={this.state.subdata} colors={this.state.colors_subRadviz} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
-            searchText_FindAnchor={this.state.searchText_FindAnchor}
+            searchText_FindAnchor={this.state.searchText_FindAnchor} subradviz={true}
             radvizTypeProjection={3} originalData={this.state.originalData} toggledShowLineSimilarity={false} expandedData={this.state.expandedData} buttonExpand={this.state.buttonExpand} />
 
             </Row>

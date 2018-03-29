@@ -330,7 +330,7 @@ class RadvizModel(DomainModel):
     def getAllSamples_inClasses_RemoveCommonFeatures(self, label_by_classes, allLabels,  urls,titles, snippets,  image_urls, raw_data, max_features_in_cluster):
         max_features = max_features_in_cluster
         [features_in_classes, classes_TFData, classes_RawData, original_labels, original_urls, original_titles, original_snippets,original_imageUrls,  label_by_classes] = self.getClassInfo(label_by_classes, allLabels, urls,titles, snippets,  image_urls, raw_data, max_features )
-
+        #print features_in_classes
         intersection = reduce(np.intersect1d, (features_in_classes)).tolist()#getting common keywords between all classes
         concatenate_ = np.concatenate((features_in_classes), axis=0) #concatenate all features from classes into one single array
         features_uniques_temp = np.unique(concatenate_).tolist() #remove duplicated features
@@ -371,15 +371,74 @@ class RadvizModel(DomainModel):
         temp_urls = []
         for i in range(2):
             temp = []
-            temp = [w.replace('0', 'rec.sport.hockey') for w in labels[i]] #comp.os.ms-windows.misc
-            temp = [w.replace('1', 'sci.crypt') for w in temp]
-            temp = [w.replace('2', 'soc.religion.christian') for w in temp]
-            temp = [w.replace('3', 'talk.politics.mideast') for w in temp]
+            if i==1:
+                temp = [w.replace('0', 'Neutral') for w in labels[i]] #comp.os.ms-windows.misc
+                temp = [w.replace('1', 'Neutral') for w in temp]
+                temp = [w.replace('2', 'Neutral') for w in temp]
+                temp = [w.replace('3', 'Neutral') for w in temp]
+            else:
+                temp = [w.replace('0', 'rec.sport.hockey') for w in labels[i]] #comp.os.ms-windows.misc
+                temp = [w.replace('1', 'sci.crypt') for w in temp]
+                temp = [w.replace('2', 'soc.religion.christian') for w in temp]
+                temp = [w.replace('3', 'talk.politics.mideast') for w in temp]
             temp_labels.append(temp)
             temp_urls.append(np.asarray(range(len(temp))).astype(str).tolist() ) #generating ids
-        return [ data_train, data_test, temp_labels[0], temp_labels[1], temp_urls[0], temp_urls[1] ] # urls, titles, snippets, image_urls ]
+        return [ data_train, data_test, temp_labels[0], temp_labels[1], temp_urls[0], temp_urls[1], temp_labels[0], temp_labels[1], temp_labels[0], temp_labels[1], temp_labels[0], temp_labels[1], temp_labels[0], temp_labels[1] ] # urls, titles, snippets, image_urls ]
 
-    def applyModel(self, new_X, features, newLabels,  data_test, labels_test, urls_test):
+    def getUniquesLabels(self, urls, labels):
+        unique_labels = []
+        one_label_byData = []
+        for i in range(len(urls)):
+            temp_labels = labels[i].split(',')
+            if len(temp_labels)>1:
+                value if (temp_labels[0].lower() != 'neutral') else temp_labels[1]
+            else:
+                value = temp_labels[0]
+            if not value in unique_labels:
+                unique_labels.append(value)
+            one_label_byData.append(value)
+        return [unique_labels, one_label_byData]
+
+    def getClassData(self, raw_data, labels, urls, titles, snippets, image_urls):
+        [unique_labels, one_label_byData] = self.getUniquesLabels(urls, labels)
+        #print "unique_labels"
+        #print one_label_byData
+        #print len(one_label_byData)
+        data_train = []
+        data_test = []
+        labels_train = []
+        labels_test = []
+        urls_train = []
+        urls_test = []
+        titles_train = []
+        titles_test = []
+        snippets_train = []
+        snippets_test = []
+        image_urls_train = []
+        image_urls_test = []
+        unique_labels_train = []
+        unique_labels_test  = []
+
+        for i in range(len(urls)):
+            if one_label_byData[i].lower() != "neutral":
+                data_train.append(raw_data[i])
+                labels_train.append(labels[i])
+                urls_train.append(urls[i])
+                titles_train.append(titles[i])
+                snippets_train.append(snippets[i])
+                image_urls_train.append(image_urls[i])
+                unique_labels_train.append(one_label_byData[i])
+            else:
+                data_test.append(raw_data[i])
+                labels_test.append('Neutral')
+                urls_test.append(urls[i])
+                titles_test.append(titles[i])
+                snippets_test.append(snippets[i])
+                image_urls_test.append(image_urls[i])
+                unique_labels_test.append('Neutral')
+        return [ data_train, data_test, labels_train, labels_test, urls_train, urls_test, titles_train, titles_test, snippets_train, snippets_test, image_urls_train, image_urls_test, unique_labels_train, unique_labels_test ]
+
+    def applyModel(self, new_X, features, newLabels,  data_test, labels_test, urls_test, titles_test, snippets_test, image_urls_test):
             pp = csr_matrix(new_X)
             sparceMatrix = pp
             X_norm = (sparceMatrix - np.array(sparceMatrix.min()))/(np.array(sparceMatrix.max()) - np.array(sparceMatrix.min()))
@@ -402,13 +461,13 @@ class RadvizModel(DomainModel):
 
             labels = labels_test
             urls = urls_test
-            titles = urls_test
-            snippets = urls_test
-            image_urls = urls_test
+            titles = titles_test
+            snippets = snippets_test
+            image_urls = image_urls_test
             cluster_labels = predicted.tolist()
 
-            accuracy_test = accuracy_score(labels_test, predicted)
-            print "Accuracy (classification): ", accuracy_test
+            #accuracy_test = accuracy_score(labels_test, predicted)
+            #print "Accuracy (classification): ", accuracy_test
             #accuracy_test_SGDC = accuracy_score(stringArray_test, predicted_SGDC)
             #accuracy_test_SVM = accuracy_score(stringArray_test, predicted_SVM)
             #accuracy_test_test = accuracy_score(stringArray_test, predicted_test)
@@ -417,20 +476,18 @@ class RadvizModel(DomainModel):
 
     def getRadvizPoints(self, session, filterByTerm, typeRadViz, nroCluster, removeKeywords):
         es_info = self._esInfo(session['domainId'])
-        print "session name"
-        print session['domainId']
         index = es_info['activeDomainIndex']
         max_features = 200
 
         ddteval_data = fetch_data(index, filterByTerm, removeKeywords, es_doc_type=es_doc_type, es=es)
         if session['domainId'] == "AV9z2HmeoAktwC6sp6_q":
-            [ data_train, data_test, labels_train, labels_test, urls_train, urls_test ] = self.getData(typeRadViz)
+            [ data_train, data_test, labels_train, labels_test, urls_train, urls_test, titles_train, titles_test, snippets_train, snippets_test, image_urls_train, image_urls_test, unique_labels_train, unique_labels_test ] = self.getData(typeRadViz)
             data = data_train
-            labels = labels_train
+            labels = unique_labels_train
             urls = urls_train
-            titles = labels_train
-            snippets = labels_train
-            image_urls = labels_train
+            titles = titles_train
+            snippets = snippets_train
+            image_urls = image_urls_train
         else:
             data = ddteval_data["data"]
             labels = ddteval_data["labels"]
@@ -438,6 +495,16 @@ class RadvizModel(DomainModel):
             titles = ddteval_data["title"]
             snippets = ddteval_data["snippet"]
             image_urls = ddteval_data["image_url"]
+
+            [ data_train, data_test, labels_train, labels_test, urls_train, urls_test, titles_train, titles_test, snippets_train, snippets_test, image_urls_train, image_urls_test, unique_labels_train, unique_labels_test ] = self.getClassData(data, labels, urls, titles, snippets, image_urls)
+            #data = data_train
+            #labels = unique_labels_train
+            #urls = urls_train
+            #titles = titles_train
+            #snippets = snippets_train
+            #image_urls = image_urls_train
+
+        #print labels
 
         X = []
         X_test = []
@@ -468,8 +535,20 @@ class RadvizModel(DomainModel):
             features = features_uniques
             X = csr_matrix(X_sum)
             X_test = X
-        elif typeRadViz in ["3", "4"]:
-            [clusterData,  cluster_labels, X_sum, features_uniques, newLabels, newUrls, newTitles, newSnippets,newImageUrls] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels,  urls,titles, snippets,  image_urls, max_features_in_cluster)
+        elif typeRadViz == "3":
+            tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=max_features)
+            [X_, features_] = tf_v.vectorize(data)
+            X = X_
+            X_test = X_
+            features = features_
+            cluster_labels = yPredKmeans.tolist()
+            newLabels = labels
+            newUrls = urls
+            newTitles = titles
+            newSnippets = snippets
+            newImageUrls = image_urls
+        elif typeRadViz == "4":
+            [clusterData,  cluster_labels, X_sum, features_uniques, newLabels, newUrls, newTitles, newSnippets,newImageUrls] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels, urls,titles, snippets,  image_urls,  max_features_in_cluster)
             data = clusterData
             features = features_uniques
             X = csr_matrix(X_sum)
@@ -487,13 +566,14 @@ class RadvizModel(DomainModel):
             features = features_uniques
             X = csr_matrix(new_X_sum)
 
-            [X_test_, labels_, urls_, titles_, snippets_, image_urls_, cluster_labels_] = self.applyModel(new_X_sum_copy, features, newLabels,  data_test, labels_test, urls_test)
+            [X_test_, labels_, urls_, titles_, snippets_, image_urls_, cluster_labels_] = self.applyModel(new_X_sum_copy, features, newLabels,  data, labels, urls,  titles, snippets, image_urls)
             newLabels = labels_
             newUrls = urls_
-            newTitles = labels_
-            newSnippets = labels_
-            newImageUrls = labels_
+            newTitles = titles_
+            newSnippets = snippets_
+            newImageUrls = image_urls_
             cluster_labels  = cluster_labels_
+
             X_test = X_test_
 
 
@@ -501,9 +581,8 @@ class RadvizModel(DomainModel):
             print "Nothing to do"
 
         matrix_transpose = np.transpose(X_test.todense())
-
         print "\n\n Number of 1-gram features = ", len(features)
-        print "\n\n tf 1-gram matrix size = ", np.shape(X)
+        print "\n\n tf 1-gram matrix size = ", np.shape(X_test)
         # data = self.radviz.loadData_pkl("data/ht_data_200.pkl").todense()
 
         # data = np.transpose(data)
