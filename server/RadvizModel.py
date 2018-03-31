@@ -160,9 +160,10 @@ class RadvizModel(DomainModel):
             temp = np.squeeze(np.asarray(np.sum(X, axis=0)))
             X_sum.append(np.ceil(temp))
 
-                    
+
         return [updated_features_in_clusters, clusters_RawData, label_by_clusters, original_labels,original_urls, original_titles, original_snippets,original_imageUrls, updated_clusters_TFData, X_sum, subset_raw_data ]
-    
+
+
         #features_in_clusters : list of features for each cluster.
         #clusters_RawData : array of arrays. [[raw_data_for_cluster1][raw_data_for_cluster2][raw_data_for_cluster3] ...]
         #label_by_clusters : label for each cluster.
@@ -180,10 +181,10 @@ class RadvizModel(DomainModel):
 
         if not word in features:
             return 0
-        
+
         w_index = features.index(word)
         return np.sum(w_d[w_index:])
-        
+
     def getClassInfo(self, label_by_classes, allLabels,  urls,titles, snippets,  image_urls, raw_data, max_features ):
 
         classes_TFData = []
@@ -309,7 +310,7 @@ class RadvizModel(DomainModel):
         #features_uniques = np.unique(features_in_clusters).tolist()
         concatenate_ = np.concatenate((features_in_clusters), axis=0) #concatenate all features from clusters into one single array
         features_uniques = np.unique(concatenate_).tolist() #remove duplicated features
-        
+
         [subset_raw_data, cluster_labels, new_X_sum, features_uniques] = self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data)
         return  [subset_raw_data, cluster_labels, new_X_sum, features_uniques, original_labels, original_urls, original_titles, original_snippets,original_imageUrls]
 
@@ -605,7 +606,7 @@ class RadvizModel(DomainModel):
         #image_urls = stringArray
 
         self.radviz = Radviz(X, features, labels, urls)
-        
+
         return_obj = {}
         for i in range(0, len(features)):
             return_obj[features[i]] = matrix_transpose[i,:].tolist()[0]
