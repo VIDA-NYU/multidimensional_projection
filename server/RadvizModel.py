@@ -557,17 +557,11 @@ class RadvizModel(DomainModel):
             X = csr_matrix(X_sum)
             X_test = X
         elif typeRadViz == "3":
-            tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=max_features)
-            [X_, features_] = tf_v.vectorize(data)
-            X = X_
-            X_test = X_
-            features = features_
-            cluster_labels = yPredKmeans.tolist()
-            newLabels = labels
-            newUrls = urls
-            newTitles = titles
-            newSnippets = snippets
-            newImageUrls = image_urls
+            [clusterData,  cluster_labels, X_sum, features_uniques, newLabels, newUrls, newTitles, newSnippets,newImageUrls] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels, urls,titles, snippets,  image_urls,  max_features_in_cluster)
+            data = clusterData
+            features = features_uniques
+            X = csr_matrix(X_sum)
+            X_test = X
         elif typeRadViz == "4":
             [clusterData,  cluster_labels, X_sum, features_uniques, newLabels, newUrls, newTitles, newSnippets,newImageUrls] = self.getAllSamples_inCluster_RemoveCommonFeatures( nro_cluster, yPredKmeans, data, labels, urls,titles, snippets,  image_urls,  max_features_in_cluster)
             data = clusterData
