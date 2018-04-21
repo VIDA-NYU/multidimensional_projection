@@ -127,6 +127,7 @@ class RadvizModel(DomainModel):
             clusters_TFData.append(X_dense)
             features_in_clusters.append(posf_features)
 
+
         # Co-cluster keywords using co-clustering formula
         w_d = {}
         X_sum = []
@@ -140,22 +141,38 @@ class RadvizModel(DomainModel):
             for k in range(0, len(curr_w)):
                 if w_d.get(curr_w[k]) is None:
                     w_d[curr_w[k]] = [-1]*nro_cluster
+                if w_d[curr_w[k]][i] == -1:
                     w_d[curr_w[k]][i] = self._word_cluster_freq(curr_w[k], curr_w, curr_c)
-                    include_feature = True
-                    for j in range(0, nro_cluster):
-                        if j != i:
-                            if w_d[curr_w[k]][j] == -1:
-                                w_d[curr_w[k]][j] = self._word_cluster_freq(curr_w[k], features_in_clusters[j], np.transpose(clusters_TFData[j]))
-                            if w_d[curr_w[k]][i] < w_d[curr_w[k]][j]:
-                                include_feature = False
-                                break
-                    if include_feature:
-                        new_features.append(curr_w[k])
-                    else:
-                        delete_feature_data.append(k)
+
+                include_feature = True
+                for j in range(0, nro_cluster):
+                    if j != i:
+                        if w_d[curr_w[k]][j] == -1:
+                            w_d[curr_w[k]][j] = self._word_cluster_freq(curr_w[k], features_in_clusters[j], np.transpose(clusters_TFData[j]))
+                        if w_d[curr_w[k]][i] < w_d[curr_w[k]][j]:
+                            include_feature = False
+                            break
+                if include_feature:
+                    new_features.append(curr_w[k])
+                else:
+                    delete_feature_data.append(k)
 
             updated_features_in_clusters.append(new_features)
             X = np.transpose(np.delete(curr_c, delete_feature_data, 0))
+            print X.shape, ' ' , len(new_features)
+
+            # zero_doc = np.where(~X.any(axis=1))
+            # if zero_doc[0].size > 0:
+            #     X = np.delete(X, zero_doc[0], 0)
+            #     original_labels = np.delete(np.asarray(original_labels), zero_doc[0]).tolist()
+            #     original_urls = np.delete(np.asarray(original_urls), zero_doc[0]).tolist()
+            #     original_titles = np.delete(np.asarray(original_titles), zero_doc[0]).tolist()
+            #     original_snippets = np.delete(np.asarray(original_snippets), zero_doc[0]).tolist()
+            #     original_imageUrls = np.delete(np.asarray(original_imageUrls), zero_doc[0]).tolist()
+
+            #     print np.transpose(curr_c)[zero_doc[0]]
+            # print X.shape, ' ' , len(new_features)
+
             updated_clusters_TFData.append(X)
             temp = np.squeeze(np.asarray(np.sum(X, axis=0)))
             X_sum.append(np.ceil(temp))
@@ -318,12 +335,16 @@ class RadvizModel(DomainModel):
         max_features = max_features_in_cluster
         [features_in_clusters, clusters_RawData, label_by_clusters, original_labels, original_urls, original_titles, original_snippets,original_imageUrls, clusters_TFData, X_sum, subset_raw_data ] = self.getClusterInfo(nro_cluster, y_Pred, raw_data, labels, urls,titles, snippets,  image_urls,  max_features)
 
-        #intersection = reduce(np.intersect1d, (features_in_clusters)).tolist() #getting common keywords between all clusters
-        #features_uniques_temp = np.unique(features_in_clusters).tolist()
         concatenate_ = np.concatenate((features_in_clusters), axis=0) #concatenate all features from clusters into one single array
-        #features_uniques_temp = np.unique(concatenate_).tolist() #remove duplicated features
-        #features_uniques = np.setdiff1d(features_uniques_temp,intersection).tolist()#removing common keywords between all clusters
         features_uniques = np.unique(concatenate_).tolist() #remove duplicated features
+
+        # Check if all docs are non-zero
+        # for cluster in clusters_TFData:
+        #     index = np.where(~cluster.any(axis=1))
+        #     print index[0]
+        #     if index[0].size > 0:
+        #         print cluster[index[0][0]]
+
         [subset_raw_data, cluster_labels, new_X_sum, features_uniques] =  self.getVectors_for_allSamples(nro_cluster, clusters_TFData, features_uniques, features_in_clusters, label_by_clusters, subset_raw_data)
 
         return [subset_raw_data, cluster_labels, new_X_sum, features_uniques, original_labels, original_urls, original_titles, original_snippets,original_imageUrls]
@@ -516,7 +537,6 @@ class RadvizModel(DomainModel):
         max_features_in_cluster=int(np.ceil(max_anchors/nro_cluster))
         yPredKmeans = self.Kmeans(data, nro_cluster )
         #print yPredKmeans
-
         if typeRadViz == "1":
             tf_v = tfidf_vectorizer(convert_to_ascii=True, max_features=max_features)
             [X_, features_] = tf_v.vectorize(data)
