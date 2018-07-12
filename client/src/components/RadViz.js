@@ -1273,7 +1273,7 @@ class RadViz extends Component {
       let lineSimilarities = [];
       let highSimilarities = [];
       let borderClusters = [];
-
+      let listBarChart = <div></div>;
 
       if (this.props.data){
         let anchorXY = [];
@@ -1320,13 +1320,15 @@ class RadViz extends Component {
         lineSimilarities = this.drawLinesSimilarity(this.pairwise_medoidsPoints, false);
         highSimilarities = (this.state.toggledShowLineSimilarity)?this.drawLinesSimilarity(this.maxSimilarities_medoidsPoints, true):'';
         borderClusters = this.drawBordersCluster(this.borderStringClusters);
+
         if(!this.props.subradviz){
           this.evaluateClustering(this.state.normalizedClusterData, anchorXY);
+          listBarChart = <StackedBarChart  termFrequencies={this.state.termFrequencies} dimNames={this.state.dimNames} selectedAnchors={selectedAnchors} highlightDataBySelectedDims={this.highlightDataBySelectedDims.bind(this)}/>;
         }
       }
       return (<div>
           <div>
-            <StackedBarChart  termFrequencies={this.state.termFrequencies} dimNames={this.state.dimNames} selectedAnchors={selectedAnchors} highlightDataBySelectedDims={this.highlightDataBySelectedDims.bind(this)}/>
+          {listBarChart}
           </div >
           <div>
             <svg  id={'svg_radviz'}  style={{cursor:((this.state.draggingAnchor || this.state.draggingAnchorGroup)?'hand':'default'), width:this.props.width, height:this.props.height, MozUserSelect:'none', WebkitUserSelect:'none', msUserSelect:'none', float:'right'}}
