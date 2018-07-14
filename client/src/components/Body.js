@@ -78,8 +78,8 @@ class Body extends Component {
      searchText: '',
      subdata:undefined,
      selectedAnchors:[false],
-     radvizTypeProjection: 1, //traditional radviz
-     radvizNroCluster:4,
+     radvizTypeProjection: 4, //multiscalel radviz
+     radvizNroCluster:7,
      toggledShowLineSimilarity: false,
      buttonExpand:false,
      expandedData:[],
