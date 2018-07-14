@@ -101,7 +101,7 @@ class Body extends Component {
    this.showingUrls = this.showingUrls.bind(this);
    this.handleCloseDialogSelectedData = this.handleCloseDialogSelectedData.bind(this)
    //#ff7f0e:orange, #2ca02c:green, #17becf:light blue, #b27eac:purple
-   this.colorDefault= [ '#17becf','#b27eac', '#ff7f0e', '#2ca02c',  '#9467bd', '#8c564b', '#e377c2', '#98bd22', '#bcbd22' ];
+   this.colorDefault= [ '#17becf', '#2ca02c','#b27eac', '#bcbd22', '#ff7f0e', '#8c564b',  '#e377c2', '#f198f1', '#bcbd22' ];
    this.colorTags= [ '#9E9E9E', '#0D47A1', '#C62828', '#FFFFFF'];
    this.tagsNames ={};
      this.fontSize='13px';
