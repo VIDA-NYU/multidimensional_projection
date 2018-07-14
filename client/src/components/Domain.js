@@ -25,8 +25,8 @@ class Domain extends Component {
       index:this.props.location.query.index,
       open:false,
       session:this.createSession(this.props.location.query.idDomain),
-      typeRadViz:1,
-      nroCluster:4,
+      typeRadViz:4,
+      nroCluster:7,
       updatingRadViz:false
     };
     this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828"];
