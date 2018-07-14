@@ -37,6 +37,7 @@ import RadViz from './RadViz';
 import RaisedButton from 'material-ui/RaisedButton';
 import Toggle from 'material-ui/Toggle';
 import Snackbar from 'material-ui/Snackbar';
+import Dialog from 'material-ui/Dialog';
 const styles = {
   block: {
     maxWidth: 250,
@@ -84,7 +85,8 @@ class Body extends Component {
      buttonExpand:false,
      expandedData:[],
      toggledShowCheckBoxRemoveKeywords:false,
-     updatingRadViz: this.props.updatingRadViz
+     updatingRadViz: this.props.updatingRadViz,
+     openDialogSelectedData: false
    };
 
    this.updateOnSelection = this.updateOnSelection.bind(this);
@@ -97,6 +99,7 @@ class Body extends Component {
    this.handleUpdateInput_FindAnchor = this.handleUpdateInput_FindAnchor.bind(this);
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
+   this.handleCloseDialogSelectedData = this.handleCloseDialogSelectedData.bind(this)
    //#ff7f0e:orange, #2ca02c:green, #17becf:light blue, #b27eac:purple
    this.colorDefault= [ '#17becf','#b27eac', '#ff7f0e', '#2ca02c',  '#9467bd', '#8c564b', '#e377c2', '#98bd22', '#bcbd22' ];
    this.colorTags= [ '#9E9E9E', '#0D47A1', '#C62828', '#FFFFFF'];
@@ -535,6 +538,7 @@ componentWillReceiveProps(props){
   };
 
   multiScaleRadViz(){
+    if(this.checkSelectedData()){
     let numericalSubDataTSP = [];
     //console.log(this.state.data);
     //console.log(this.state.selectedPoints);
@@ -556,6 +560,7 @@ componentWillReceiveProps(props){
     this.setState({subdata:numericalSubDataTSP});
     this.forceUpdate();
   }
+  }
 
   handleChangeProjection(event, indexProjection, radvizTypeProjection){
     this.setState({radvizTypeProjection:radvizTypeProjection})
@@ -571,10 +576,23 @@ componentWillReceiveProps(props){
   resetButtonExpand(updatedExpandedData){
     this.setState({buttonExpand:false, expandedData:updatedExpandedData});
   }
-
+  checkSelectedData(){
+    var selectedPoints = true;
+    if(!this.state.selectedPoints.includes(true)){
+      //Handling open/close Dialog
+      this.setState({openDialogSelectedData: true});
+      selectedPoints = false;
+    }
+    return selectedPoints;
+  }
+  handleCloseDialogSelectedData(){
+    this.setState({openDialogSelectedData: false});
+  }
   handleExpandButton(){
-    this.setState({buttonExpand:true});
-    this.forceUpdate();
+    if(this.checkSelectedData()){
+      this.setState({buttonExpand:true});
+      this.forceUpdate();
+    }
   }
   handleCollapseButton(){
     this.setState({buttonExpand:false, expandedData:[]});
@@ -635,7 +653,7 @@ updateListRemoveKeywords(tempDelKeywords){
       let sigmoid = <div style={{display:'flex',marginLeft:'-100px', width:'100px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
       Translation<Slider style={{marginLeft:'10px'}} min={-1} max={1} step={0.01} defaultValue={0} onChange={this.updateSigmoidTranslate}/>
       </ListItem></div>;
-      let clusterSeparation = <div style={{display:'flex',marginLeft:'-100px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
+      let clusterSeparation = <div style={{display:'flex',marginLeft:'-70px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
       Cluster separation<Slider style={{marginLeft:'10px'}} min={0.15} max={0.35} step={0.01} defaultValue={0.2} onChange={this.updateClusterSeparation}/>
       </ListItem></div>;
       let clusterSimilarityThreshold = <div style={{display:'flex',marginLeft:'-10px'}}><ListItem style={{marginTop:5}} innerDivStyle={{marginTop:5}}>
@@ -681,7 +699,7 @@ updateListRemoveKeywords(tempDelKeywords){
         return <li style={{color:this.tagsNames[k], textTransform: 'capitalize', fontWeight: 'bold', float: 'left', margin:15}}> {k} </li>;
       });
       let buttonScaleData = <Button onClick={this.multiScaleRadViz.bind(this)} style={{textTransform: "capitalize", width: '59px', height: '37px', fontSize: '10px', padding:0}}>
-      Multi Scale
+      Sub-RadViz
       </Button>
       let buttonRemoveKeywords = <Button onClick={this.deleteKeywords.bind(this)} disabled={!this.state.toggledShowCheckBoxRemoveKeywords} style={{textTransform: "capitalize", width: '98px', height: '37px', fontSize: '10px', padding:2}}>
       Remove <br/> Selected Keywords
@@ -718,6 +736,13 @@ updateListRemoveKeywords(tempDelKeywords){
                 onClick={this.handleCollapseButton.bind(this)}
               />
       */
+      const actionsDialogSelectedData = [
+        <FlatButton
+        label='Ok'
+        primary={true}
+        onClick={this.handleCloseDialogSelectedData}
+        />,
+      ];
       return(
         <div>
         <Grid>
@@ -757,18 +782,18 @@ updateListRemoveKeywords(tempDelKeywords){
             <Row className='Menus-child'>
             <div style={{ marginTop:'5px', marginLeft:'-230px' ,marginRight:'-60px', marginBottom:'-5px'}}>
             <Toolbar style={{width:'100%',height:'70%'}}>
-              <ToolbarGroup firstChild={true} style={{marginLeft:'-10px', marginRight:'-80px'}}>
+              <ToolbarGroup firstChild={true} style={{marginLeft:'-45px', marginRight:'-65px', marginTop:'-10px'}}>
               <DropDownMenu value={this.state.radvizTypeProjection} onChange={this.handleChangeProjection.bind(this)}>
                  <MenuItem value={1} primaryText="Original_RadViz" />
                  <MenuItem value={2} primaryText="N_TopKeywords" />
                  <MenuItem value={3} primaryText="Remove_C_Keywords" />
-                 <MenuItem value={4} primaryText="Cluster_PCA" />
+                 <MenuItem value={4} primaryText="MultiScale_RadViz" />
                  <MenuItem value={5} primaryText="UnlabeledData_based_Class" />
               </DropDownMenu>
               </ToolbarGroup >
               <ToolbarGroup >
-              #Clusters
-              <DropDownMenu value={this.state.radvizNroCluster} onChange={this.handleChangeNroCluster.bind(this)} style={{marginLeft:'-15px'}}>
+              Number of Clusters
+              <DropDownMenu value={this.state.radvizNroCluster} onChange={this.handleChangeNroCluster.bind(this)} style={{marginLeft:'-17px', marginTop:'-10px' }}>
                  <MenuItem value={1} primaryText="1" />
                  <MenuItem value={2} primaryText="2" />
                  <MenuItem value={3} primaryText="3" />
@@ -800,26 +825,8 @@ updateListRemoveKeywords(tempDelKeywords){
               </ToolbarGroup >
             </Toolbar>
             </div>
-            {/*}<div style={{position: 'absolute', left: '-5%', marginTop:'10px' ,marginRight:'-20px' }}>
-            <ButtonGroup>
-              <OverlayTrigger placement='bottom' overlay={<Tooltip id='tooltip'>Relevant</Tooltip>}>
-                <Button >
-                   <IconButton onTouchTap={this.tagsRelevant.bind(this)} iconStyle={{width:25,height: 25,marginBottom:'-9px', color:'#0000FF' }} style={{height: 8, margin: '-10px', padding:0,}}><RelevantFace /></IconButton>
-                </Button>
-              </OverlayTrigger>
-              <OverlayTrigger placement='bottom' overlay={<Tooltip id='tooltip'>Irrelevant</Tooltip>}>
-                <Button>
-                  <IconButton onTouchTap={this.tagsIrrelevant.bind(this)} iconStyle={{width:25,height: 25,marginBottom:'-9px',color:'#FF0000'  }} style={{height: 8, margin: '-10px', padding:0}}><IrrelevantFace /></IconButton>
-                </Button>
-              </OverlayTrigger>
-              <OverlayTrigger placement='bottom' overlay={<Tooltip id='tooltip'>Neutral</Tooltip>}>
-                <Button >
-                  <IconButton onTouchTap={this.tagsNeutral.bind(this)} iconStyle={{width:25,height: 25,marginBottom:'-9px', color:'#C0C0C0' }} style={{height: 8, margin: '-10px', padding:0,}}><NeutralFace /></IconButton>
-                </Button>
-              </OverlayTrigger>
-            </ButtonGroup>
-            </div>*/}
-            {linkBackOriginalData}
+            </Row>
+            <Row>
             <RadViz data={this.state.data} colors={this.state.colors} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
@@ -830,13 +837,14 @@ updateListRemoveKeywords(tempDelKeywords){
             updateListRemoveKeywords={this.updateListRemoveKeywords.bind(this)} showCheckBoxRemoveKeywords={this.state.toggledShowCheckBoxRemoveKeywords}
             subradviz={false} />
             <ul style={{listStyleType: 'inside'}}>{legend} </ul>
-
+            </Row>
+            <Row>
+            <h2 style={{marginLeft:260, marginTop:50, marginBottom:15, fontSize: 20}}>Sub-RadViz</h2>
             <RadViz data={this.state.subdata} colors={this.state.colors_subRadviz} sigmoid_translate={this.state.sigmoidTranslate} sigmoid_scale={this.state.sigmoidScale}
             showedData={this.state.showedData} setSelectedPoints={this.setSelectedPoints.bind(this)} selectedSearchText={this.state.selectedSearchText}
             projection={this.state.dimNames[this.state.value]} modelResult={this.state.originalData[this.state.dimNames[this.state.value]]}
             searchText_FindAnchor={this.state.searchText_FindAnchor} subradviz={true}
             radvizTypeProjection={3} originalData={this.state.originalData} toggledShowLineSimilarity={false} expandedData={this.state.expandedData} buttonExpand={this.state.buttonExpand} />
-
             </Row>
 
           </Col>
@@ -857,12 +865,21 @@ updateListRemoveKeywords(tempDelKeywords){
             open={this.state.updatingRadViz}
             message="Updating Visualization"
           />
+
+          <Dialog
+          title='Selected Data'
+          actions={actionsDialogSelectedData}
+          onClose={this.handleCloseDialogSelectedData}
+          open={this.state.openDialogSelectedData}
+          >
+        There is no selected data. Please, select some data in the visualization.
+          </Dialog>
         </div>
 
       );
     }
     return(
-      <div>Loading data</div>
+      <div style={{marginTop:10}}>Please, wait a minute. Loading data ...</div>
     );
   }
 }
