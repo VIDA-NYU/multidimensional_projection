@@ -1013,7 +1013,7 @@ ViewTabSnippets.defaultProps = {
   height_TagButton: '90%',
   width_TagIconButton:20, height_TagIconButton: 20, marginBottom_TagIconButton:'-1px',
   width_TagButton:35,
-  width_divSnippet: '59%',
+  width_divSnippet: '57%',
   marginLeft_divSnippet:'-8px',
   width_areaSnippet: '448px'
 
