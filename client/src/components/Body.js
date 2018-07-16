@@ -746,7 +746,7 @@ updateListRemoveKeywords(tempDelKeywords){
       return(
         <div>
         <Grid>
-          <Col  ls={7} md={7} style={{ background:'white',}}>
+          <Col  ls={7} md={7} style={{ background:'white', marginLeft:80}}>
             <Row className='Menus-child'>
             <div style={{ marginLeft:'-230px' ,marginRight:'-60px', marginBottom:'-15px',}}>
             <Toolbar style={{width:'100%',height:'70%'}}>
@@ -849,7 +849,7 @@ updateListRemoveKeywords(tempDelKeywords){
 
           </Col>
 
-          <Col  ls={4} md={4} style={{background:'white', marginLeft:'60px', borderLeft: '2px solid', borderColor:'lightgray'}}>
+          <Col  ls={4} md={4} style={{background:'white', marginLeft:'60px', marginRight:'-180px',  borderLeft: '2px solid', borderColor:'lightgray'}}>
             <Row className='Menus-child' >
             <div style={{width:'448px', borderTop:'solid', paddingTop:10, paddingLeft:20, borderRight: '2px solid', borderColor:'lightgray'}}>
             <WordCloud dimNames={this.state.dimNames} selectedPoints={this.state.selectedPoints} originalData={this.state.originalData}/>
