@@ -57,7 +57,7 @@ def fetch_data( index, filterByTerm, removeKeywords, categories=[], remove_dupli
 
     res = es.search(body=query,
                     index=index,
-                    doc_type=doctype, request_timeout=600)
+                    doc_type=doctype, request_timeout=2000)
 
     if res['hits']['hits']:
         hits = res['hits']['hits']
