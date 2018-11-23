@@ -13,7 +13,7 @@ dependencies:
     - joblib
     - functools32
     - jinja2
-    - nodejs
+    - nodejs ==8.11.4
     - dateutil
     - elasticsearch <2.0.0
     - pyelasticsearch >=1.2
