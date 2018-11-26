@@ -28,7 +28,7 @@ import TextField from 'material-ui/TextField';
 
 const styles = {
   backgound: {
-    background: "#50137A"
+    background: '#50137A'
   },
   titleText: {
     color: 'white'
@@ -91,32 +91,32 @@ class Header extends Component {
 };
 
 componentWillMount(){
-    console.log("header componentWillMount");
+    console.log('header componentWillMount');
     this.setState({idDomain: this.props.currentIdDomain, });
 };
 
-componentWillReceiveProps  = (newProps, nextState) => {
-  console.log("header componentWillReceiveProps");
+componentWillReceiveProps(newProps, nextState){
+  console.log('header componentWillReceiveProps');
   let newState = {};
   if(newProps.currentIdDomain ===this.state.idDomain){
-    if(newProps.filterTerm=="" && this.state.searchText!==""){
-      newState["searchText"] = newProps.filterTerm;
+    if(newProps.filterTerm=='' && this.state.searchText!==''){
+      newState['searchText'] = newProps.filterTerm;
     }
     else return;
   }
-  newState["idDomain"] = newProps.currentIdDomain;
+  newState['idDomain'] = newProps.currentIdDomain;
   this.setState(newState);
 
 };
 
 
-handleUpdateInput = (searchText) => {
+handleUpdateInput(searchText){
   this.setState({
     searchText: searchText,
   });
 };
 
-handleNewRequest = (searchText) => {
+    handleNewRequest(searchText){
   this.setState({
     searchText: searchText,
   });
@@ -124,7 +124,7 @@ handleNewRequest = (searchText) => {
 };
 
 render() {
-  console.log("header");
+  console.log('header');
   return (
       <AppBar showMenuIconButton={true}
         style={styles.backgound}
@@ -137,21 +137,21 @@ render() {
         <ToolbarTitle text={this.props.currentNameDomain} style={styles.tittleCurrentDomain}/>
         <ToolbarSeparator  />
         <Link to='/'>
-          <IconButton tooltip="Change Domain" style={{marginLeft:'-15px'}} > <Domain />
+          <IconButton tooltip='Change Domain' style={{marginLeft:'-15px'}} > <Domain />
           </IconButton>
         </Link>
         <ToolbarSeparator  />
 
           <AutoComplete
-             style={{width:'35%',marginRight:'0px', marginTop:5, height: 35, borderColor: 'gray', borderWidth: 1, background:"white", borderRadius:"5px"}}
-             hintText="Search ..."
-             hintStyle={{marginBottom:"0px", marginLeft:10}}
+             style={{width:'35%',marginRight:'0px', marginTop:5, height: 35, borderColor: 'gray', borderWidth: 1, background:'white', borderRadius:'5px'}}
+             hintText='Search ...'
+             hintStyle={{marginBottom:'0px', marginLeft:10}}
              inputStyle={{marginBottom:10, marginLeft:10}}
              underlineShow={false}
              searchText={this.state.searchText}
              onUpdateInput={this.handleUpdateInput}
              onNewRequest={this.handleNewRequest}
-             dataSource={[""]}
+             dataSource={['']}
              filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
              openOnFocus={true}
          />

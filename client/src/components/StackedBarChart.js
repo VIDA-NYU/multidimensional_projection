@@ -19,7 +19,7 @@ class StackedBarChart extends Component {
     }
 
     render(){
-        if (this.props.type === "HORIZONTAL"){
+        if (this.props.type === 'HORIZONTAL'){
             return this.renderHorizontal();
         }
     }
@@ -88,12 +88,13 @@ class StackedBarChart extends Component {
         var y_text_bar = 20;
         var y_rec_bar = 10;
         var list = this.props.termFrequencies;
-        var termsSorted = Object.keys(list).sort(function(a,b){return list[b]-list[a]}); //this is an arrays of sorted terms.
+        var termsSorted = Object.keys(list).sort(function(a,b){return list[b]-list[a];});
+	//this is an arrays of sorted terms.
 
         termsSorted.forEach(function(termSorted) {
             if (this.props.selectedAnchors[termSorted] || !(this.props.selectedAnchors.includes(true)) ){ //boolean operator OR . if there is not anyitem selected, then show all features.
                 let bars_i =   <g key={termSorted}>
-                  <rect x={25} y={y_rec_bar} width={this.props.termFrequencies[termSorted]} height="11"  fill={"#FFFF00"} stroke={"#CCCC00"}/>
+                  <rect x={25} y={y_rec_bar} width={this.props.termFrequencies[termSorted]} height='11'  fill={'#FFFF00'} stroke={'#CCCC00'}/>
                   <text textAnchor='start' x={25} y={y_text_bar}  fontSize={11} fill={this.props.colorText} >{termSorted}</text>
                   </g>;
                 bars.push(bars_i);
@@ -122,7 +123,7 @@ class StackedBarChart extends Component {
             end = this.state.dragStart[1];
           }
 
-          let styleSelectionLine = {stroke:"#EEE",strokeWidth:2};
+          let styleSelectionLine = {stroke:'#EEE',strokeWidth:2};
           if (start !== end){
               selectionPoly = [<rect x={this.props.x} width={this.props.width} y={this.props.y} height={Math.max(0, start)}
                                     style={selectionStyle} key={1}/>,
@@ -130,7 +131,7 @@ class StackedBarChart extends Component {
                                     style={selectionStyle} key={2}/>];
 
               selectionLines = [<line x1={this.props.x} y1={this.props.y + start} x2={this.props.x + this.props.width} y2={this.props.y + start} style={styleSelectionLine} key={1} />,
-                                <line x1={this.props.x} y1={this.props.y + end} x2={this.props.x + this.props.width} y2={this.props.y + end} style={styleSelectionLine} key={2} />]
+                                <line x1={this.props.x} y1={this.props.y + end} x2={this.props.x + this.props.width} y2={this.props.y + end} style={styleSelectionLine} key={2} />];
           }
       }
 

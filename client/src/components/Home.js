@@ -45,7 +45,7 @@ class Home extends Component {
   getAvailableDomains(){
     $.post(
       '/getAvailableDomains',
-      {"type": "init"},
+      {'type': 'init'},
 	function(domains) {
         this.setState({domains: domains['crawlers']});
       }.bind(this)
@@ -64,14 +64,14 @@ class Home extends Component {
       return (
         <div>
           <AppBar showMenuIconButton={true}
-            style={{background: "#50137A"}}
+            style={{background: '#50137A'}}
             title={  <span style={{color: 'white'}}> Document Explorer - Home </span>}
             //iconElementLeft={<IconButton><NavigationClose /></IconButton>}
             iconElementLeft={<img src={logoNYU}  height='45' width='40' />}
             //onLeftIconButtonTouchTap={this.removeRecord.bind(this)}
           >
           </AppBar>
-          <div className="jumbotron col-sm-12 text-center">
+          <div className='jumbotron col-sm-12 text-center'>
             <div style={{ marginLeft:'25%'}}>
               <Row>
                 <Col xs={6} md={6} style={styles.listDomains}>
@@ -79,11 +79,11 @@ class Home extends Component {
                     <Subheader style={{color:'black'}}><h2>Domains</h2></Subheader>
                     {Object.keys(mydata).map((k, i)=>{
 			var str = (mydata[k].name).replace(/\s+/g, '');
-			return <Link to={{ pathname: `/domain/${str}`, query: { nameDomain: mydata[k].name, idDomain: mydata[k].id, index: mydata[k].index} }}  text={"Machine Learning"}>
+			return <Link to={{ pathname: `/domain/${str}`, query: { nameDomain: mydata[k].name, idDomain: mydata[k].id, index: mydata[k].index} }}  text={'Machine Learning'}>
                       <ListItem key={i} style={{textAlign: 'left'}}
                       primaryText={mydata[k].name}
                       rightIcon={<Forward />} />
-                      </Link>
+			    </Link>;
                     })}
                   </List>
                 </Col>

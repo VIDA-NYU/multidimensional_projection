@@ -21,7 +21,7 @@ class Domain extends Component {
       colors:undefined,
       originalData:undefined,
       dimNames:[],
-      filterTerm:"",
+      filterTerm:'',
       index:this.props.location.query.index,
       open:false,
       session:this.createSession(this.props.location.query.idDomain),
@@ -29,33 +29,33 @@ class Domain extends Component {
       nroCluster:7,
       updatingRadViz:false
     };
-    this.colorTags= [ "#9E9E9E", "#0D47A1", "#C62828"];
+    this.colorTags= [ '#9E9E9E', '#0D47A1', '#C62828'];
   };
 
-  /*consultaQueries: {"search_engine":"GOOG","activeProjectionAlg":"Group by Correlation"
-  ,"domainId":"AVWjx7ciIf40cqEj1ACn","pagesCap":"100","fromDate":null,"toDate":null,
-  "filter":null,"pageRetrievalCriteria":"Most Recent","selected_morelike":"",
-  "model":{"positive":"Relevant","nagative":"Irrelevant"}}*/
+  /*consultaQueries: {'search_engine':'GOOG','activeProjectionAlg':'Group by Correlation'
+  ,'domainId':'AVWjx7ciIf40cqEj1ACn','pagesCap':'100','fromDate':null,'toDate':null,
+  'filter':null,'pageRetrievalCriteria':'Most Recent','selected_morelike':'',
+  'model':{'positive':'Relevant','nagative':'Irrelevant'}}*/
   createSession(domainId){
     var session = {};
-    session['search_engine'] = "GOOG";
-    session['activeProjectionAlg'] = "Group by Correlation";
+    session['search_engine'] = 'GOOG';
+    session['activeProjectionAlg'] = 'Group by Correlation';
     session['domainId'] = domainId;
-    session['pagesCap'] = "100";
+    session['pagesCap'] = '100';
     session['fromDate'] = null;
     session['toDate'] = null;
     session['filter'] = null; //null
-    session['pageRetrievalCriteria'] = "Most Recent";
-    session['selected_morelike'] = "";
-    session['selected_queries']="";
-    session['selected_tlds']="";
-    session['selected_aterms']="";
-    session['selected_tags']="";
-    session['selected_model_tags']="";
-    session['selected_crawled_tags']="";
+    session['pageRetrievalCriteria'] = 'Most Recent';
+    session['selected_morelike'] = '';
+    session['selected_queries']='';
+    session['selected_tlds']='';
+    session['selected_aterms']='';
+    session['selected_tags']='';
+    session['selected_model_tags']='';
+    session['selected_crawled_tags']='';
     session['model'] = {};
-    session['model']['positive'] = "Relevant";
-    session['model']['negative'] = "Irrelevant";
+    session['model']['positive'] = 'Relevant';
+    session['model']['negative'] = 'Irrelevant';
 
 
 
@@ -76,7 +76,7 @@ class Domain extends Component {
           let cluster_labels = [];
           data['Model Result'] = [];
           for (let i = 0; i < data['labels'].length; ++i){
-              data['Model Result'][i] = "neutral";
+              data['Model Result'][i] = 'neutral';
               data['labels'][i]= data['labels'][i].split(',');
               if(!(cluster_labels.includes(data['pred_labels'][i]))) cluster_labels.push(data['pred_labels'][i]);
               //colors.push(scaleColor(data['tags'][0]));
@@ -112,11 +112,11 @@ class Domain extends Component {
   }
 
   componentWillMount(){
-    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, this.state.typeRadViz, this.state.nroCluster, "");
+    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, this.state.typeRadViz, this.state.nroCluster, '');
     this.setState({idDomain: this.props.location.query.idDomain});
   };
 
-  componentWillReceiveProps  = (newProps, nextState) => {
+  componentWillReceiveProps(newProps, nextState){
     if(newProps.location.query.idDomain ===this.state.idDomain){
       return;
     }
@@ -126,22 +126,22 @@ class Domain extends Component {
 
   //Filter by terms (ex. ebola AND virus)
   filterKeyword(filterTerm){
-    this.loadDataFromElasticSearch(this.state.index, filterTerm, this.state.typeRadViz, this.state.nroCluster, "");
+    this.loadDataFromElasticSearch(this.state.index, filterTerm, this.state.typeRadViz, this.state.nroCluster, '');
   }
-  handleOpen = () => {
+  handleOpen(){
     this.setState({open: true});
   };
 
-  handleClose = () => {
+  handleClose(){
     this.setState({open: false});
   };
 
   changeTypeRadViz(typeRadViz){
-    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, typeRadViz, this.state.nroCluster, "");
+    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, typeRadViz, this.state.nroCluster, '');
     this.setState({typeRadViz: typeRadViz});
   }
   changeNroCluster(nroCluster){
-    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, this.state.typeRadViz, nroCluster, "");
+    this.loadDataFromElasticSearch(this.state.index, this.state.filterTerm, this.state.typeRadViz, nroCluster, '');
     this.setState({nroCluster: nroCluster});
   }
 
@@ -154,7 +154,7 @@ class Domain extends Component {
   render() {
     const actions = [
         <FlatButton
-          label="Ok"
+          label='Ok'
           primary={true}
           onTouchTap={this.handleClose}
         />,

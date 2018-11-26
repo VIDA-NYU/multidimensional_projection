@@ -5,7 +5,7 @@ import $ from 'jquery';
 import TSNE from 'tsne-js';
 import PCA from 'ml-pca';
 import Checkbox from 'material-ui/Checkbox';
-import StackedBarChart from './StackedBarChart'
+import StackedBarChart from './StackedBarChart';
 const styles = {
   block: {
     maxWidth: 250,
@@ -335,7 +335,7 @@ class RadViz extends Component {
       }
       var scaleX_Cluster = scaleLinear().domain([-1,1]).range([marginX_up, marginX_down]);
       var scaleY_Cluster = scaleLinear().domain([-1,1]).range([marginY_up, marginY_down]);
-    //  console.log(this.scaleX(p0) + ", " + this.scaleY(p1));
+    //  console.log(this.scaleX(p0) + ', ' + this.scaleY(p1));
       if(this.props.showedData===0){
           ret.push(<circle cx={this.scaleX(p0)} cy={this.scaleY(p1)} r={3} key={i} style={{stroke:(this.state.selected[i]?'black':'none'),fill:this.props.colors[i], opacity:((this.state.selected[i]||(!(this.state.selected.includes(true))))?1:0.3),}}/>);
       }
@@ -583,7 +583,7 @@ class RadViz extends Component {
       for(let k=0; k<Object.keys(data_clusters).length; k++){
         var clusterName = Object.keys(data_clusters)[k];
         var vecA = normalizedData_medoidsCluster[this.labels_medoidsCluster.indexOf(clusterName)]; //var index_labelCluster = this.labels_medoidsCluster.indexOf(clusterName);
-        var max =0; var indexMax = ""; var indexMaxName={};
+        var max =0; var indexMax = ''; var indexMaxName={};
         var similarityArray=[];
         for(let l=0; l<Object.keys(data_clusters).length; l++){
           var pairSimilar ={};
@@ -698,7 +698,7 @@ class RadViz extends Component {
 
       var pairwise_medoidsPoints = [];
       var maxSimilarities = this.getSimilarityMatrix(this.normalizedData_medoidsCluster, data_clusters);
-      //console.log("SIMILARITIES");
+      //console.log('SIMILARITIES');
       //console.log(maxSimilarities);
       var cont =0;
       for(let k=0; k<Object.keys(maxSimilarities).length; k++){
@@ -732,7 +732,7 @@ class RadViz extends Component {
     }
 
     intraClusterDist(points_in_cluster, centroid){
-      var total_dist = 0
+	var total_dist = 0;
       //for every item in cluster j, compute the distance the the center of cluster j, take average
       for(var i=0; i<points_in_cluster.length; i++){
         var p = points_in_cluster[i];
@@ -758,7 +758,7 @@ class RadViz extends Component {
             var inter_cluster_dist = this.euclideanDistance(centroids[j], centroids[i]);
             var DBi = (intra_cluster_dists[i] + intra_cluster_dists[j])/inter_cluster_dist;
             if(DBi > max_num){
-                max_num = DBi
+                max_num = DBi;
             }
           }
         }
@@ -855,7 +855,7 @@ class RadViz extends Component {
       }
       /*console.log(temp_clusters_points);
       console.log(temp_centroids);
-      console.log("**********************************************************************");
+      console.log('**********************************************************************');
       console.log(this.clusters_points);
       console.log(this.centroids);*/
       //evaluate Davies Blanid Index
@@ -868,10 +868,10 @@ class RadViz extends Component {
     setLines(i, ret, p0, p1,p2,p3, color){
       if(i>3){
         i=i-0.5;
-        ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:color, strokeWidth:i, borderTop: 'dashed', strokeDasharray:"8, 0", dropShadow:"0 2px 1px black"}} />);
+        ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:color, strokeWidth:i, borderTop: 'dashed', strokeDasharray:'8, 0', dropShadow:'0 2px 1px black'}} />);
       }
       else{
-        ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:color, strokeWidth:i, borderTop: 'dashed', strokeDasharray:"5, 3", dropShadow:"0 2px 1px black"}} />);
+        ret.push(<line x1={this.scaleX(p0)} y1={this.scaleY(p1)} x2={this.scaleY(p2)} y2={this.scaleY(p3)} style={{stroke:color, strokeWidth:i, borderTop: 'dashed', strokeDasharray:'5, 3', dropShadow:'0 2px 1px black'}} />);
       }
       return ret;
     }
@@ -1264,7 +1264,7 @@ class RadViz extends Component {
     }
 
     render() {
-      //console.log("Render RADVIZ");
+      //console.log('Render RADVIZ');
       let sampleDots = [];
       let anchorDots = [];
       let anchorText = [];
@@ -1296,20 +1296,20 @@ class RadViz extends Component {
           var x_checkbox =10;
           var x_rect = x_checkbox-1;
           var x_checkbox_else = (-1)*x_checkbox;
-          var checkBoxList1 = (this.state.showCheckBoxRemoveKeywords)? <foreignObject  x={-4} y={-14}  transform={`rotate(${(normalizedAngle)*180/Math.PI})`}> <label onClick={this.addDelKeywords.bind(this, i) }  ><input id="checkBox" type="checkbox" value={i}/></label></foreignObject> : <div/>;
-          var checkBoxList2 =  (this.state.showCheckBoxRemoveKeywords)? <foreignObject  x={-8} y={-7}  transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)` }><label onClick={this.addDelKeywords.bind(this,i) }  > <input id="checkBox" type="checkbox" value={i}/></label></foreignObject> : <div/>;
+          var checkBoxList1 = (this.state.showCheckBoxRemoveKeywords)? <foreignObject  x={-4} y={-14}  transform={`rotate(${(normalizedAngle)*180/Math.PI})`}> <label onClick={this.addDelKeywords.bind(this, i) }  ><input id='checkBox' type='checkbox' value={i}/></label></foreignObject> : <div/>;
+          var checkBoxList2 =  (this.state.showCheckBoxRemoveKeywords)? <foreignObject  x={-8} y={-7}  transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)` }><label onClick={this.addDelKeywords.bind(this,i) }  > <input id='checkBox' type='checkbox' value={i}/></label></foreignObject> : <div/>;
           if (Math.abs(normalizedAngle) < Math.PI/2){
             anchorText.push(
               <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
               {checkBoxList1}
-              <rect x={x_rect} y={-8} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#FFFF00"} stroke={"#CCCC00"}/>
+              <rect x={x_rect} y={-8} width={this.state.termFrequencies[this.state.dimNames[i]]} height='11' transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={'#FFFF00'} stroke={'#CCCC00'}/>
               <text textAnchor='start' x={x_checkbox} y={0} onMouseDown={this.startDragAnchor(i)}   fontSize={sizeText} fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI})`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
               </g>);
           }else{
             anchorText.push(
               <g transform={`translate(${this.scaleX(anchorXY[i][0]*1.06)}, ${this.scaleX(anchorXY[i][1]*1.06)})`} key={i}>
               {checkBoxList2}
-              <rect x={x_rect} y={-9} width={this.state.termFrequencies[this.state.dimNames[i]]} height="11" transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={"#FFFF00"} stroke={"#CCCC00"}/>
+              <rect x={x_rect} y={-9} width={this.state.termFrequencies[this.state.dimNames[i]]} height='11' transform={`rotate(${(normalizedAngle)*180/Math.PI})`} fill={'#FFFF00'} stroke={'#CCCC00'}/>
               <text textAnchor='end' x={x_checkbox_else} y={7} onMouseDown={this.startDragAnchor(i)} fontSize={sizeText} fill={colorText} stroke={strokeText} transform={`rotate(${(normalizedAngle)*180/Math.PI}) rotate(180)`} style={{fill:{colorText}, opacity:((selectedAnchors[this.state.dimNames[i]]||(!(this.state.selected.includes(true))))?1:0.3),}}>{this.state.dimNames[i]}</text>
               </g>);
             }

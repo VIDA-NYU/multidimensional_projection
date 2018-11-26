@@ -99,7 +99,7 @@ class Body extends Component {
    this.handleUpdateInput_FindAnchor = this.handleUpdateInput_FindAnchor.bind(this);
    this.showingData = this.showingData.bind(this);
    this.showingUrls = this.showingUrls.bind(this);
-   this.handleCloseDialogSelectedData = this.handleCloseDialogSelectedData.bind(this)
+     this.handleCloseDialogSelectedData = this.handleCloseDialogSelectedData.bind(this);
    //#ff7f0e:orange, #2ca02c:green, #17becf:light blue, #b27eac:purple
    this.colorDefault= [ '#17becf', '#2ca02c','#b27eac', '#bcbd22', '#ff7f0e', '#8c564b',  '#e377c2', '#f198f1', '#bcbd22' ];
    this.colorTags= [ '#9E9E9E', '#0D47A1', '#C62828', '#FFFFFF'];
@@ -548,13 +548,12 @@ componentWillReceiveProps(props){
         Object.keys(this.state.data[i]).forEach(function(key) {
           if(this.state.selectedPoints[i]){
             if(this.state.selectedAnchors[key]){
-              //console.log("entro");
+              //console.log('entro');
               aux[key] = this.state.data[i][key];
             }
           }
         }.bind(this));
-        if(Object.keys(aux).length>0)
-          numericalSubDataTSP.push(aux);
+        if(Object.keys(aux).length>0) numericalSubDataTSP.push(aux);
     }
     //console.log(numericalSubDataTSP);
     this.setState({subdata:numericalSubDataTSP});
@@ -563,11 +562,11 @@ componentWillReceiveProps(props){
   }
 
   handleChangeProjection(event, indexProjection, radvizTypeProjection){
-    this.setState({radvizTypeProjection:radvizTypeProjection})
+      this.setState({radvizTypeProjection:radvizTypeProjection});
     this.props.changeTypeRadViz(radvizTypeProjection);
   };
   handleChangeNroCluster(event, indexProjection, radvizNroCluster){
-    this.setState({radvizNroCluster:radvizNroCluster})
+      this.setState({radvizNroCluster:radvizNroCluster});
     this.props.changeNroCluster(radvizNroCluster);
   };
   onToggleShowSimilatiryLines(){
@@ -698,41 +697,41 @@ updateListRemoveKeywords(tempDelKeywords){
       var legend = Object.keys(this.tagsNames).map((k, index)=>{
         return <li style={{color:this.tagsNames[k], textTransform: 'capitalize', fontWeight: 'bold', float: 'left', margin:15}}> {k} </li>;
       });
-      let buttonScaleData = <Button onClick={this.multiScaleRadViz.bind(this)} style={{textTransform: "capitalize", width: '59px', height: '37px', fontSize: '10px', padding:0}}>
+      let buttonScaleData = <Button onClick={this.multiScaleRadViz.bind(this)} style={{textTransform: 'capitalize', width: '59px', height: '37px', fontSize: '10px', padding:0}}>
       Sub-RadViz
-      </Button>
-      let buttonRemoveKeywords = <Button onClick={this.deleteKeywords.bind(this)} disabled={!this.state.toggledShowCheckBoxRemoveKeywords} style={{textTransform: "capitalize", width: '98px', height: '37px', fontSize: '10px', padding:2}}>
+	</Button>;
+      let buttonRemoveKeywords = <Button onClick={this.deleteKeywords.bind(this)} disabled={!this.state.toggledShowCheckBoxRemoveKeywords} style={{textTransform: 'capitalize', width: '98px', height: '37px', fontSize: '10px', padding:2}}>
       Remove <br/> Selected Keywords
-      </Button>
-      let buttonExpandCluster = <Button onClick={this.handleExpandButton.bind(this)} style={{textTransform: "capitalize", width: '59px', height: '37px', fontSize: '10px', padding:0}}>
+	</Button>;
+      let buttonExpandCluster = <Button onClick={this.handleExpandButton.bind(this)} style={{textTransform: 'capitalize', width: '59px', height: '37px', fontSize: '10px', padding:0}}>
       Expand<br/>Cluster
-      </Button>
-      let buttonCollapseClusters = <Button onClick={this.handleCollapseButton.bind(this)} style={{textTransform: "capitalize", width: '59px', height: '37px', fontSize: '10px', padding:0}}>
+	</Button>;
+      let buttonCollapseClusters = <Button onClick={this.handleCollapseButton.bind(this)} style={{textTransform: 'capitalize', width: '59px', height: '37px', fontSize: '10px', padding:0}}>
       Collapse<br/>clusters
-      </Button>
+	</Button>;
 
       /*let buttonScaleData = <RaisedButton
-                label="Multi "
-                labelStyle={{textTransform: "capitalize", fontSize:14, fontWeight:"normal", marginLeft:2, marginRight:2}}
+                label='Multi '
+                labelStyle={{textTransform: 'capitalize', fontSize:14, fontWeight:'normal', marginLeft:2, marginRight:2}}
                 backgroundColor={this.props.backgroundColor}
                 //icon={<Search />}
-                style={{width:110, height:35, marginTop: 0, marginRight: 2, marginLeft:"-20px"}}
+                style={{width:110, height:35, marginTop: 0, marginRight: 2, marginLeft:'-20px'}}
                 onClick={this.multiScaleRadViz.bind(this)}
               />
       let buttonExpandCluster= <RaisedButton
-                label="Expand Cluster"
-                labelStyle={{textTransform: "capitalize", fontSize:10, fontWeight:"normal", marginLeft:0, marginRight:0}}
+                label='Expand Cluster'
+                labelStyle={{textTransform: 'capitalize', fontSize:10, fontWeight:'normal', marginLeft:0, marginRight:0}}
                 backgroundColor={this.props.backgroundColor}
                 //icon={<Search />}
-                style={{width:110, height:35, marginTop: 0, marginRight: 0, marginLeft:"-20px"}}
+                style={{width:110, height:35, marginTop: 0, marginRight: 0, marginLeft:'-20px'}}
                 onClick={this.handleExpandButton.bind(this)}
               />
       let buttonCollapseClusters= <RaisedButton
-                label="Collapse clusters"
-                labelStyle={{textTransform: "capitalize", fontSize:10, fontWeight:"normal", marginLeft:0, marginRight:0}}
+                label='Collapse clusters'
+                labelStyle={{textTransform: 'capitalize', fontSize:10, fontWeight:'normal', marginLeft:0, marginRight:0}}
                 backgroundColor={this.props.backgroundColor}
                 //icon={<Search />}
-                style={{width:115, height:35, marginTop: 0, marginRight: 0, marginLeft:"-20px"}}
+                style={{width:115, height:35, marginTop: 0, marginRight: 0, marginLeft:'-20px'}}
                 onClick={this.handleCollapseButton.bind(this)}
               />
       */
@@ -764,7 +763,7 @@ updateListRemoveKeywords(tempDelKeywords){
                 </ToolbarGroup>
                 <ToolbarGroup style={{marginLeft:'-100px',marginTop:'0px', width:150}}>
                 <Toggle
-                  label="Select keyword" //Clusters similarity
+                  label='Select keyword' //Clusters similarity
                   toggled={this.state.toggledShowCheckBoxRemoveKeywords}
                   style={{width:150}}
                   onClick={this.onToggleShowCheckBoxRemoveKeywords.bind(this)}
@@ -784,26 +783,26 @@ updateListRemoveKeywords(tempDelKeywords){
             <Toolbar style={{width:'100%',height:'70%'}}>
               <ToolbarGroup firstChild={true} style={{marginLeft:'-45px', marginRight:'-65px', marginTop:'-10px'}}>
               <DropDownMenu value={this.state.radvizTypeProjection} onChange={this.handleChangeProjection.bind(this)}>
-                 <MenuItem value={1} primaryText="Original_RadViz" />
-                 <MenuItem value={2} primaryText="N_TopKeywords" />
-                 <MenuItem value={3} primaryText="Remove_C_Keywords" />
-                 <MenuItem value={4} primaryText="MultiScale_RadViz" />
-                 <MenuItem value={5} primaryText="UnlabeledData_based_Class" />
+                 <MenuItem value={1} primaryText='Original_RadViz' />
+                 <MenuItem value={2} primaryText='N_TopKeywords' />
+                 <MenuItem value={3} primaryText='Remove_C_Keywords' />
+                 <MenuItem value={4} primaryText='MultiScale_RadViz' />
+                 <MenuItem value={5} primaryText='UnlabeledData_based_Class' />
               </DropDownMenu>
               </ToolbarGroup >
               <ToolbarGroup >
               Number of Clusters
               <DropDownMenu value={this.state.radvizNroCluster} onChange={this.handleChangeNroCluster.bind(this)} style={{marginLeft:'-17px', marginTop:'-10px' }}>
-                 <MenuItem value={1} primaryText="1" />
-                 <MenuItem value={2} primaryText="2" />
-                 <MenuItem value={3} primaryText="3" />
-                 <MenuItem value={4} primaryText="4" />
-                 <MenuItem value={5} primaryText="5" />
-                 <MenuItem value={6} primaryText="6" />
-                 <MenuItem value={7} primaryText="7" />
-                 <MenuItem value={8} primaryText="8" />
-                 <MenuItem value={9} primaryText="9" />
-                 <MenuItem value={10} primaryText="10" />
+                 <MenuItem value={1} primaryText='1' />
+                 <MenuItem value={2} primaryText='2' />
+                 <MenuItem value={3} primaryText='3' />
+                 <MenuItem value={4} primaryText='4' />
+                 <MenuItem value={5} primaryText='5' />
+                 <MenuItem value={6} primaryText='6' />
+                 <MenuItem value={7} primaryText='7' />
+                 <MenuItem value={8} primaryText='8' />
+                 <MenuItem value={9} primaryText='9' />
+                 <MenuItem value={10} primaryText='10' />
               </DropDownMenu>
               </ToolbarGroup >
 
@@ -817,7 +816,7 @@ updateListRemoveKeywords(tempDelKeywords){
               <ToolbarGroup style={{marginLeft:'0px', width:310}}>
               {clusterSimilarityThreshold}
               <Toggle
-                label="High similarity by cluster" //Clusters similarity
+                label='High similarity by cluster' //Clusters similarity
                 toggled={this.state.toggledShowLineSimilarity}
                 style={{width:143}}
                 onClick={this.onToggleShowSimilatiryLines.bind(this)}
@@ -863,7 +862,7 @@ updateListRemoveKeywords(tempDelKeywords){
           </Grid>
             <Snackbar
             open={this.state.updatingRadViz}
-            message="Updating Visualization"
+            message='Updating Visualization'
           />
 
           <Dialog

@@ -13,7 +13,7 @@ import Avatar from 'material-ui/Avatar';
 import ActionAssignment from 'material-ui/svg-icons/action/assignment';
 import CircularProgress from 'material-ui/CircularProgress';
 import Chip from 'material-ui/Chip';
-import NoFoundImg from './images_not_available.png';
+import NoFoundImg from '../images/images_not_available.png';
 import RelevantFace from 'material-ui/svg-icons/action/thumb-up';
 import IrrelevantFace from 'material-ui/svg-icons/action/thumb-down';
 import NeutralFace from 'material-ui/svg-icons/action/thumbs-up-down';
@@ -889,8 +889,8 @@ class ViewTabSnippets extends React.Component{
     return (
       <div>
       <div style={{width:'448px', borderTop:'solid', borderRight: 'solid', borderColor:'lightgray',marginRight:'-50px', paddingTop: 5}}>
-        <p style={{float:"left", color: "#757575", fontSize: "13px", fontWeight: "500", marginLeft:'10px',}}> Selected pages: <span style={{color:'black'}}>{this.state.lengthTotalPages}</span> </p>
-        <p style={{float:"right", color: "#757575", fontSize: "13px", fontWeight: "500", marginRight: "11px",}}>  Domain Model Accuracy: {this.state.accuracyOnlineLearning} % </p>
+        <p style={{float:'left', color: '#757575', fontSize: '13px', fontWeight: '500', marginLeft:'10px',}}> Selected pages: <span style={{color:'black'}}>{this.state.lengthTotalPages}</span> </p>
+        <p style={{float:'right', color: '#757575', fontSize: '13px', fontWeight: '500', marginRight: '11px',}}>  Domain Model Accuracy: {this.state.accuracyOnlineLearning} % </p>
       </div>
       <div  style={{width:this.props.width_areaSnippet}}>
       <div style={{  marginLeft:'23px'}} >
