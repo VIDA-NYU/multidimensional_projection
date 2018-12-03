@@ -1,12 +1,11 @@
 import cherrypy
 from domain_discovery_API.server import Page
-#import domain_discovery_api.* as dd_api
 from ConfigParser import ConfigParser
 import json
 import os
 from threading import Lock
 import urlparse
-from RadvizModel import RadvizModel
+from domain_discovery_API.models.RadvizModel import RadvizModel
 
 class MDProjServer(Page):
   @staticmethod
@@ -32,14 +31,8 @@ class MDProjServer(Page):
   def __init__(self):
     path = os.path.dirname(__file__)
     self._radvizModel = RadvizModel(path)
-    models = {"domain": self._radvizModel}
+    models = {"domain": self._radvizModel, "radviz": self._radvizModel}
     super(MDProjServer, self).__init__(models, path)
-
-  # Extracts list of parameters: array is encoded as a long string with a delimiter.
-  @staticmethod
-  def extractListParam(param, opt_char = None):
-    delimiter = opt_char if opt_char != None else '|'
-    return param.split(delimiter) if len(param) > 0 else []
 
   # Access to seed crawler vis.
   @cherrypy.expose
@@ -50,30 +43,6 @@ class MDProjServer(Page):
   @cherrypy.expose
   def index(self):
     return self.mdprojvis()
-
-  @cherrypy.expose
-  def getRadvizPoints(self,session,filterByTerm, typeRadViz, nroCluster, removeKeywords):
-    session = json.loads(session)
-    removeKeywords = self.extractListParam(removeKeywords)
-    result = self._radvizModel.getRadvizPoints(session,filterByTerm, typeRadViz, nroCluster, removeKeywords)
-    return json.dumps(result)
-
-  @cherrypy.expose
-  def getURLsMetadata(self):
-    result = self._radvizModel.getURLsMetadata()
-    return result
-
-  @cherrypy.expose
-  def computeTSP(self):
-    result = self._radvizModel.computeTSP()
-    return json.dumps(result)
-
-  @cherrypy.expose
-  def getNumericalData_MedoidCluster(self,features_tsp):
-    #session = json.loads(session)
-    features_tsp = self.extractListParam(features_tsp)
-    result = self._radvizModel.getNumericalData_MedoidCluster(features_tsp)
-    return json.dumps(result)
 
 if __name__ == "__main__":
   server = MDProjServer()
